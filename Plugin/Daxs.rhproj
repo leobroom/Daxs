@@ -1,0 +1,77 @@
+{
+  "host": {
+    "name": "Rhino3D",
+    "version": "8.21.25188\u002B17001",
+    "os": "windows",
+    "arch": "x64"
+  },
+  "id": "407e1318-1507-447b-9f9e-793117c01e00",
+  "identity": {
+    "name": "Daxs",
+    "version": "0.1.1-beta",
+    "publisher": {
+      "email": "leonbrohmann@gmx.de",
+      "name": "Leon Brohmann"
+    },
+    "description": "A Rhino Package to support Gamepads like the XBox and PS4 Controller",
+    "copyright": "Copyright \u00A9 2025 Leon Brohmann",
+    "license": "MIT License",
+    "url": "https://www.leonbrohmann.de/"
+  },
+  "settings": {
+    "buildPath": "build/",
+    "buildTarget": {
+      "host": {
+        "name": "Rhino3D",
+        "version": "8",
+        "os": "windows"
+      },
+      "title": "Rhino3D (8.* - Windows)",
+      "slug": "rh8-win"
+    },
+    "publishTarget": {
+      "title": "McNeel Yak Server"
+    }
+  },
+  "codes": [
+    {
+      "id": "fc68511a-88b9-4729-a9c3-4a18f7341a99",
+      "language": {
+        "id": "*.*.csharp",
+        "version": "*.*.*"
+      },
+      "title": "X_StartStop",
+      "uri": "Commands/X_StartStop.cs"
+    },
+    {
+      "id": "7abc0615-165b-47a4-aff1-96a0b3323a10",
+      "language": {
+        "id": "*.*.csharp",
+        "version": "*.*.*"
+      },
+      "title": "X_Settings",
+      "uri": "Commands/X_Settings.cs"
+    },
+    {
+      "id": "a5908a87-a7a5-43b8-927d-2b4add014df7",
+      "language": {
+        "id": "*.*.csharp",
+        "version": "*.*.*"
+      },
+      "title": "X_Test",
+      "uri": "Commands/X_Test.cs"
+    }
+  ],
+  "libraries": [
+    {
+      "type": "uri",
+      "library": {
+        "base": "Daxs/",
+        "language": {
+          "id": "*.*.csharp",
+          "version": "*.*.*"
+        }
+      }
+    }
+  ]
+}
