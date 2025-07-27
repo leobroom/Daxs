@@ -1,6 +1,6 @@
 // #! csharp
-#r "SharpDX.dll"
-#r "SharpDX.XInput.dll"
+#r "nuget: SharpDX.XInput, 4.2.0"
+#r "nuget: SharpDX, 4.2.0"
 #r "nuget: SharpDX.DirectInput, 4.2.0"
 
 using System;

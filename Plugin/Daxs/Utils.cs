@@ -15,7 +15,7 @@ namespace Daxs
             Guid id = PlugIn.IdFromName("Daxs");
             PlugInInfo packageInfo = PlugIn.GetPlugInInfo(id);
             var pth = Path.GetDirectoryName(packageInfo.FileName);
-
+            RhinoApp.WriteLine(pth);
             return pth;
         }  
 

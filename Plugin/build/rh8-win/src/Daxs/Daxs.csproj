@@ -5,7 +5,7 @@
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <AssemblyName>Daxs</AssemblyName>
-    <AssemblyVersion>0.1.1.9336</AssemblyVersion>
+    <AssemblyVersion>0.1.12.9340</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

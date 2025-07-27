@@ -8,7 +8,7 @@
   "id": "407e1318-1507-447b-9f9e-793117c01e00",
   "identity": {
     "name": "Daxs",
-    "version": "0.1.1-beta",
+    "version": "0.1.12-beta",
     "publisher": {
       "email": "leonbrohmann@gmx.de",
       "name": "Leon Brohmann"
@@ -53,7 +53,7 @@
       "uri": "Commands/X_Settings.cs"
     },
     {
-      "id": "a5908a87-a7a5-43b8-927d-2b4add014df7",
+      "id": "9d3ddff0-4a63-46a3-8f84-4576dd5a9579",
       "language": {
         "id": "*.*.csharp",
         "version": "*.*.*"
@@ -72,6 +72,12 @@
           "version": "*.*.*"
         }
       }
+    }
+  ],
+  "resources": [
+    {
+      "id": "dd2784dc-7106-433f-9d1b-eacd76e8cd1e",
+      "uri": "Shared/xBoxDummy.png"
     }
   ]
 }
