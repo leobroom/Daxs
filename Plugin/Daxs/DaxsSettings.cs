@@ -46,6 +46,7 @@ namespace Daxs
         void OnOk()
         {
             Result = true;
+            settings.SaveSettings();
             Close();
         }
 

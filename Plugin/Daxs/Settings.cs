@@ -2,7 +2,11 @@
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+
 using Rhino.PlugIns;
+using Rhino;
 
 namespace Daxs
 {
@@ -12,12 +16,9 @@ namespace Daxs
         public static Settings Instance => instance ??= new Settings();
 
         private readonly Dictionary<string, NumericValue> values = new();
-        private readonly string settingsPath;
 
         private Settings()
         {
-            settingsPath = Utils.GetFile("DaxsSettings.txt");
-
             Add("YawSensitivity", 0.009, 10000);
             Add("PitchSensitivity", 0.009, 10000);
             Add("Deadzone", 0.169, 1000);
@@ -34,35 +35,35 @@ namespace Daxs
         public IEnumerable<NumericValue> AllValues => values.Values;
 
         public void SaveSettings()
-        {
-            var lines = new List<string>();
-            foreach (var val in values.Values)
-                lines.Add($"{val.Name}={val.Value}");
+        {          
+            Guid id = PlugIn.IdFromName("Daxs");
+            PlugInInfo  info =PlugIn.GetPlugInInfo(id);
 
-            File.WriteAllLines(settingsPath, lines);
-            Rhino.RhinoApp.WriteLine($"{settingsPath} saved.");
+            PersistentSettings settings = PlugIn.GetPluginSettings(id,true);
+
+            foreach (NumericValue nV in values.Values)
+            {
+                settings.SetDouble(nV.Name,nV.Value);
+            }
+            
+            PlugIn.SavePluginSettings(id);
+
+            Rhino.RhinoApp.WriteLine($"settings saved.");
         }
 
         public void LoadSettings()
         {
-            if (!File.Exists(settingsPath))
+            Guid id = PlugIn.IdFromName("Daxs");
+            PlugInInfo  info =PlugIn.GetPlugInInfo(id);
+
+            PersistentSettings settings = PlugIn.GetPluginSettings(id,true);
+
+            foreach (NumericValue nV in values.Values)
             {
-                Rhino.RhinoApp.WriteLine($"{settingsPath} does not exist. Creating default...");
-                SaveSettings();
-                return;
+                nV.Value = settings.GetDouble(nV.Name,nV.Value);
             }
 
-            foreach (var line in File.ReadAllLines(settingsPath))
-            {
-                var parts = line.Split('=');
-                if (parts.Length == 2 && values.TryGetValue(parts[0], out var nv))
-                {
-                    if (double.TryParse(parts[1], out double parsed))
-                        nv.Value = parsed;
-                }
-            }
-
-            Rhino.RhinoApp.WriteLine($"{settingsPath} loaded.");
+            Rhino.RhinoApp.WriteLine($"settings loaded.");
         }
     }
 }

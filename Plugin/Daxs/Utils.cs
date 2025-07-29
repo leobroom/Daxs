@@ -12,12 +12,25 @@ namespace Daxs
     {
         public static string GetPackageFolderPath()
         {
-            Guid id = PlugIn.IdFromName("Daxs");
-            PlugInInfo packageInfo = PlugIn.GetPlugInInfo(id);
+
+            PlugInInfo packageInfo = GetInfo();
             var pth = Path.GetDirectoryName(packageInfo.FileName);
             RhinoApp.WriteLine(pth);
             return pth;
         }  
+
+        public static PlugInInfo GetInfo()
+        {
+            Guid id = PlugIn.IdFromName("Daxs");
+            return PlugIn.GetPlugInInfo(id);
+        }
+
+        public static string GetPackageVersion()
+        {
+            PlugInInfo packageInfo = GetInfo();
+            return packageInfo.Version;
+        }
+
 
         public static string GetFile(string fileName)
         {
