@@ -17,8 +17,8 @@ using Daxs;
 // PersistentSettings settings = PlugIn.GetPluginSettings(id,true);
 // settings.SetString("TestValue", "HelloSettings");
 
-
-
+ControllerManager.Instance.SetLayout("Menu");
+//RhinoApp.RunScript("X_Settings", false);
 // PlugIn.SavePluginSettings(id);
 
  

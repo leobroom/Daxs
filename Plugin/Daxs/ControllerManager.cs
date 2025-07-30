@@ -147,29 +147,36 @@ namespace Daxs
                 }
 
                 var state = gamepad.GetState();
+                var prevStateCopy = previousState;
 
-                // Check if Start was just pressed (transition from not pressed to pressed)
-                if (state.Start && !previousState.Start)
-                {
-                    RhinoApp.RunScript("_X_Settings", false);
-                    displayMessage = "Start";
-                }
-
-                previousState = state;
 
                 // Update the camera on the UI thread.
                 Rhino.RhinoApp.InvokeOnUiThread((Action)(() =>
                 {          
+
+
+              
+                
+                if (state.Start && !prevStateCopy.Start)
+                {
+                    RhinoApp.WriteLine($"START PRESSED UIUI");
+                    RhinoApp.RunScript("X_Settings", false);
+                    displayMessage = "Start";
+                }
+
                     //RhinoApp.WriteLine("InvokeOnUiThread.");
                     var view = doc.Views.ActiveView;
                     var vp = view.ActiveViewport;   
                     
-                    currentLayout?.HandleInput(doc, view, vp, state, previousState, ref displayMessage, ref lastPressedTime);        
+                    currentLayout?.HandleInput(doc, view, vp, state, prevStateCopy, ref displayMessage, ref lastPressedTime);        
 
                     if ((DateTime.Now - lastPressedTime).TotalSeconds >= 0.5)
                         displayMessage = "";
                 }));
 
+
+                previousState = state;
+                //await Task.Delay(5000, token);
                 await Task.Delay(10, token);
                 
             }
@@ -195,10 +202,12 @@ namespace Daxs
             var xbox = new XboxGamepad();
             if (xbox.IsConnected)
                 return xbox;
-
-            var ps4 = new PS4Gamepad();
-            if (ps4.IsConnected)
-                return ps4;
+            else
+            {
+                var ps4 = new PS4Gamepad();
+                if (ps4.IsConnected)
+                    return ps4;
+            }
 
             return null;
         } 
