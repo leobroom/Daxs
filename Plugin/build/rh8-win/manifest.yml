@@ -1,6 +1,6 @@
 ---
 name: Daxs
-version: 0.1.24-beta+9343
+version: 0.1.27-beta+9344
 authors:
 - Leon Brohmann
 description: A Rhino Package to support Gamepads like the XBox and PS4 Controller
