@@ -9,4 +9,4 @@
 
 ## License
 
-MIT License. See LICENSE for details.
+MIT License. See "MIT license" for details.
