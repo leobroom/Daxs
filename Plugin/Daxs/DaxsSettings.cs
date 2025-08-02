@@ -14,6 +14,7 @@ namespace Daxs
     {
         private readonly Settings settings = Settings.Instance;
         private readonly Dictionary<string, NumericStepper> inputBoxes = new();
+        private Button okButton;
 
         public DaxsSettings()
         {
@@ -40,7 +41,17 @@ namespace Daxs
                 }
             };
 
-          
+            // Handle key down for Escape
+            this.KeyDown += (sender, e) =>
+            {
+                if (e.Key == Eto.Forms.Keys.Escape)
+                {
+                    this.Close(false);
+                    e.Handled = true;
+                }
+            };
+
+            okButton.Focus();
         }
 
         void OnOk()
@@ -86,6 +97,9 @@ namespace Daxs
 
         TableLayout CreateDialogButtons()
         {
+            
+            okButton = new Button { Text = "CLOSE", Command = new Command((s, e) => OnOk()) };
+
             return new TableLayout
             {
                 Padding = 10,
@@ -97,7 +111,7 @@ namespace Daxs
                     (
                         null,
                         new TableCell(new Button { Text = "DEFAULT", Command = new Command((s, e) => OnDefault()) }, false),
-                        new TableCell(new Button { Text = "CLOSE", Command = new Command((s, e) => OnOk()) }, false)
+                        new TableCell(okButton, false)
                     )
                 }
             };

@@ -99,7 +99,7 @@ namespace Daxs
 
             SetLayout("Fly");
 
-            RhinoApp.WriteLine("Daxs Start");
+            RhinoApp.WriteLine($"Daxs {Utils.GetPackageVersion()} Start");
         }
 
         void Stop()
@@ -149,22 +149,9 @@ namespace Daxs
                 var state = gamepad.GetState();
                 var prevStateCopy = previousState;
 
-
                 // Update the camera on the UI thread.
                 Rhino.RhinoApp.InvokeOnUiThread((Action)(() =>
                 {          
-
-
-              
-                
-                if (state.Start && !prevStateCopy.Start)
-                {
-                    RhinoApp.WriteLine($"START PRESSED UIUI");
-                    RhinoApp.RunScript("X_Settings", false);
-                    displayMessage = "Start";
-                }
-
-                    //RhinoApp.WriteLine("InvokeOnUiThread.");
                     var view = doc.Views.ActiveView;
                     var vp = view.ActiveViewport;   
                     
@@ -177,8 +164,7 @@ namespace Daxs
 
                 previousState = state;
                 //await Task.Delay(5000, token);
-                await Task.Delay(10, token);
-                
+                await Task.Delay(10, token);          
             }
         }
         #endregion

@@ -46,6 +46,13 @@ namespace Daxs
                 lastPressedTime = DateTime.Now;
             }
 
+            if (state.Start && !prevState.Start)
+            {
+                RhinoApp.WriteLine($"START PRESSED");
+                RhinoApp.RunScript("X_Settings", false);
+                displayMessage = "Start";
+            }
+
             if (yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02)
             {
                 if (vp.IsPlanView)

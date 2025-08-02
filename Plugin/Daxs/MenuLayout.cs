@@ -20,15 +20,15 @@ namespace Daxs
             if (state.A && !prevState.A)
             {
                 RhinoApp.WriteLine("state.A");
-               // Eto.Forms.Form.ActiveForm.Close();
+                SimulateKey(KEY_ENTER);
             }
 
             //Escape
-            if (state.B && !prevState.B)
+            if ((state.B && !prevState.B) || (state.Start && !prevState.Start))
             {
                 RhinoApp.WriteLine("state.B");
                 SimulateKey(KEY_ESCAPE);
-            }
+            }      
 
             if (state.DPadRight && !prevState.DPadRight)
             {
@@ -50,7 +50,7 @@ namespace Daxs
 
             if (state.DPadDown && !prevState.DPadDown)
             {
-                 RhinoApp.WriteLine("DPadDown");
+                RhinoApp.WriteLine("DPadDown");
                 SimulateKey(KEY_TAB);
             }
 
