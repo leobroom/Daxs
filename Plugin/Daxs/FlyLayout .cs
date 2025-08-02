@@ -10,6 +10,7 @@ namespace Daxs
     {
         public string Name => "Fly";
         double moveSpeed, deadzone, yawSensitivity,pitchSensitivity;
+        RhinoDoc doc =RhinoDoc.ActiveDoc;
 
         public FlyLayout()
         {
@@ -31,7 +32,7 @@ namespace Daxs
             pitchSensitivity = pS.Value;
         }
 
-        public void HandleInput(RhinoDoc doc, RhinoView view, RhinoViewport vp, GamepadState state, GamepadState prevState, ref string displayMessage, ref DateTime lastPressedTime)
+        public void HandleInput(GamepadState state, GamepadState prevState)
         {
             double speed = state.L3 ? 3 * moveSpeed : moveSpeed;
             double rotSpeed = state.R3 ? 3 : 1;
@@ -40,28 +41,38 @@ namespace Daxs
             var (yaw, pitch) = NormalizeStickInput(state.RightThumbX, state.RightThumbY);
             var (strafe, forward) = NormalizeStickInput(state.LeftThumbX, state.LeftThumbY);
 
-            if (state.L3 || state.R3)
-            {
-                displayMessage = "BOOSTER";
-                lastPressedTime = DateTime.Now;
-            }
 
-            if (state.Start && !prevState.Start)
-            {
-                RhinoApp.WriteLine($"START PRESSED");
-                RhinoApp.RunScript("X_Settings", false);
-                displayMessage = "Start";
-            }
+            bool hasBooster = state.L3 || state.R3;
 
-            if (yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02)
-            {
-                if (vp.IsPlanView)
-                    ApplyCameraPanControls(vp, forward, strafe, vertical, yaw, pitch, speed, rotSpeed);
-                else
-                    ApplyCameraFlyControls(vp, forward, -strafe, vertical, yaw, pitch, speed, rotSpeed);
+            bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02;
 
-                view.Redraw();
-            }
+            // Update the camera on the UI thread.
+            Rhino.RhinoApp.InvokeOnUiThread((Action)(() =>
+            {          
+                var view = doc.Views.ActiveView;
+                var vp = view.ActiveViewport;   
+                                    
+                if (hasBooster)
+                {
+                    RhinoApp.WriteLine($"BOOSTER");
+                }
+
+                if (state.Start && !prevState.Start)
+                {
+                    RhinoApp.WriteLine($"START PRESSED");
+                    RhinoApp.RunScript("X_Settings", false);
+                }
+
+                if (hasMoved)
+                {
+                    if (vp.IsPlanView)
+                        ApplyCameraPanControls(vp, forward, strafe, vertical, yaw, pitch, speed, rotSpeed);
+                    else
+                        ApplyCameraFlyControls(vp, forward, -strafe, vertical, yaw, pitch, speed, rotSpeed);
+
+                    view.Redraw();
+                }
+            }));
         }
 
         (double x, double y) NormalizeStickInput(double normX, double normY)

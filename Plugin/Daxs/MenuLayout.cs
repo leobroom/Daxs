@@ -14,48 +14,51 @@ namespace Daxs
 
         private const byte KEY_UP = 0x26, KEY_DOWN = 0x28, KEY_TAB = 0x09, KEY_SHIFT = 0x10, KEY_ESCAPE = 0x1B, KEY_ENTER = 0x0D;
 
-        public void HandleInput(RhinoDoc doc, RhinoView view, RhinoViewport vp, GamepadState state, GamepadState prevState, ref string displayMessage, ref DateTime lastPressedTime)
+        public void HandleInput(GamepadState state, GamepadState prevState)
         {
-            //Enter
-            if (state.A && !prevState.A)
-            {
-                RhinoApp.WriteLine("state.A");
-                SimulateKey(KEY_ENTER);
-            }
 
-            //Escape
-            if ((state.B && !prevState.B) || (state.Start && !prevState.Start))
-            {
-                RhinoApp.WriteLine("state.B");
-                SimulateKey(KEY_ESCAPE);
-            }      
+            Rhino.RhinoApp.InvokeOnUiThread((Action)(() =>
+            {          
+                //Enter
+                if (state.A && !prevState.A)
+                {
+                    RhinoApp.WriteLine("state.A");
+                    SimulateKey(KEY_ENTER);
+                }
 
-            if (state.DPadRight && !prevState.DPadRight)
-            {
-                RhinoApp.WriteLine("DPadRight");
-                SimulateKey(KEY_UP);
-            }
+                //Escape
+                if ((state.B && !prevState.B) || (state.Start && !prevState.Start))
+                {
+                    RhinoApp.WriteLine("state.B");
+                    SimulateKey(KEY_ESCAPE);
+                }      
 
-            if (state.DPadLeft && !prevState.DPadLeft)
-            {
-                RhinoApp.WriteLine("DPadLeft");
-                SimulateKey(KEY_DOWN);
-            }
+                if (state.DPadRight && !prevState.DPadRight)
+                {
+                    RhinoApp.WriteLine("DPadRight");
+                    SimulateKey(KEY_UP);
+                }
 
-            if (state.DPadUp && !prevState.DPadUp)
-            {
-                RhinoApp.WriteLine("DPadUp");
-                SimulateCombinedKey(KEY_SHIFT, KEY_TAB);
-            }
+                if (state.DPadLeft && !prevState.DPadLeft)
+                {
+                    RhinoApp.WriteLine("DPadLeft");
+                    SimulateKey(KEY_DOWN);
+                }
 
-            if (state.DPadDown && !prevState.DPadDown)
-            {
-                RhinoApp.WriteLine("DPadDown");
-                SimulateKey(KEY_TAB);
-            }
+                if (state.DPadUp && !prevState.DPadUp)
+                {
+                    RhinoApp.WriteLine("DPadUp");
+                    SimulateCombinedKey(KEY_SHIFT, KEY_TAB);
+                }
 
+                if (state.DPadDown && !prevState.DPadDown)
+                {
+                    RhinoApp.WriteLine("DPadDown");
+                    SimulateKey(KEY_TAB);
+                }  
+            }));
 
-            lastPressedTime = DateTime.Now;
+           
         }
 
         // Simulate Arrow Down key press and release

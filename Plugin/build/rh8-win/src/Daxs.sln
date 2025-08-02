@@ -1,7 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{407e1318-1507-447b-9f9e-793117c01e00}") = "Daxs", "Daxs\Daxs.csproj", "{dfce056f-4511-451f-a753-9b6aa20fec1f}"
+Project("{407e1318-1507-447b-9f9e-793117c01e00}") = "Daxs", "Daxs\Daxs.csproj", "{dbac69a7-cd21-49d8-a4f0-bd7aff124fa2}"
 EndProject
 
 Global
@@ -10,9 +10,9 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{dfce056f-4511-451f-a753-9b6aa20fec1f}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{dfce056f-4511-451f-a753-9b6aa20fec1f}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{dfce056f-4511-451f-a753-9b6aa20fec1f}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{dfce056f-4511-451f-a753-9b6aa20fec1f}.Release|Any CPU.Build.0 = Release|Any CPU
+		{dbac69a7-cd21-49d8-a4f0-bd7aff124fa2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{dbac69a7-cd21-49d8-a4f0-bd7aff124fa2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{dbac69a7-cd21-49d8-a4f0-bd7aff124fa2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{dbac69a7-cd21-49d8-a4f0-bd7aff124fa2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

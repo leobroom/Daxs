@@ -126,8 +126,6 @@ namespace Daxs
         #region LOOP
         async Task  Loop( CancellationToken token)
         {
-            RhinoDoc doc =RhinoDoc.ActiveDoc; 
-            
             while (!token.IsCancellationRequested)
             {  
                 // Try to (re)initialize the controller
@@ -149,21 +147,11 @@ namespace Daxs
                 var state = gamepad.GetState();
                 var prevStateCopy = previousState;
 
-                // Update the camera on the UI thread.
-                Rhino.RhinoApp.InvokeOnUiThread((Action)(() =>
-                {          
-                    var view = doc.Views.ActiveView;
-                    var vp = view.ActiveViewport;   
-                    
-                    currentLayout?.HandleInput(doc, view, vp, state, prevStateCopy, ref displayMessage, ref lastPressedTime);        
-
-                    if ((DateTime.Now - lastPressedTime).TotalSeconds >= 0.5)
-                        displayMessage = "";
-                }));
+                // Update the camera on the UI thread.                    
+                currentLayout?.HandleInput(state, prevStateCopy);    
 
 
                 previousState = state;
-                //await Task.Delay(5000, token);
                 await Task.Delay(10, token);          
             }
         }

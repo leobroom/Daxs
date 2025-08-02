@@ -9,12 +9,6 @@ namespace Daxs
     public interface IGamepadLayout
     {
         string Name { get; }
-        void HandleInput(RhinoDoc doc, 
-                        RhinoView view, 
-                        RhinoViewport vp, 
-                        GamepadState state, 
-                        GamepadState prevState, 
-                        ref string displayMessage, 
-                        ref DateTime lastPressedTime);
+        void HandleInput( GamepadState state, GamepadState prevState);
     }
 }
