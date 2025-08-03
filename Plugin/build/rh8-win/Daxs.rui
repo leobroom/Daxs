@@ -30,6 +30,11 @@
                        button_style="normal">
             <text><locale_1033>X_Test</locale_1033></text>
             <left_macro_id>9d3ddff0-4a63-46a3-8f84-4576dd5a9579</left_macro_id>
+        </tool_bar_item>        <tool_bar_item guid="8ea65305-8319-4500-a2a3-0d817b512930"
+                       button_display_mode="control_only"
+                       button_style="normal">
+            <text><locale_1033>X_CollisionMesh</locale_1033></text>
+            <left_macro_id>8ea65305-8319-4500-a2a3-0d817b512930</left_macro_id>
         </tool_bar_item>
     </tool_bar>
   </tool_bars>
@@ -55,6 +60,13 @@
         <button_text><locale_1033>X_Test</locale_1033></button_text>
         <menu_text><locale_1033>X_Test</locale_1033></menu_text>
         <script>! _X_Test</script>
+      </macro_item>      <macro_item guid="8ea65305-8319-4500-a2a3-0d817b512930" bitmap_id="8ea65305-8319-4500-a2a3-0d817b512930">
+        <text><locale_1033>Macro.X_CollisionMesh</locale_1033></text>
+        <tooltip><locale_1033>X_CollisionMesh</locale_1033></tooltip>
+        <help_text><locale_1033>X_CollisionMesh</locale_1033></help_text>
+        <button_text><locale_1033>X_CollisionMesh</locale_1033></button_text>
+        <menu_text><locale_1033>X_CollisionMesh</locale_1033></menu_text>
+        <script>! _X_CollisionMesh</script>
       </macro_item>
   </macros>
   <icons>
@@ -145,6 +157,49 @@
       </icon>
 
       <icon guid="9d3ddff0-4a63-46a3-8f84-4576dd5a9579">
+        <light><svg width="100%" height="100%" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <rect id="_48x" serif:id="48x" x="0" y="0" width="48" height="48" style="fill:none;"/>
+    <clipPath id="_clip1">
+        <rect id="_48x1" serif:id="48x" x="0" y="0" width="48" height="48"/>
+    </clipPath>
+    <g clip-path="url(#_clip1)">
+        <g>
+            <use xlink:href="#_Image2" x="0" y="0" width="48px" height="48px"/>
+            <g transform="matrix(0.893617,0,0,0.875,2,2)">
+                <path d="M47,7.68L47,40.32C47,44.559 43.63,48 39.48,48L7.52,48C3.37,48 0,44.559 0,40.32L0,7.68C0,3.441 3.37,0 7.52,0L39.48,0C43.63,0 47,3.441 47,7.68ZM44.762,7.68C44.762,4.703 42.395,2.286 39.48,2.286L7.52,2.286C4.605,2.286 2.238,4.703 2.238,7.68L2.238,40.32C2.238,43.297 4.605,45.714 7.52,45.714L39.48,45.714C42.395,45.714 44.762,43.297 44.762,40.32L44.762,7.68Z" style="fill:rgb(100,100,100);"/>
+            </g>
+        </g>
+        <g transform="matrix(0.808511,0,0,0.791667,4,4)">
+            <path d="M47,5.76L47,42.24C47,45.419 44.473,48 41.36,48L5.64,48C2.527,48 0,45.419 0,42.24L0,5.76C0,2.581 2.527,0 5.64,0L41.36,0C44.473,0 47,2.581 47,5.76Z" style="fill:url(#_Linear3);"/>
+            <path d="M47,5.76L47,42.24C47,45.419 44.473,48 41.36,48L5.64,48C2.527,48 0,45.419 0,42.24L0,5.76C0,2.581 2.527,0 5.64,0L41.36,0C44.473,0 47,2.581 47,5.76ZM44.526,5.76C44.526,3.975 43.108,2.526 41.36,2.526L5.64,2.526C3.892,2.526 2.474,3.975 2.474,5.76L2.474,42.24C2.474,44.025 3.892,45.474 5.64,45.474L41.36,45.474C43.108,45.474 44.526,44.025 44.526,42.24L44.526,5.76Z" style="fill:url(#_Linear4);"/>
+        </g>
+    </g>
+    <defs>
+        <image id="_Image2" width="48px" height="48px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB3ElEQVRoge1a0Y7DIAwzHf//xVe6h9XUGPpwDyW7E5ZQGZTWbkImJSSMkW6u3n8Kx6DvVwBAtoVKOAHYpK/zT8PJlrPfCVMBCS1xNv7mPbNwWCvSqkAKUPKvs23nVedmw8nv5zhFJLcAyWdcIiKIOyiAH/KH4xmt2yj5lzxguIEehlrd9yItk9SF6PMkn9CaT/1xFnnfjzi5kdeR0ZOn2gMfn2Mr5wNmCiCvjDagsBW3ABdS4Y6Pv0UIgJB3V6oRUveA+xgFsM1yH4JcdvShvLa7PzKgj7uzBZBDEh5dVNykrxNONIK8Rj5/d7WAhyd/QARx5zDqV2yjwS9GJ+KvCeiwBERjCYjGEhCNJSAaS0A0loBoLAHRWAKisQREYwmIxr8QEJn3+S26/BUtMBIRWZlRDqN+hbqQinDyEUL03Z4TrVnD7AOySNPYwJVenwFNp2v6s8vfZtwnUbW4wBT37PS6VozU3WvGnBYoMlFkgdYPtLw5A/zyWvICrPya5YfWA9x9NsSUmLxypOXWWiMjKU745lURiieEeKDwgouXvA7dA8UWacFvFIVmHjvgB1byjQVgN3GRRgFgHmnyAVrXbsgD11mJ0YkQ1qS+QcDtWYk7t/DKZaQAP/TRfOw3v/e0mqmws4oAAAAASUVORK5CYII="/>
+        <linearGradient id="_Linear3" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(44.65,45.6,-44.65,45.6,1.175,1.2)"><stop offset="0" style="stop-color:rgb(209,209,209);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(235,235,235);stop-opacity:1"/></linearGradient>
+        <linearGradient id="_Linear4" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(44.65,45.6,-44.65,45.6,1.175,1.2)"><stop offset="0" style="stop-color:white;stop-opacity:1"/><stop offset="1" style="stop-color:rgb(131,131,131);stop-opacity:1"/></linearGradient>
+    </defs>
+</svg>
+</light>
+        <dark><svg width="100%" height="100%" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <use xlink:href="#_Image1" x="0" y="0" width="48px" height="48px"/>
+    <g transform="matrix(0.893617,0,0,0.875,2,2)">
+        <path d="M47,7.68L47,40.32C47,44.559 43.63,48 39.48,48L7.52,48C3.37,48 0,44.559 0,40.32L0,7.68C0,3.441 3.37,0 7.52,0L39.48,0C43.63,0 47,3.441 47,7.68ZM44.762,7.68C44.762,4.703 42.395,2.286 39.48,2.286L7.52,2.286C4.605,2.286 2.238,4.703 2.238,7.68L2.238,40.32C2.238,43.297 4.605,45.714 7.52,45.714L39.48,45.714C42.395,45.714 44.762,43.297 44.762,40.32L44.762,7.68Z" style="fill:rgb(137,137,137);"/>
+    </g>
+    <g transform="matrix(0.808511,0,0,0.791667,4,4)">
+        <path d="M47,5.76L47,42.24C47,45.419 44.473,48 41.36,48L5.64,48C2.527,48 0,45.419 0,42.24L0,5.76C0,2.581 2.527,0 5.64,0L41.36,0C44.473,0 47,2.581 47,5.76Z" style="fill:url(#_Linear2);"/>
+        <path d="M47,5.76L47,42.24C47,45.419 44.473,48 41.36,48L5.64,48C2.527,48 0,45.419 0,42.24L0,5.76C0,2.581 2.527,0 5.64,0L41.36,0C44.473,0 47,2.581 47,5.76ZM44.526,5.76C44.526,3.975 43.108,2.526 41.36,2.526L5.64,2.526C3.892,2.526 2.474,3.975 2.474,5.76L2.474,42.24C2.474,44.025 3.892,45.474 5.64,45.474L41.36,45.474C43.108,45.474 44.526,44.025 44.526,42.24L44.526,5.76Z" style="fill:url(#_Linear3);"/>
+    </g>
+    <defs>
+        <image id="_Image1" width="48px" height="48px" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAB3ElEQVRoge1a0Y7DIAwzHf//xVe6h9XUGPpwDyW7E5ZQGZTWbkImJSSMkW6u3n8Kx6DvVwBAtoVKOAHYpK/zT8PJlrPfCVMBCS1xNv7mPbNwWCvSqkAKUPKvs23nVedmw8nv5zhFJLcAyWdcIiKIOyiAH/KH4xmt2yj5lzxguIEehlrd9yItk9SF6PMkn9CaT/1xFnnfjzi5kdeR0ZOn2gMfn2Mr5wNmCiCvjDagsBW3ABdS4Y6Pv0UIgJB3V6oRUveA+xgFsM1yH4JcdvShvLa7PzKgj7uzBZBDEh5dVNykrxNONIK8Rj5/d7WAhyd/QARx5zDqV2yjwS9GJ+KvCeiwBERjCYjGEhCNJSAaS0A0loBoLAHRWAKisQREYwmIxr8QEJn3+S26/BUtMBIRWZlRDqN+hbqQinDyEUL03Z4TrVnD7AOySNPYwJVenwFNp2v6s8vfZtwnUbW4wBT37PS6VozU3WvGnBYoMlFkgdYPtLw5A/zyWvICrPya5YfWA9x9NsSUmLxypOXWWiMjKU745lURiieEeKDwgouXvA7dA8UWacFvFIVmHjvgB1byjQVgN3GRRgFgHmnyAVrXbsgD11mJ0YkQ1qS+QcDtWYk7t/DKZaQAP/TRfOw3v/e0mqmws4oAAAAASUVORK5CYII="/>
+        <linearGradient id="_Linear2" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(44.65,45.6,-44.65,45.6,1.175,1.2)"><stop offset="0" style="stop-color:rgb(50,50,50);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(106,106,106);stop-opacity:1"/></linearGradient>
+        <linearGradient id="_Linear3" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(44.65,45.6,-44.65,45.6,1.175,1.2)"><stop offset="0" style="stop-color:rgb(72,72,72);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(51,51,51);stop-opacity:1"/></linearGradient>
+    </defs>
+</svg>
+</dark>
+      </icon>
+
+      <icon guid="8ea65305-8319-4500-a2a3-0d817b512930">
         <light><svg width="100%" height="100%" viewBox="0 0 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
     <rect id="_48x" serif:id="48x" x="0" y="0" width="48" height="48" style="fill:none;"/>
     <clipPath id="_clip1">

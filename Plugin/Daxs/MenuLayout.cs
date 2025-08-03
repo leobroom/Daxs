@@ -31,6 +31,7 @@ namespace Daxs
                 {
                     RhinoApp.WriteLine("state.B");
                     SimulateKey(KEY_ESCAPE);
+                    ControllerManager.Instance.SetMessage("Escape");
                 }      
 
                 if (state.DPadRight && !prevState.DPadRight)

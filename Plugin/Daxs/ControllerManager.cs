@@ -24,7 +24,9 @@ namespace Daxs
             RhinoApp.Closing += (sender, e) =>{settings.SaveSettings();};
 
             RegisterLayout(new FlyLayout());
+            RegisterLayout(new WalkLayout());
             RegisterLayout(new MenuLayout());
+
 
             InitializeValues();
         }
@@ -54,6 +56,8 @@ namespace Daxs
 
         //Setings values
         double moveSpeed, deadzone, yawSensitivity, pitchSensitivity;
+
+        
 
         public enum Status
         {
@@ -113,7 +117,7 @@ namespace Daxs
 
         #region DISPLAY
         void DrawText(object sender, DrawEventArgs e)
-        {
+        {           
             var activeView = RhinoDoc.ActiveDoc.Views.ActiveView;
             if (e.Viewport.Id != activeView.MainViewport.Id)
                 return;
@@ -121,6 +125,13 @@ namespace Daxs
             var screenPoint = new Point2d(50, 50);
             e.Display.Draw2dText(displayMessage, System.Drawing.Color.Black, screenPoint, false, 25);
         }
+
+        internal void SetMessage(string msg)
+        {
+            displayMessage = msg;
+            lastPressedTime = DateTime.Now;
+        }
+        
         #endregion 
 
         #region LOOP
@@ -150,6 +161,8 @@ namespace Daxs
                 // Update the camera on the UI thread.                    
                 currentLayout?.HandleInput(state, prevStateCopy);    
 
+                if ((DateTime.Now - lastPressedTime).TotalSeconds > 2)
+                    displayMessage = "";
 
                 previousState = state;
                 await Task.Delay(10, token);          
@@ -165,12 +178,24 @@ namespace Daxs
             if (layouts.TryGetValue(name, out var layout))
             {
                 currentLayout = layout;
-                displayMessage = $"Layout: {name}";
-                lastPressedTime = DateTime.Now;
+                SetMessage($"Layout: {name}");
             }
+        }
+
+        public IGamepadLayout GetLayout(string name)
+        {
+            if (!layouts.TryGetValue(name, out var layout))
+                throw new KeyNotFoundException($"Layout '{name}' not found.");
+            return layout;
         }
         #endregion
     
+        public void SetCollisionMesh(Mesh colMesh)
+        {
+            WalkLayout wLayout = (WalkLayout)GetLayout("Walk");
+            wLayout.SetCollider(colMesh);
+        }
+
         private IGamepad TryGetGamepad()
         {
             var xbox = new XboxGamepad();

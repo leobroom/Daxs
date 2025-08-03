@@ -23,6 +23,10 @@ namespace Daxs
             Add("PitchSensitivity", 0.009, 10000);
             Add("Deadzone", 0.169, 1000);
             Add("MoveSpeed", 146, 1);
+            Add("EyeHeight", 1.70, 1);
+
+            //Text
+            Add("TextTime", 2, 1);
 
             LoadSettings();
         }
@@ -59,9 +63,7 @@ namespace Daxs
             PersistentSettings settings = PlugIn.GetPluginSettings(id,true);
 
             foreach (NumericValue nV in values.Values)
-            {
                 nV.Value = settings.GetDouble(nV.Name,nV.Value);
-            }
 
             Rhino.RhinoApp.WriteLine($"settings loaded.");
         }

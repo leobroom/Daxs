@@ -8,13 +8,14 @@ namespace Daxs
 {
     public class FlyLayout : IGamepadLayout
     {
-        public string Name => "Fly";
+        public virtual string Name => "Fly";
         double moveSpeed, deadzone, yawSensitivity,pitchSensitivity;
         RhinoDoc doc =RhinoDoc.ActiveDoc;
+        protected Settings settings;
 
         public FlyLayout()
         {
-            var settings = Settings.Instance;
+            settings = Settings.Instance;
 
             var mV = settings["MoveSpeed"];
             var dZ = settings["Deadzone"];
@@ -41,7 +42,6 @@ namespace Daxs
             var (yaw, pitch) = NormalizeStickInput(state.RightThumbX, state.RightThumbY);
             var (strafe, forward) = NormalizeStickInput(state.LeftThumbX, state.LeftThumbY);
 
-
             bool hasBooster = state.L3 || state.R3;
 
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02;
@@ -55,12 +55,14 @@ namespace Daxs
                 if (hasBooster)
                 {
                     RhinoApp.WriteLine($"BOOSTER");
+                    ControllerManager.Instance.SetMessage("BOOSTER");
                 }
 
                 if (state.Start && !prevState.Start)
                 {
                     RhinoApp.WriteLine($"START PRESSED");
                     RhinoApp.RunScript("X_Settings", false);
+                    ControllerManager.Instance.SetMessage("Settings");
                 }
 
                 if (hasMoved)
@@ -68,7 +70,7 @@ namespace Daxs
                     if (vp.IsPlanView)
                         ApplyCameraPanControls(vp, forward, strafe, vertical, yaw, pitch, speed, rotSpeed);
                     else
-                        ApplyCameraFlyControls(vp, forward, -strafe, vertical, yaw, pitch, speed, rotSpeed);
+                        ApplyCameraControls(vp, forward, -strafe, vertical, yaw, pitch, speed, rotSpeed);
 
                     view.Redraw();
                 }
@@ -119,7 +121,7 @@ namespace Daxs
             }
         }
 
-        void ApplyCameraFlyControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed)
+        protected virtual void ApplyCameraControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed)
         {
             Vector3d camDir = vp.CameraDirection;
 
