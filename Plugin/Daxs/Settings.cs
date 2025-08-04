@@ -19,14 +19,19 @@ namespace Daxs
 
         private Settings()
         {
+            //Gamepad
             Add("YawSensitivity", 0.009, 10000);
             Add("PitchSensitivity", 0.009, 10000);
             Add("Deadzone", 0.169, 1000);
             Add("MoveSpeed", 146, 1);
-            Add("EyeHeight", 1.70, 1);
+
 
             //Text
             Add("TextTime", 2, 1);
+
+            //Walking
+            Add("EyeHeight", 1.70, 1);
+            Add("MaximalJump", 1.5, 1);
 
             LoadSettings();
         }

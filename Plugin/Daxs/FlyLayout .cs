@@ -9,8 +9,8 @@ namespace Daxs
     public class FlyLayout : IGamepadLayout
     {
         public virtual string Name => "Fly";
-        double moveSpeed, deadzone, yawSensitivity,pitchSensitivity;
-        RhinoDoc doc =RhinoDoc.ActiveDoc;
+        protected double moveSpeed, deadzone, yawSensitivity,pitchSensitivity;
+        protected RhinoDoc doc =RhinoDoc.ActiveDoc;
         protected Settings settings;
 
         public FlyLayout()
@@ -33,7 +33,7 @@ namespace Daxs
             pitchSensitivity = pS.Value;
         }
 
-        public void HandleInput(GamepadState state, GamepadState prevState)
+        public virtual void HandleInput(GamepadState state, GamepadState prevState)
         {
             double speed = state.L3 ? 3 * moveSpeed : moveSpeed;
             double rotSpeed = state.R3 ? 3 : 1;
@@ -54,7 +54,6 @@ namespace Daxs
                                     
                 if (hasBooster)
                 {
-                    RhinoApp.WriteLine($"BOOSTER");
                     ControllerManager.Instance.SetMessage("BOOSTER");
                 }
 
@@ -77,7 +76,7 @@ namespace Daxs
             }));
         }
 
-        (double x, double y) NormalizeStickInput(double normX, double normY)
+        protected (double x, double y) NormalizeStickInput(double normX, double normY)
         {
             double magnitude = Math.Sqrt(normX * normX + normY * normY);
             if (magnitude < deadzone)
@@ -97,7 +96,7 @@ namespace Daxs
         }
 
                 /// Used for panning over a plan views (example left right bottom etc)
-        void ApplyCameraPanControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed)
+        protected void ApplyCameraPanControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed)
         {
             // Get the right and up vectors in the view plane
             Vector3d right = -vp.CameraX;
@@ -145,6 +144,6 @@ namespace Daxs
             vp.SetCameraLocation(vp.CameraLocation + move, true);
         }
 
-        double GetNonLinearTrigger(double raw)=>  Math.Pow(raw, 2); // quadratic curve 
+        protected double GetNonLinearTrigger(double raw)=>  Math.Pow(raw, 2); // quadratic curve 
     }
 }
