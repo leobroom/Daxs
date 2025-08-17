@@ -37,8 +37,4 @@ else
 }
 
 //Set Mesh to
-
-//var l = ControllerManager.Instance.GetLayout("Walk");
-
-
 ControllerManager.Instance.SetCollisionMesh(mesh);
