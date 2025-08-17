@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36408.4 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Daxs", "Daxs.csproj", "{A62DE109-0553-4771-971D-FC2DD0AD8182}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A62DE109-0553-4771-971D-FC2DD0AD8182}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A62DE109-0553-4771-971D-FC2DD0AD8182}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A62DE109-0553-4771-971D-FC2DD0AD8182}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A62DE109-0553-4771-971D-FC2DD0AD8182}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {89548206-63DC-457C-A00B-673210943F3A}
+	EndGlobalSection
+EndGlobal
