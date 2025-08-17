@@ -15,10 +15,10 @@
   
   <PropertyGroup>
     <!-- Specifies information for Assembly and Yak -->
-    <Version>1.0</Version>
+    <Version>1.0.1</Version>
     <Title>Daxs</Title>
     <Company>Daxs Authors</Company>
-    <Description>Description of Daxs</Description>
+    <Description>Description of Daxs. this is a test</Description>
   </PropertyGroup>
   
   <ItemGroup>
