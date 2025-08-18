@@ -7,7 +7,7 @@
         Rhino 8 Windows: net48, net7.0, net7.0-windows, net7.0-windows10.0.22000.0, etc
         Rhino 8 Mac: net7.0, net7.0-macos, net7.0-macos12.0, etc
     -->
-    <TargetFrameworks>net7.0;net48</TargetFrameworks>
+    <TargetFrameworks>net7.0</TargetFrameworks>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <TargetExt>.rhp</TargetExt>
     <NoWarn>NU1701</NoWarn>
@@ -17,14 +17,31 @@
     <!-- Specifies information for Assembly and Yak -->
     <Version>1.0.1</Version>
     <Title>Daxs</Title>
-    <Company>Daxs Authors</Company>
-    <Description>Description of Daxs. this is a test</Description>
+    <Company>Leon Brohmann</Company>
+    <Description>Daxs is a Rhino package that enables support for gamepad input, making it easier to integrate Xbox and PlayStation 4 controllers into your Rhino workflows or plugins.</Description>
   </PropertyGroup>
+ 
+  
+  <ItemGroup>
+    <EmbeddedResource Include="Shared\xBoxDummy.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="RhinoCommon" Version="8.0.23304.9001" ExcludeAssets="runtime" />
+    <PackageReference Include="SharpDX" Version="4.2.0" />
+    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" />
+    <PackageReference Include="SharpDX.XInput" Version="4.2.0" />
   </ItemGroup>
-  
+
+	<ItemGroup>
+		<None Update="daxs.rui">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<TargetPath>..\daxs.rui</TargetPath>
+		</None>
+	</ItemGroup>
+
   <Target Name="BuildYakPackage" AfterTargets="DispatchToInnerBuilds">
     <PropertyGroup>
       <YakExecutable Condition="$(YakExecutable) == '' and $([MSBuild]::IsOSPlatform(windows)) and Exists('C:\Program Files\Rhino 8\System\Yak.exe')">C:\Program Files\Rhino 8\System\Yak.exe</YakExecutable>
@@ -41,9 +58,37 @@
     
     <Delete Files="@(YakPackagesToDelete)" />
 
-    <Exec Command="&quot;$(YakExecutable)&quot; spec" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
-    <Exec Command="&quot;$(YakExecutable)&quot; build" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
+	  <Exec Command="&quot;$(YakExecutable)&quot; spec" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
 
+	  <!-- Copy icon -->
+	  <Copy SourceFiles="$(MSBuildProjectDirectory)/icon.png" DestinationFolder="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
+
+	  <!-- check for lines in manifest.yml -->
+	  <Exec WorkingDirectory="$(OutputPath)" Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Get-Content -LiteralPath 'manifest.yml' | ForEach-Object { Write-Host BLAA $_ }&quot;" />
+
+	  <!-- replace url -->
+	  <Exec WorkingDirectory="$(OutputPath)" Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;(Get-Content -LiteralPath 'manifest.yml') -replace '^(url:\s*).*$','url: https://github.com/leobroom/Daxs' | Set-Content -LiteralPath 'manifest.yml' -Encoding UTF8&quot;" />
+
+	  <!-- remove weird version number thing -->
+	  <Exec WorkingDirectory="$(OutputPath)" Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;(Get-Content -LiteralPath 'manifest.yml') -replace '^(version:\s*\d+\.\d+\.\d+)\+.*$','$1' | Set-Content -LiteralPath 'manifest.yml' -Encoding UTF8&quot;" />
+
+	  <!-- add keywords -->
+	  <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="keywords:" Overwrite="false" WriteOnlyWhenDifferent="true" />
+	  <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="- gamepad" Overwrite="false" WriteOnlyWhenDifferent="true" />
+	  <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="- controller" Overwrite="false" WriteOnlyWhenDifferent="true" />
+	  <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="- joystick" Overwrite="false" WriteOnlyWhenDifferent="true" />
+	  <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="- xbox" Overwrite="false" WriteOnlyWhenDifferent="true" />
+	  <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="- ps4" Overwrite="false" WriteOnlyWhenDifferent="true" />
+	  <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="- playstation" Overwrite="false" WriteOnlyWhenDifferent="true" />
+	  
+	  <!-- Add icon to manifest.yml -->
+	  <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="icon: icon.png" Overwrite="false" WriteOnlyWhenDifferent="true" />
+
+
+	  
+	  
+	  <Exec Command="&quot;$(YakExecutable)&quot; build" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
   </Target>
 
+	
 </Project>
