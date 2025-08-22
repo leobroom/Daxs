@@ -1,49 +1,51 @@
-﻿//#r "nuget: SharpDX.DirectInput, 4.2.0"
-using SharpDX.XInput;
+﻿using SharpDX.XInput;
 
 namespace Daxs
 {
-    public class XboxGamepad : IGamepad
+    public class XboxGamepad : Gamepad
     {
         private SharpDX.XInput.Controller controller;
 
         public XboxGamepad() => controller = new SharpDX.XInput.Controller(SharpDX.XInput.UserIndex.One);
 
-        public bool IsConnected => controller.IsConnected;
+        public override bool IsConnected => controller.IsConnected;
 
-        public GamepadState GetState()
+        public override GamepadState GetState()
         {
             var pad = controller.GetState().Gamepad;
             var buttons = pad.Buttons;
 
-            return new GamepadState
+            previous = current;
+            current = new GamepadState
             (
-                A: (buttons & GamepadButtonFlags.A) != 0,
-                B: (buttons & GamepadButtonFlags.B) != 0,
-                X: (buttons & GamepadButtonFlags.X) != 0,
-                Y: (buttons & GamepadButtonFlags.Y) != 0,
+                A: GetInputState((buttons & GamepadButtonFlags.A) != 0, previous.A),
+                B: GetInputState((buttons & GamepadButtonFlags.B) != 0, previous.B),
+                X: GetInputState((buttons & GamepadButtonFlags.X) != 0, previous.X),
+                Y: GetInputState((buttons & GamepadButtonFlags.Y) != 0, previous.Y),
 
-                Start: (buttons & GamepadButtonFlags.Start) != 0,
-                Back: (buttons & GamepadButtonFlags.Back) != 0,
+                Start: GetInputState((buttons & GamepadButtonFlags.Start) != 0, previous.Start),
+                Back: GetInputState((buttons & GamepadButtonFlags.Back) != 0, previous.Back),
 
-                DPadUp: (buttons & GamepadButtonFlags.DPadUp) != 0,
-                DPadDown: (buttons & GamepadButtonFlags.DPadDown) != 0,
-                DPadLeft: (buttons & GamepadButtonFlags.DPadLeft) != 0,
-                DPadRight: (buttons & GamepadButtonFlags.DPadRight) != 0,
+                DPadUp: GetInputState((buttons & GamepadButtonFlags.DPadUp) != 0, previous.DPadUp),
+                DPadDown: GetInputState((buttons & GamepadButtonFlags.DPadDown) != 0, previous.DPadDown),
+                DPadLeft: GetInputState((buttons & GamepadButtonFlags.DPadLeft) != 0, previous.DPadLeft),
+                DPadRight: GetInputState((buttons & GamepadButtonFlags.DPadRight) != 0, previous.DPadRight),
 
-                L1: (buttons & GamepadButtonFlags.LeftShoulder) != 0,
+                L1: GetInputState((buttons & GamepadButtonFlags.LeftShoulder) != 0, previous.L1),
                 L2: pad.LeftTrigger / 255f,
-                L3: (buttons & GamepadButtonFlags.LeftThumb) != 0,
+                L3: GetInputState((buttons & GamepadButtonFlags.LeftThumb) != 0, previous.L3),
 
-                R1: (buttons & GamepadButtonFlags.RightShoulder) != 0,
+                R1: GetInputState((buttons & GamepadButtonFlags.RightShoulder) != 0, previous.R1),
                 R2: pad.RightTrigger / 255f,
-                R3: (buttons & GamepadButtonFlags.RightThumb) != 0,
+                R3: GetInputState((buttons & GamepadButtonFlags.RightThumb) != 0, previous.R3),
 
                 LeftThumbX: pad.LeftThumbX / 32767.0,
                 LeftThumbY: pad.LeftThumbY / 32767.0,
                 RightThumbX: pad.RightThumbX / 32767.0,
                 RightThumbY: pad.RightThumbY / 32767.0
             );
+
+            return current;
         }
     }
 }

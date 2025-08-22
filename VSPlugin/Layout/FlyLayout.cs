@@ -35,14 +35,14 @@ namespace Daxs
 
         public virtual void HandleInput(GamepadState state, GamepadState prevState)
         {
-            double speed = state.L3 ? 3 * moveSpeed : moveSpeed;
-            double rotSpeed = state.R3 ? 3 : 1;
+            double speed = state.L3 == IInputState.IsHold ? 3 * moveSpeed : moveSpeed;
+            double rotSpeed = state.R3 == IInputState.IsHold ? 3 : 1;
             double vertical = GetNonLinearTrigger(state.R2) - GetNonLinearTrigger(state.L2);
 
             var (yaw, pitch) = NormalizeStickInput(state.RightThumbX, state.RightThumbY);
             var (strafe, forward) = NormalizeStickInput(state.LeftThumbX, state.LeftThumbY);
 
-            bool hasBooster = state.L3 || state.R3;
+            //bool hasBooster = state.L3 || state.R3;
 
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02;
 
@@ -52,16 +52,9 @@ namespace Daxs
                 var view = doc.Views.ActiveView;
                 var vp = view.ActiveViewport;
 
-                if (hasBooster)
+                if (state.Start == IInputState.IsDown)
                 {
-                    ControllerManager.Instance.SetMessage("BOOSTER");
-                }
-
-                if (state.Start && !prevState.Start)
-                {
-                    RhinoApp.WriteLine($"START PRESSED");
-                    RhinoApp.RunScript("X_Settings", false);
-                    ControllerManager.Instance.SetMessage("Settings");
+                    RhinoApp.RunScript("Daxs_Settings", false);
                 }
 
                 if (hasMoved)

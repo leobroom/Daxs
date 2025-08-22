@@ -20,46 +20,44 @@ namespace Daxs
             Rhino.RhinoApp.InvokeOnUiThread((Action)(() =>
             {
                 //Enter
-                if (state.A && !prevState.A)
+                if (state.A == IInputState.IsDown)
                 {
                     RhinoApp.WriteLine("state.A");
                     SimulateKey(KEY_ENTER);
                 }
 
                 //Escape
-                if ((state.B && !prevState.B) || (state.Start && !prevState.Start))
+                if (state.B == IInputState.IsDown || state.Start == IInputState.IsDown)
                 {
                     RhinoApp.WriteLine("state.B");
                     SimulateKey(KEY_ESCAPE);
                     ControllerManager.Instance.SetMessage("Escape");
                 }
 
-                if (state.DPadRight && !prevState.DPadRight)
+                if (state.DPadRight == IInputState.IsDown)
                 {
                     RhinoApp.WriteLine("DPadRight");
                     SimulateKey(KEY_UP);
                 }
 
-                if (state.DPadLeft && !prevState.DPadLeft)
+                if (state.DPadLeft == IInputState.IsDown)
                 {
                     RhinoApp.WriteLine("DPadLeft");
                     SimulateKey(KEY_DOWN);
                 }
 
-                if (state.DPadUp && !prevState.DPadUp)
+                if (state.DPadUp == IInputState.IsDown)
                 {
                     RhinoApp.WriteLine("DPadUp");
                     SimulateCombinedKey(KEY_SHIFT, KEY_TAB);
                 }
 
-                if (state.DPadDown && !prevState.DPadDown)
+                if (state.DPadDown == IInputState.IsDown)
                 {
                     RhinoApp.WriteLine("DPadDown");
                     SimulateKey(KEY_TAB);
                 }
             }));
-
-
         }
 
         // Simulate Arrow Down key press and release

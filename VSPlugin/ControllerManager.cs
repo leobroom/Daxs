@@ -12,6 +12,7 @@ namespace Daxs
     {
         private static ControllerManager instance = null;
 
+        private ActionManager actionManager = ActionManager.Instance;
         private ControllerManager()
         {
             RhinoApp.Closing += (sender, e) => { settings.SaveSettings(); };
@@ -22,8 +23,15 @@ namespace Daxs
 
             layoutManager.Message += (sender, e) => SetMessage(e.Message);
 
-
-            InitializeValues();
+            //Test
+            //actionManager.RegisterBinding(GamepadButton.Start, new RhinoCmdAction("Daxs_Settings", true));
+            //actionManager.RegisterBinding(GamepadButton.B, new RhinoCmdAction("_ViewCaptureToFile", true));
+            //actionManager.RegisterBinding(GamepadButton.DPadUp, new SwitchAction());
+            //actionManager.RegisterBinding(GamepadButton.DPadRight, new LensAction("Up"));
+            //actionManager.RegisterBinding(GamepadButton.DPadLeft, new LensAction("Down"));
+            //actionManager.RegisterBinding(GamepadButton.DPadDown, new LensAction("Reset"));
+            //actionManager.RegisterBinding(GamepadButton.LR2, new EscalatorAction());
+            //actionManager.RegisterBinding(GamepadButton.LR1, new TeleportAction());
         }
 
         public static ControllerManager Instance
@@ -49,9 +57,6 @@ namespace Daxs
 
         IGamepad gamepad = null;
 
-        //Setings values
-        double moveSpeed, deadzone, yawSensitivity, pitchSensitivity;
-
         LayoutManager layoutManager = LayoutManager.Instance;
 
         public enum Status
@@ -59,21 +64,6 @@ namespace Daxs
             NotInitialized = 0,
             Started = 1,
             Stopped = 2
-        }
-
-        private void InitializeValues()
-        {
-            // Unsubscribe first if needed (optional if re-invoked)
-            settings["MoveSpeed"].ValueChanged += (s, val) => moveSpeed = val;
-            settings["Deadzone"].ValueChanged += (s, val) => deadzone = val;
-            settings["YawSensitivity"].ValueChanged += (s, val) => yawSensitivity = val;
-            settings["PitchSensitivity"].ValueChanged += (s, val) => pitchSensitivity = val;
-
-            // Set initial values
-            moveSpeed = settings["MoveSpeed"].Value;
-            deadzone = settings["Deadzone"].Value;
-            yawSensitivity = settings["YawSensitivity"].Value;
-            pitchSensitivity = settings["PitchSensitivity"].Value;
         }
 
         public void Toggle()
@@ -141,9 +131,7 @@ namespace Daxs
                         continue;
                     }
                     else
-                    {
                         RhinoApp.WriteLine($"Connected to {gamepad.GetType().Name}");
-                    }
                 }
 
                 var state = gamepad.GetState();
