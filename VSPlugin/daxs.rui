@@ -6,20 +6,20 @@
       <text>
         <locale_1033>Daxs</locale_1033>
       </text>
-      <tool_bar_item guid="458cc6e3-36c5-409c-830c-e19e9b5fea88">
+      <tool_bar_item guid="ea0b640b-bf76-4de0-88cf-56b85ffa9f89">
         <left_macro_id>5ea940d3-3f09-49f8-bd18-a7a134a7e1b9</left_macro_id>
       </tool_bar_item>
-      <tool_bar_item guid="439b269b-a0f1-4b0c-b441-91bef879f884">
+      <tool_bar_item guid="5d708fef-b42e-404c-bf13-bd3bd2e54182">
         <left_macro_id>066c6bb0-7fb6-474d-9625-7e839b3b2990</left_macro_id>
       </tool_bar_item>
       <tool_bar_item guid="097f8e85-e7e0-45e7-861e-9a084b5cde0e" button_style="spacer" />
-      <tool_bar_item guid="6c0f0e28-efca-41f2-aea1-f7fd78e073e0">
+      <tool_bar_item guid="e1f9bd12-3d04-4b50-82d9-a44d10690579">
         <left_macro_id>7b7a686d-dfda-4ce8-b844-1a5fb24faaf7</left_macro_id>
       </tool_bar_item>
-      <tool_bar_item guid="0ca27083-cd3b-4eb5-b49f-c75495435a82">
+      <tool_bar_item guid="233cc3b2-79be-42df-8f65-8d84536a5e71">
         <left_macro_id>6b29f6a9-bef3-4bc4-a8fd-913badb75f48</left_macro_id>
       </tool_bar_item>
-      <tool_bar_item guid="5b23414c-722c-4985-8a5e-c433b7ccb58e">
+      <tool_bar_item guid="c7569e55-44a3-426e-b383-3cd004a036c1">
         <left_macro_id>e27ab4c7-152c-4723-b49a-c92de7a027eb</left_macro_id>
       </tool_bar_item>
       <tool_bar_item guid="d9bd2d9b-d58c-45d0-8857-a80345bdd344" button_style="spacer" />
@@ -47,24 +47,6 @@
     </tool_bar>
   </tool_bars>
   <macros>
-    <macro_item guid="066c6bb0-7fb6-474d-9625-7e839b3b2990" bitmap_id="111cbd7e-a24a-47b8-b441-f77207c32cd3">
-      <text>
-        <locale_1033>Daxs_dfdgsfdg</locale_1033>
-      </text>
-      <tooltip>
-        <locale_1033>Daxs_dfdgsfdgdsfgdfsgsdfg</locale_1033>
-      </tooltip>
-      <help_text>
-        <locale_1033>Daxs_dfdgsfdgdsfgsdg</locale_1033>
-      </help_text>
-      <button_text>
-        <locale_1033>Daxs Settings</locale_1033>
-      </button_text>
-      <menu_text>
-        <locale_1033>Daxs_dfdgsfdgsdfgdsfg</locale_1033>
-      </menu_text>
-      <script>dsgfdsgsdf</script>
-    </macro_item>
     <macro_item guid="36e0fa83-0361-495e-8d40-63b142b6536a" bitmap_id="87e2d4d7-6878-43a7-bb83-8385fb313bc0">
       <text>
         <locale_1033>yxcyjhgj</locale_1033>
@@ -82,42 +64,6 @@
         <locale_1033>yxcyjhgjdss</locale_1033>
       </menu_text>
       <script>gdfg</script>
-    </macro_item>
-    <macro_item guid="6b29f6a9-bef3-4bc4-a8fd-913badb75f48" bitmap_id="4a213ab5-a452-4c91-81f5-08551ac5fe55">
-      <text>
-        <locale_1033>Daxs Walk Mode</locale_1033>
-      </text>
-      <tooltip>
-        <locale_1033>Daxs Walk Modexcvxc</locale_1033>
-      </tooltip>
-      <help_text>
-        <locale_1033>Daxs Walk Modecvxcv</locale_1033>
-      </help_text>
-      <button_text>
-        <locale_1033>Daxs Walk Modeddsf</locale_1033>
-      </button_text>
-      <menu_text>
-        <locale_1033>Daxs Walk Modedsfcx</locale_1033>
-      </menu_text>
-      <script>dfsdfdcxv</script>
-    </macro_item>
-    <macro_item guid="5ea940d3-3f09-49f8-bd18-a7a134a7e1b9" bitmap_id="f0c85589-764a-4122-8cb0-07d117512888">
-      <text>
-        <locale_1033>Daxs</locale_1033>
-      </text>
-      <tooltip>
-        <locale_1033>Daxssdfs</locale_1033>
-      </tooltip>
-      <help_text>
-        <locale_1033>Daxssdfdsf</locale_1033>
-      </help_text>
-      <button_text>
-        <locale_1033>Dax_Start</locale_1033>
-      </button_text>
-      <menu_text>
-        <locale_1033>Daxsdsfsdf</locale_1033>
-      </menu_text>
-      <script>vbvcbcvxbvcbxcbbxcbcbvxbxbcxb</script>
     </macro_item>
     <macro_item guid="e7eb7e27-81ff-4514-be59-5b9f62c7a478" bitmap_id="6c6b1ffb-d0c2-405a-9a3d-f85b274a258f">
       <text>
@@ -137,42 +83,6 @@
       </menu_text>
       <script>asdasdsa</script>
     </macro_item>
-    <macro_item guid="e27ab4c7-152c-4723-b49a-c92de7a027eb" bitmap_id="0109713b-edb3-4d7c-bac9-2d714016e6cb">
-      <text>
-        <locale_1033>Daxs Set Collision</locale_1033>
-      </text>
-      <tooltip>
-        <locale_1033>Daxs Set Collision  ffffff</locale_1033>
-      </tooltip>
-      <help_text>
-        <locale_1033>Daxs Set Collision fgfddfg</locale_1033>
-      </help_text>
-      <button_text>
-        <locale_1033>Daxs Set Collision dfdsf</locale_1033>
-      </button_text>
-      <menu_text>
-        <locale_1033>Daxs Set Collision sssss</locale_1033>
-      </menu_text>
-      <script>dfdsf</script>
-    </macro_item>
-    <macro_item guid="d3dad798-6497-433d-a291-b04b4b2e8ae1" bitmap_id="858b6130-4386-4e37-b9ad-efadd96852d6">
-      <text>
-        <locale_1033>Daxs Stop</locale_1033>
-      </text>
-      <tooltip>
-        <locale_1033>Daxs Stop Tooltip</locale_1033>
-      </tooltip>
-      <help_text>
-        <locale_1033>Daxs Stop Help Text</locale_1033>
-      </help_text>
-      <button_text>
-        <locale_1033>Daxs Stop Button Text</locale_1033>
-      </button_text>
-      <menu_text>
-        <locale_1033>Daxs Stop Menu Text</locale_1033>
-      </menu_text>
-      <script>_Daxs_Stop</script>
-    </macro_item>
     <macro_item guid="711012a4-a1fe-4dc8-83d0-c7a2c7c16050" bitmap_id="9901bd79-75fd-4811-994e-6eb631a92dba">
       <text>
         <locale_1033>sqqwrrtuzirz</locale_1033>
@@ -190,24 +100,6 @@
         <locale_1033>sqqwrrtuzirzjzuk</locale_1033>
       </menu_text>
       <script>csdfsdfsd</script>
-    </macro_item>
-    <macro_item guid="7b7a686d-dfda-4ce8-b844-1a5fb24faaf7" bitmap_id="536bec01-4a37-43dd-807e-19f82fdb7a82">
-      <text>
-        <locale_1033>effsdfsdfdsf</locale_1033>
-      </text>
-      <tooltip>
-        <locale_1033>effsdfsdfdsfcxvcxv</locale_1033>
-      </tooltip>
-      <help_text>
-        <locale_1033>effsdfsdfdsfcxvxcv</locale_1033>
-      </help_text>
-      <button_text>
-        <locale_1033>effsdfsdfdsfcxvcxv</locale_1033>
-      </button_text>
-      <menu_text>
-        <locale_1033>effsdfsdfdsfcxvv</locale_1033>
-      </menu_text>
-      <script>cxcxvcxv</script>
     </macro_item>
     <macro_item guid="ba986ae3-9d46-4b4e-8607-dcfad290d992" bitmap_id="e9a8962a-104a-4882-bb4d-3d5fc2c4d94d">
       <text>
@@ -245,24 +137,6 @@
       </menu_text>
       <script>sdfsdfsd</script>
     </macro_item>
-    <macro_item guid="5d281bb5-a566-4686-ad14-eb68732418b2" bitmap_id="9b13c95f-4af8-4e58-b334-8c803027fd76">
-      <text>
-        <locale_1033>Daxs_Start</locale_1033>
-      </text>
-      <tooltip>
-        <locale_1033>Daxs_Start Tooltip</locale_1033>
-      </tooltip>
-      <help_text>
-        <locale_1033>Daxs_Start Help Text</locale_1033>
-      </help_text>
-      <button_text>
-        <locale_1033>Daxs_Start Button Text</locale_1033>
-      </button_text>
-      <menu_text>
-        <locale_1033>Daxs_Start Menu Text</locale_1033>
-      </menu_text>
-      <script>_Daxs_Start</script>
-    </macro_item>
     <macro_item guid="41d2b552-b160-4974-8118-7154fdbab0b6" bitmap_id="02c888f5-2f55-4dcc-ab01-7ec5cddee83d">
       <text>
         <locale_1033>cxvcxvcxv</locale_1033>
@@ -298,6 +172,132 @@
         <locale_1033>hghghkxyc</locale_1033>
       </menu_text>
       <script>cyxc</script>
+    </macro_item>
+    <macro_item guid="066c6bb0-7fb6-474d-9625-7e839b3b2990" bitmap_id="111cbd7e-a24a-47b8-b441-f77207c32cd3">
+      <text>
+        <locale_1033>Daxs_dfdgsfdg</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Daxs: Gamepad Settings</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>Daxs_dfdgsfdgdsfgsdg</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Daxs Settings</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>Daxs_dfdgsfdgsdfgdsfg</locale_1033>
+      </menu_text>
+      <script>_Daxs_Settings</script>
+    </macro_item>
+    <macro_item guid="5ea940d3-3f09-49f8-bd18-a7a134a7e1b9" bitmap_id="f0c85589-764a-4122-8cb0-07d117512888">
+      <text>
+        <locale_1033>Daxs</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Daxs: Start/Stop Gamepad Input</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>Daxssdfdsf</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Daxs: Start/Stop</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>Daxsdsfsdf</locale_1033>
+      </menu_text>
+      <script>Daxs_StartStop</script>
+    </macro_item>
+    <macro_item guid="e27ab4c7-152c-4723-b49a-c92de7a027eb" bitmap_id="0109713b-edb3-4d7c-bac9-2d714016e6cb">
+      <text>
+        <locale_1033>Daxs Set Collision</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Daxs: Set floor collision for Walk Mode</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>Daxs Set Collision fgfddfg</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Daxs Set Collision dfdsf</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>Daxs Set Collision sssss</locale_1033>
+      </menu_text>
+      <script>_Daxs_SetCollisionMesh</script>
+    </macro_item>
+    <macro_item guid="d3dad798-6497-433d-a291-b04b4b2e8ae1" bitmap_id="858b6130-4386-4e37-b9ad-efadd96852d6">
+      <text>
+        <locale_1033>Daxs Stop</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Daxs Stop Tooltip</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>Daxs Stop Help Text</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Daxs Stop Button Text</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>Daxs Stop Menu Text</locale_1033>
+      </menu_text>
+      <script>_Daxs_Stop</script>
+    </macro_item>
+    <macro_item guid="5d281bb5-a566-4686-ad14-eb68732418b2" bitmap_id="9b13c95f-4af8-4e58-b334-8c803027fd76">
+      <text>
+        <locale_1033>Daxs_Start</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Daxs_Start Tooltip</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>Daxs_Start Help Text</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Daxs_Start Button Text</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>Daxs_Start Menu Text</locale_1033>
+      </menu_text>
+      <script>_Daxs_Start</script>
+    </macro_item>
+    <macro_item guid="6b29f6a9-bef3-4bc4-a8fd-913badb75f48" bitmap_id="4a213ab5-a452-4c91-81f5-08551ac5fe55">
+      <text>
+        <locale_1033>Daxs Walk Mode</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Daxs: Walk Mode on a plane or Mesh (Set Collision for that before )</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>Daxs Walk Modecvxcv</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Daxs Walk</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>Daxs Walk Modedsfcx</locale_1033>
+      </menu_text>
+      <script>_Daxs_Walk</script>
+    </macro_item>
+    <macro_item guid="7b7a686d-dfda-4ce8-b844-1a5fb24faaf7" bitmap_id="536bec01-4a37-43dd-807e-19f82fdb7a82">
+      <text>
+        <locale_1033>effsdfsdfdsf</locale_1033>
+      </text>
+      <tooltip>
+        <locale_1033>Daxs: Fly mode let's you fly around.</locale_1033>
+      </tooltip>
+      <help_text>
+        <locale_1033>effsdfsdfdsfcxvxcv</locale_1033>
+      </help_text>
+      <button_text>
+        <locale_1033>Daxs Fly</locale_1033>
+      </button_text>
+      <menu_text>
+        <locale_1033>effsdfsdfdsfcxvv</locale_1033>
+      </menu_text>
+      <script>_Daxs_Fly</script>
     </macro_item>
   </macros>
   <icons>

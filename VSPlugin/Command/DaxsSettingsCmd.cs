@@ -2,12 +2,15 @@
 using Rhino.Commands;
 using Rhino.UI;
 
-
 namespace Daxs
 {
     public class DaxsSettingsCmd : Command
     {
-        public DaxsSettingsCmd(){Instance = this;}
+        private DaxsSettings dSettings;
+        public DaxsSettingsCmd()
+        {
+            Instance = this;
+        }
         public static DaxsSettingsCmd Instance { get; private set; }
 
         ///<returns>The command name as it appears on the Rhino command line.</returns>
@@ -17,7 +20,6 @@ namespace Daxs
         {
             var dSettings = new DaxsSettings();
             EtoExtensions.UseRhinoStyle(dSettings);
-
             ControllerManager.Instance.SetLayout("Menu");
 
             var result = dSettings.ShowSemiModal(RhinoDoc.ActiveDoc, RhinoEtoApp.MainWindow);
