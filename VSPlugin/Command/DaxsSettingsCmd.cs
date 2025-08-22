@@ -7,13 +7,9 @@ namespace Daxs
     public class DaxsSettingsCmd : Command
     {
         private DaxsSettings dSettings;
-        public DaxsSettingsCmd()
-        {
-            Instance = this;
-        }
+        public DaxsSettingsCmd()=> Instance = this;
         public static DaxsSettingsCmd Instance { get; private set; }
 
-        ///<returns>The command name as it appears on the Rhino command line.</returns>
         public override string EnglishName => "Daxs_Settings";
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)

@@ -10,10 +10,14 @@ namespace Daxs
         public static LayoutManager Instance => _instance.Value;
 
         public IGamepadLayout CurrentLayout => currentLayout;
+        private IGamepadLayout currentLayout;
+
+        public IGamepadLayout PreviousLayout => previousLayout;
+        private IGamepadLayout previousLayout;
 
         //Gamepad Layout
         private Dictionary<string, IGamepadLayout> layouts = new();
-        private IGamepadLayout currentLayout;
+        
 
         public event EventHandler<DisplayEventArgs> Message;
         private LayoutManager(){}
@@ -24,9 +28,18 @@ namespace Daxs
         {
             if (layouts.TryGetValue(name, out var layout))
             {
+                previousLayout = (previousLayout == null) ? layout : currentLayout;
+
                 currentLayout = layout;
                 Message?.Invoke(this, new DisplayEventArgs($"Layout: {name}"));
             }
+        }
+
+        public void SetToPreviousLayout() 
+        {
+
+            string mode = (previousLayout == null || currentLayout == null) ? "Fly" : previousLayout.Name;
+            SetLayout(mode);
         }
 
         public IGamepadLayout GetLayout(string name)
