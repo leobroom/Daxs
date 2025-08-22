@@ -20,13 +20,13 @@ namespace Daxs
         {
             var dSettings = new DaxsSettings();
             EtoExtensions.UseRhinoStyle(dSettings);
-            ControllerManager.Instance.SetLayout("Menu");
+            LayoutManager.Instance.SetLayout("Menu");
 
             var result = dSettings.ShowSemiModal(RhinoDoc.ActiveDoc, RhinoEtoApp.MainWindow);
 
             if (!result)
             {
-                ControllerManager.Instance.SetLayout("Fly");
+                LayoutManager.Instance.SetLayout("Fly");
 
                 return Result.Cancel;
             }
@@ -34,7 +34,7 @@ namespace Daxs
             foreach (var nv in Daxs.Settings.Instance.AllValues)
                 RhinoApp.WriteLine($"{nv.Name}: {nv.Value}");
 
-            ControllerManager.Instance.SetLayout("Fly");
+            LayoutManager.Instance.SetLayout("Fly");
             return Result.Success;
         }
     }

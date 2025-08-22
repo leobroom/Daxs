@@ -1,12 +1,6 @@
-﻿// #! csharp
-//#r "nuget: SharpDX, 4.2.0"
-//#r "nuget: SharpDX.XInput, 4.2.0"
-
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using SharpDX.XInput;
 
 using Rhino;
 using Rhino.Geometry;
@@ -22,9 +16,11 @@ namespace Daxs
         {
             RhinoApp.Closing += (sender, e) => { settings.SaveSettings(); };
 
-            RegisterLayout(new FlyLayout());
-            RegisterLayout(new WalkLayout());
-            RegisterLayout(new MenuLayout());
+            layoutManager.RegisterLayout(new FlyLayout());
+            layoutManager.RegisterLayout(new WalkLayout());
+            layoutManager.RegisterLayout(new MenuLayout());
+
+            layoutManager.Message += (sender, e) => SetMessage(e.Message);
 
 
             InitializeValues();
@@ -44,7 +40,7 @@ namespace Daxs
         private CancellationTokenSource _cts;
         private Status status = Status.NotInitialized;
 
-        private Settings settings = Settings.Instance;
+        private readonly Settings settings = Settings.Instance;
 
         //Buttons
         private DateTime lastPressedTime;
@@ -56,16 +52,14 @@ namespace Daxs
         //Setings values
         double moveSpeed, deadzone, yawSensitivity, pitchSensitivity;
 
+        LayoutManager layoutManager = LayoutManager.Instance;
+
         public enum Status
         {
             NotInitialized = 0,
             Started = 1,
             Stopped = 2
         }
-
-        //Gamepad Layout
-        private Dictionary<string, IGamepadLayout> layouts = new();
-        private IGamepadLayout currentLayout;
 
         private void InitializeValues()
         {
@@ -96,9 +90,9 @@ namespace Daxs
             _ = Task.Run(() => Loop(_cts.Token), _cts.Token);
             status = Status.Started;
 
-            Rhino.Display.DisplayPipeline.DrawForeground += DrawText;
+            DisplayPipeline.DrawForeground += DrawText;
 
-            SetLayout("Fly");
+            layoutManager.SetLayout("Fly");
 
             RhinoApp.WriteLine($"Daxs {Utils.GetPackageVersion()} Start");
         }
@@ -108,7 +102,7 @@ namespace Daxs
             _cts.Cancel();
             status = Status.Stopped;
 
-            Rhino.Display.DisplayPipeline.DrawForeground -= DrawText;
+            DisplayPipeline.DrawForeground -= DrawText;
             RhinoApp.WriteLine("Daxs Stop");
         }
 
@@ -156,7 +150,7 @@ namespace Daxs
                 var prevStateCopy = previousState;
 
                 // Update the camera on the UI thread.                    
-                currentLayout?.HandleInput(state, prevStateCopy);
+                layoutManager.CurrentLayout?.HandleInput(state, prevStateCopy);
 
                 if ((DateTime.Now - lastPressedTime).TotalSeconds > 2)
                     displayMessage = "";
@@ -166,32 +160,6 @@ namespace Daxs
             }
         }
         #endregion
-
-        #region LAYOUT
-        public void RegisterLayout(IGamepadLayout layout) => layouts[layout.Name] = layout;
-
-        public void SetLayout(string name)
-        {
-            if (layouts.TryGetValue(name, out var layout))
-            {
-                currentLayout = layout;
-                SetMessage($"Layout: {name}");
-            }
-        }
-
-        public IGamepadLayout GetLayout(string name)
-        {
-            if (!layouts.TryGetValue(name, out var layout))
-                throw new KeyNotFoundException($"Layout '{name}' not found.");
-            return layout;
-        }
-        #endregion
-
-        public void SetCollisionMesh(Mesh colMesh)
-        {
-            WalkLayout wLayout = (WalkLayout)GetLayout("Walk");
-            wLayout.SetCollider(colMesh);
-        }
 
         private IGamepad TryGetGamepad()
         {

@@ -43,7 +43,7 @@ namespace Daxs
             }
 
             //Set Mesh to
-            ControllerManager.Instance.SetCollisionMesh(mesh);
+            LayoutManager.Instance.SetCollisionMesh(mesh);
 
             return Result.Success;
         }
