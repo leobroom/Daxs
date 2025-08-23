@@ -15,13 +15,12 @@
   
   <PropertyGroup>
     <!-- Specifies information for Assembly and Yak -->
-    <Version>0.1.7</Version>
+    <Version>0.1.9</Version>
     <Title>Daxs</Title>
     <Company>Leon Brohmann</Company>
     <Description>Daxs is a Rhino package that enables support for gamepad input, making it easier to integrate Xbox and PlayStation 4 controllers into your Rhino workflows or plugins.</Description>
   </PropertyGroup>
  
-  
   <ItemGroup>
     <EmbeddedResource Include="Shared\xBoxDummy.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -69,7 +68,7 @@
 	  <!-- replace url -->
 	  <Exec WorkingDirectory="$(OutputPath)" Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;(Get-Content -LiteralPath 'manifest.yml') -replace '^(url:\s*).*$','url: https://github.com/leobroom/Daxs' | Set-Content -LiteralPath 'manifest.yml' -Encoding UTF8&quot;" />
 
-	  <!-- remove weird version number thing -->
+	  <!-- remove weird version number apendix -->
 	  <Exec WorkingDirectory="$(OutputPath)" Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;(Get-Content -LiteralPath 'manifest.yml') -replace '^(version:\s*\d+\.\d+\.\d+)\+.*$','$1' | Set-Content -LiteralPath 'manifest.yml' -Encoding UTF8&quot;" />
 
   
@@ -91,5 +90,7 @@
 	  <Exec Command="&quot;$(YakExecutable)&quot; build" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
   </Target>
 
-	
+
+
+
 </Project>

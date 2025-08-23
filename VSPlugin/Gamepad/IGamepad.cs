@@ -15,20 +15,20 @@
 
         public abstract GamepadState GetState();
 
-        protected static IInputState GetInputState(bool input, IInputState previous)
+        protected static InputX GetInputState(bool input, InputX previous)
         {
-            if (input && (previous == IInputState.IsUnset || previous == IInputState.IsReleased))
-                return IInputState.IsDown;
-            else if (input && (previous == IInputState.IsDown || previous == IInputState.IsHold))
-                return IInputState.IsHold;
-            else if (!input && (previous == IInputState.IsDown || previous == IInputState.IsHold))
-                return IInputState.IsReleased;
+            if (input && (previous == InputX.IsUnset || previous == InputX.IsReleased))
+                return InputX.IsDown;
+            else if (input && (previous == InputX.IsDown || previous == InputX.IsHold))
+                return InputX.IsHold;
+            else if (!input && (previous == InputX.IsDown || previous == InputX.IsHold))
+                return InputX.IsReleased;
             else
-                return IInputState.IsUnset;
+                return InputX.IsUnset;
         }
     }
 
-    public enum IInputState
+    public enum InputX
     {
         IsUnset,
         IsDown,

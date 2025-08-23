@@ -36,8 +36,8 @@ namespace Daxs
 
         public virtual double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime)
         {
-            double speed = state.L3 == IInputState.IsHold ? 3 * moveSpeed : moveSpeed;
-            double rotSpeed = state.R3 == IInputState.IsHold ? 3 : 1;
+            double speed = state.L3 == InputX.IsHold ? 3 * moveSpeed : moveSpeed;
+            double rotSpeed = state.R3 == InputX.IsHold ? 3 : 1;
             double vertical = GetNonLinearTrigger(state.R2) - GetNonLinearTrigger(state.L2);
 
             var (yaw, pitch) = NormalizeStickInput(state.RightThumbX, state.RightThumbY);
@@ -54,10 +54,10 @@ namespace Daxs
                 var vp = view.ActiveViewport;
 
                 double currentTime = stopwatch.Elapsed.TotalSeconds;
-                float deltaTime = (float)(currentTime - lastTime);
+                float delta = (float)(currentTime - lastTime);
                 lastTime = currentTime;
 
-                if (state.Start == IInputState.IsDown)
+                if (state.Start == InputX.IsDown)
                 {
                     RhinoApp.RunScript("Daxs_Settings", false);
                 }
@@ -65,9 +65,11 @@ namespace Daxs
                 if (hasMoved)
                 {
                     if (vp.IsPlanView)
-                        ApplyCameraPanControls(vp, forward, strafe, vertical, yaw, pitch, speed, rotSpeed);
+                        ApplyCameraPanControls(vp, forward * delta, strafe * delta, vertical * delta, 
+                            yaw * delta, pitch * delta, speed * delta, rotSpeed * delta);
                     else
-                        ApplyCameraControls(vp, forward, -strafe, vertical, yaw, pitch, speed, rotSpeed);
+                        ApplyCameraControls(vp, forward * delta, -strafe * delta, vertical * delta, 
+                            yaw * delta, pitch * delta, speed * delta, rotSpeed * delta);
 
                     view.Redraw();
                 }

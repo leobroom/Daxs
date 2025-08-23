@@ -2,12 +2,12 @@
 {
     public readonly struct GamepadState
     {
-        public readonly IInputState A, B, X, Y, Start, Back, L1, L3, R1, R3, DPadUp, DPadDown, DPadLeft, DPadRight;
+        public readonly InputX A, B, X, Y, Start, Back, L1, L3, R1, R3, DPadUp, DPadDown, DPadLeft, DPadRight;
         public readonly float L2, R2;
         public readonly double LeftThumbX, LeftThumbY, RightThumbX, RightThumbY;
 
-        public GamepadState(IInputState A, IInputState B, IInputState X, IInputState Y, IInputState Start, IInputState Back, IInputState L1, float L2,
-        IInputState L3, IInputState R1, float R2, IInputState R3, IInputState DPadUp, IInputState DPadDown, IInputState DPadLeft, IInputState DPadRight,
+        public GamepadState(InputX A, InputX B, InputX X, InputX Y, InputX Start, InputX Back, InputX L1, float L2,
+        InputX L3, InputX R1, float R2, InputX R3, InputX DPadUp, InputX DPadDown, InputX DPadLeft, InputX DPadRight,
         double LeftThumbX, double LeftThumbY, double RightThumbX, double RightThumbY)
         {
             this.A = A; this.B = B; this.X = X; this.Y = Y;

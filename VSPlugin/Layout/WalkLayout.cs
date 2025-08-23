@@ -39,15 +39,15 @@ namespace Daxs
 
         public override double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime)
         {
-            double speed = state.L3 == IInputState.IsHold ? 3 * moveSpeed : moveSpeed;
-            double rotSpeed = state.R3 == IInputState.IsHold ? 3 : 1;
+            double speed = state.L3 == InputX.IsHold ? 3 * moveSpeed : moveSpeed;
+            double rotSpeed = state.R3 == InputX.IsHold ? 3 : 1;
             double vertical = GetNonLinearTrigger(state.R2) - GetNonLinearTrigger(state.L2);
 
             var (yaw, pitch) = NormalizeStickInput(state.RightThumbX, state.RightThumbY);
             var (strafe, forward) = NormalizeStickInput(state.LeftThumbX, state.LeftThumbY);
 
-            bool r1 = (state.R1 == IInputState.IsDown);
-            bool l1 = (state.L1 == IInputState.IsDown);
+            bool r1 = (state.R1 == InputX.IsDown);
+            bool l1 = (state.L1 == InputX.IsDown);
 
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || r1 || l1;
 
@@ -65,10 +65,10 @@ namespace Daxs
                 var vp = view.ActiveViewport;
 
                 double currentTime = stopwatch.Elapsed.TotalSeconds;
-                float deltaTime = (float)(currentTime - lastTime);
+                float delta = (float)(currentTime - lastTime);
                 lastTime = currentTime;
 
-                if (state.Start == IInputState.IsDown)
+                if (state.Start == InputX.IsDown)
                 {
                     RhinoApp.WriteLine($"START PRESSED");
                     RhinoApp.RunScript("X_Settings", false);
@@ -78,9 +78,11 @@ namespace Daxs
                 if (hasMoved)
                 {
                     if (vp.IsPlanView)
-                        ApplyCameraPanControls(vp, forward, strafe, vertical, yaw, pitch, speed, rotSpeed);
+                        ApplyCameraPanControls(vp, forward* delta, strafe * delta, vertical * delta,
+                            yaw * delta, pitch * delta, speed * delta, rotSpeed * delta);
                     else
-                        ApplyCameraControls(vp, forward, -strafe, vertical, yaw, pitch, speed, rotSpeed, jDir);
+                        ApplyCameraControls(vp, forward, -strafe * delta, vertical * delta, yaw * delta, 
+                            pitch * delta, speed * delta, rotSpeed * delta, jDir);
 
                     view.Redraw();
                 }
@@ -156,7 +158,7 @@ namespace Daxs
 
             RhinoApp.WriteLine($"JUmp: " + jumpDir);
 
-            Ray3d ray = new Ray3d(pos, -Vector3d.ZAxis);
+            Ray3d ray = new(pos, -Vector3d.ZAxis);
             Point3d[] pts = Intersection.ProjectPointsToMeshes(new Mesh[] { colMsh }, new Point3d[] { pos }, Vector3d.ZAxis, 0.1);
 
             List<double> lst = new List<double>();
@@ -180,12 +182,11 @@ namespace Daxs
             pos.Z += (jumpDir == JumpDir.Up) ? GetNextUp(lst, eyeHeight) : GetNextDown(lst, eyeHeight);
         }
 
-        double GetNextDown(List<double> lst, double eyeHeight)
+        static double GetNextDown(List<double> lst, double eyeHeight)
         {
             for (int i = 1; i < lst.Count; i++)
             {
                 double height = lst[i];
-
                 double addedHeight = -height + eyeHeight;
                 double dist = height - lst[i - 1];
 
@@ -197,7 +198,7 @@ namespace Daxs
             return 0;
         }
 
-        double GetNextUp(List<double> lst, double eyeHeight)
+        static double GetNextUp(List<double> lst, double eyeHeight)
         {
             for (int i = 0; i < lst.Count; i++)
             {

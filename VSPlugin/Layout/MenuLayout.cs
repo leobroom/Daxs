@@ -26,39 +26,39 @@ namespace Daxs
                 lastTime = currentTime;
 
                 //Enter
-                if (state.A == IInputState.IsDown)
+                if (state.A == InputX.IsDown)
                 {
                     RhinoApp.WriteLine("state.A");
                     SimulateKey(KEY_ENTER);
                 }
 
                 //Escape
-                if (state.B == IInputState.IsDown || state.Start == IInputState.IsDown)
+                if (state.B == InputX.IsDown || state.Start == InputX.IsDown)
                 {
                     RhinoApp.WriteLine("state.B");
                     SimulateKey(KEY_ESCAPE);
                     ControllerManager.Instance.SetMessage("Escape");
                 }
 
-                if (state.DPadRight == IInputState.IsDown)
+                if (state.DPadRight == InputX.IsDown)
                 {
                     RhinoApp.WriteLine("DPadRight");
                     SimulateKey(KEY_UP);
                 }
 
-                if (state.DPadLeft == IInputState.IsDown)
+                if (state.DPadLeft == InputX.IsDown)
                 {
                     RhinoApp.WriteLine("DPadLeft");
                     SimulateKey(KEY_DOWN);
                 }
 
-                if (state.DPadUp == IInputState.IsDown)
+                if (state.DPadUp == InputX.IsDown)
                 {
                     RhinoApp.WriteLine("DPadUp");
                     SimulateCombinedKey(KEY_SHIFT, KEY_TAB);
                 }
 
-                if (state.DPadDown == IInputState.IsDown)
+                if (state.DPadDown == InputX.IsDown)
                 {
                     RhinoApp.WriteLine("DPadDown");
                     SimulateKey(KEY_TAB);
