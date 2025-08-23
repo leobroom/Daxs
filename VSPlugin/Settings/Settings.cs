@@ -1,10 +1,5 @@
-﻿// #! csharp
-using System;
-using System.IO;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
-
 using Rhino.PlugIns;
 using Rhino;
 
@@ -20,11 +15,10 @@ namespace Daxs
         private Settings()
         {
             //Gamepad
-            Add("YawSensitivity", 0.009, 10000);
-            Add("PitchSensitivity", 0.009, 10000);
-            Add("Deadzone", 0.169, 1000);
-            Add("MoveSpeed", 146, 1);
-
+            Add("YawSensitivity", 0.0009, 100000);
+            Add("PitchSensitivity", 0.0009, 100000);
+            Add("Deadzone", 0.0169, 10000);
+            Add("MoveSpeed", 140.6, 1);
 
             //Text
             Add("TextTime", 2, 1);

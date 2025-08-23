@@ -79,7 +79,7 @@ namespace Daxs
                 {
                     if (vp.IsPlanView)
                         ApplyCameraPanControls(vp, forward* delta, strafe * delta, vertical * delta,
-                            yaw * delta, pitch * delta, speed * delta, rotSpeed * delta);
+                            yaw * delta, pitch * delta, speed * delta);
                     else
                         ApplyCameraControls(vp, forward, -strafe * delta, vertical * delta, yaw * delta, 
                             pitch * delta, speed * delta, rotSpeed * delta, jDir);

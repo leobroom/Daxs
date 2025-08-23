@@ -42,9 +42,6 @@ namespace Daxs
 
             var (yaw, pitch) = NormalizeStickInput(state.RightThumbX, state.RightThumbY);
             var (strafe, forward) = NormalizeStickInput(state.LeftThumbX, state.LeftThumbY);
-
-            //bool hasBooster = state.L3 || state.R3;
-
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02;
 
             // Update the camera on the UI thread.
@@ -65,11 +62,9 @@ namespace Daxs
                 if (hasMoved)
                 {
                     if (vp.IsPlanView)
-                        ApplyCameraPanControls(vp, forward * delta, strafe * delta, vertical * delta, 
-                            yaw * delta, pitch * delta, speed * delta, rotSpeed * delta);
+                        ApplyCameraPanControls(vp, forward, strafe, vertical, yaw, pitch, speed * delta);
                     else
-                        ApplyCameraControls(vp, forward * delta, -strafe * delta, vertical * delta, 
-                            yaw * delta, pitch * delta, speed * delta, rotSpeed * delta);
+                        ApplyCameraControls(vp, forward, -strafe, vertical, yaw, pitch, speed * delta, rotSpeed * delta);
 
                     view.Redraw();
                 }
@@ -98,7 +93,7 @@ namespace Daxs
         }
 
         /// Used for panning over a plan views (example left right bottom etc)
-        protected void ApplyCameraPanControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed)
+        protected void ApplyCameraPanControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed)
         {
             // Get the right and up vectors in the view plane
             Vector3d right = -vp.CameraX;
@@ -139,9 +134,9 @@ namespace Daxs
             right = Vector3d.CrossProduct(camDir, vp.CameraUp);
 
             // Movement
-            Vector3d move = Vector3d.ZAxis * vertical +
-                            camDir * forward * speed +
-                            right * strafe * speed;
+            Vector3d move = (Vector3d.ZAxis * vertical) +
+                            (camDir * forward * speed) +
+                            (right * strafe * speed);
 
             vp.SetCameraLocation(vp.CameraLocation + move, true);
         }
