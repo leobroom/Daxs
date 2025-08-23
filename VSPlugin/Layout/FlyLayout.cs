@@ -45,7 +45,7 @@ namespace Daxs
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02;
 
             // Update the camera on the UI thread.
-            Rhino.RhinoApp.InvokeOnUiThread((Action)(() =>
+            RhinoApp.InvokeOnUiThread((Action)(() =>
             {
                 var view = doc.Views.ActiveView;
                 var vp = view.ActiveViewport;
@@ -54,10 +54,7 @@ namespace Daxs
                 float delta = (float)(currentTime - lastTime);
                 lastTime = currentTime;
 
-                if (state.Start == InputX.IsDown)
-                {
-                    RhinoApp.RunScript("Daxs_Settings", false);
-                }
+                ActionManager.Instance.ExecuteActionsOnMainThread(state);
 
                 if (hasMoved)
                 {
@@ -133,10 +130,12 @@ namespace Daxs
             // Recalculate right vector after rotation
             right = Vector3d.CrossProduct(camDir, vp.CameraUp);
 
+     
+
             // Movement
-            Vector3d move = (Vector3d.ZAxis * vertical) +
-                            (camDir * forward * speed) +
-                            (right * strafe * speed);
+            Vector3d move = Vector3d.ZAxis * vertical +
+                            camDir * forward * speed +
+                            right * strafe * speed;
 
             vp.SetCameraLocation(vp.CameraLocation + move, true);
         }

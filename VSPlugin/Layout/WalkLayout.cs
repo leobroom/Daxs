@@ -68,21 +68,14 @@ namespace Daxs
                 float delta = (float)(currentTime - lastTime);
                 lastTime = currentTime;
 
-                if (state.Start == InputX.IsDown)
-                {
-                    RhinoApp.WriteLine($"START PRESSED");
-                    RhinoApp.RunScript("X_Settings", false);
-                    ControllerManager.Instance.SetMessage("Settings");
-                }
+                ActionManager.Instance.ExecuteActionsOnMainThread(state);
 
                 if (hasMoved)
                 {
                     if (vp.IsPlanView)
-                        ApplyCameraPanControls(vp, forward* delta, strafe * delta, vertical * delta,
-                            yaw * delta, pitch * delta, speed * delta);
+                        ApplyCameraPanControls(vp, forward, strafe, vertical ,yaw, pitch, speed * delta);
                     else
-                        ApplyCameraControls(vp, forward, -strafe * delta, vertical * delta, yaw * delta, 
-                            pitch * delta, speed * delta, rotSpeed * delta, jDir);
+                        ApplyCameraControls(vp, forward, -strafe, vertical, yaw , pitch, speed * delta, rotSpeed * delta, jDir);
 
                     view.Redraw();
                 }

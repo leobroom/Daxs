@@ -17,7 +17,7 @@ namespace Daxs
             //Gamepad
             Add("YawSensitivity", 0.0009, 100000);
             Add("PitchSensitivity", 0.0009, 100000);
-            Add("Deadzone", 0.0169, 10000);
+            Add("Deadzone", 0.169, 1000);
             Add("MoveSpeed", 140.6, 1);
 
             //Text

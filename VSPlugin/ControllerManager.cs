@@ -25,8 +25,8 @@ namespace Daxs
             layoutManager.Message += (sender, e) => SetMessage(e.Message);
 
             //Test
-            //actionManager.RegisterBinding(GamepadButton.Start, new RhinoCmdAction("Daxs_Settings", true));
-            //actionManager.RegisterBinding(GamepadButton.B, new RhinoCmdAction("_ViewCaptureToFile", true));
+            actionManager.RegisterBinding(GamepadButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
+            actionManager.RegisterBinding(GamepadButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
             //actionManager.RegisterBinding(GamepadButton.DPadUp, new SwitchAction());
             //actionManager.RegisterBinding(GamepadButton.DPadRight, new LensAction("Up"));
             //actionManager.RegisterBinding(GamepadButton.DPadLeft, new LensAction("Down"));
@@ -39,8 +39,7 @@ namespace Daxs
         {
             get
             {
-                if (instance == null)
-                    instance = new ControllerManager();
+                instance ??= new ControllerManager();
 
                 return instance;
             }

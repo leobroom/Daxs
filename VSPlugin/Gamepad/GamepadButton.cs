@@ -9,12 +9,13 @@
         Y = 4,
         Start = 5,
         Back = 6,
-        LR1 = 7,
-        LR2 = 8,
-        LR3 = 9,
-        DPadUp = 10,
-        DPadDown = 11,
-        DPadLeft = 12,
-        DPadRight = 13
+        L1 = 7,
+        R1 = 8,
+        L3 = 11,
+        R3 =12,
+        DPadUp = 13,
+        DPadDown = 14,
+        DPadLeft = 15,
+        DPadRight = 16
     }
 }

@@ -15,7 +15,7 @@
   
   <PropertyGroup>
     <!-- Specifies information for Assembly and Yak -->
-    <Version>0.1.12</Version>
+    <Version>0.1.17</Version>
     <Title>Daxs</Title>
     <Company>Leon Brohmann</Company>
     <Description>Daxs is a Rhino package that enables support for gamepad input, making it easier to integrate Xbox and PlayStation 4 controllers into your Rhino workflows or plugins.</Description>
@@ -70,7 +70,6 @@
 
 	  <!-- remove weird version number apendix -->
 	  <Exec WorkingDirectory="$(OutputPath)" Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;(Get-Content -LiteralPath 'manifest.yml') -replace '^(version:\s*\d+\.\d+\.\d+)\+.*$','$1' | Set-Content -LiteralPath 'manifest.yml' -Encoding UTF8&quot;" />
-
   
 	  <!-- Add icon to manifest.yml -->
 	  <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="icon: icon.png" Overwrite="false" WriteOnlyWhenDifferent="true" />

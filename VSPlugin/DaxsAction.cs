@@ -2,10 +2,10 @@
 {
     interface IAction
     {
-        bool Status
-        {
-            get;
-        }
+        //bool Status
+        //{
+        //    get;
+        //}
 
         void Execute();
     }

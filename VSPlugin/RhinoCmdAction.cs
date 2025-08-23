@@ -1,14 +1,25 @@
-﻿namespace Daxs
-{
-    internal class RhinoCmdAction
-    {
-        private string v1;
-        private bool v2;
+﻿using Rhino;
 
-        public RhinoCmdAction(string v1, bool v2)
+namespace Daxs
+{
+    internal class RhinoCmdAction: IAction
+    {
+        private string commandName;
+        private bool switchToMenuControll;
+
+        public RhinoCmdAction(string commandName, bool switchToMenuControll)
         {
-            this.v1 = v1;
-            this.v2 = v2;
+            this.commandName = commandName;
+            this.switchToMenuControll = switchToMenuControll;
+        }
+
+        public void Execute()
+        {
+            if(switchToMenuControll)
+                LayoutManager.Instance.SetLayout("Menu");
+            RhinoApp.RunScript(commandName, true);
+            if (switchToMenuControll)
+                LayoutManager.Instance.SetToPreviousLayout();
         }
     }
 }
