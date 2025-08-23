@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Rhino;
 using Rhino.Geometry;
 using Rhino.Display;
+using System.Diagnostics;
 
 namespace Daxs
 {
@@ -118,6 +119,11 @@ namespace Daxs
         #region LOOP
         async Task Loop(CancellationToken token)
         {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            double lastTime = stopwatch.Elapsed.TotalSeconds;
+
             while (!token.IsCancellationRequested)
             {
                 // Try to (re)initialize the controller
@@ -135,10 +141,9 @@ namespace Daxs
                 }
 
                 var state = gamepad.GetState();
-                var prevStateCopy = previousState;
 
                 // Update the camera on the UI thread.                    
-                layoutManager.CurrentLayout?.HandleInput(state, prevStateCopy);
+                lastTime = layoutManager.CurrentLayout.HandleInput(state, stopwatch, lastTime);
 
                 if ((DateTime.Now - lastPressedTime).TotalSeconds > 2)
                     displayMessage = "";

@@ -6,6 +6,7 @@ using Rhino;
 using Rhino.Geometry;
 using Rhino.Display;
 using Rhino.Geometry.Intersect;
+using System.Diagnostics;
 
 namespace Daxs
 {
@@ -36,7 +37,7 @@ namespace Daxs
             maximalJump = mj.Value;
         }
 
-        public override void HandleInput(GamepadState state, GamepadState prevState)
+        public override double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime)
         {
             double speed = state.L3 == IInputState.IsHold ? 3 * moveSpeed : moveSpeed;
             double rotSpeed = state.R3 == IInputState.IsHold ? 3 : 1;
@@ -63,6 +64,10 @@ namespace Daxs
                 var view = doc.Views.ActiveView;
                 var vp = view.ActiveViewport;
 
+                double currentTime = stopwatch.Elapsed.TotalSeconds;
+                float deltaTime = (float)(currentTime - lastTime);
+                lastTime = currentTime;
+
                 if (state.Start == IInputState.IsDown)
                 {
                     RhinoApp.WriteLine($"START PRESSED");
@@ -80,6 +85,7 @@ namespace Daxs
                     view.Redraw();
                 }
             }));
+            return lastTime;
         }
 
         protected void ApplyCameraControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed, JumpDir jumpDir)

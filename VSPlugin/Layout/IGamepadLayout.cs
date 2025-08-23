@@ -1,7 +1,4 @@
-﻿// #! csharp
-using System;
-using Rhino;
-using Rhino.Display;
+﻿using System.Diagnostics;
 
 namespace Daxs
 {
@@ -9,6 +6,6 @@ namespace Daxs
     public interface IGamepadLayout
     {
         string Name { get; }
-        void HandleInput(GamepadState state, GamepadState prevState);
+        double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime);
     }
 }
