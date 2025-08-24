@@ -15,21 +15,17 @@ namespace Daxs
         {
             var dSettings = new DaxsSettings();
             EtoExtensions.UseRhinoStyle(dSettings);
-            //LayoutManager.Instance.SetLayout("Menu");
 
             var result = dSettings.ShowSemiModal(RhinoDoc.ActiveDoc, RhinoEtoApp.MainWindow);
 
             if (!result)
             {
-                //LayoutManager.Instance.SetLayout("Fly");
-
                 return Result.Cancel;
             }
 
             foreach (var nv in Daxs.Settings.Instance.AllValues)
                 RhinoApp.WriteLine($"{nv.Name}: {nv.Value}");
 
-            //LayoutManager.Instance.SetLayout("Fly");
             return Result.Success;
         }
     }
