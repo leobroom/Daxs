@@ -37,6 +37,7 @@ namespace Daxs
             }
 
             vp.Camera35mmLensLength = actual;
+            view.Redraw();
         }
     }
 
