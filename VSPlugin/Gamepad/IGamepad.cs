@@ -27,12 +27,4 @@
                 return InputX.IsUnset;
         }
     }
-
-    public enum InputX
-    {
-        IsUnset,
-        IsDown,
-        IsHold,
-        IsReleased
-    }
 }

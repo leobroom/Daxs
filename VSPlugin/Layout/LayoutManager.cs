@@ -1,4 +1,5 @@
-﻿using Rhino.Geometry;
+﻿using Rhino;
+using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 
@@ -27,7 +28,7 @@ namespace Daxs
             if (layouts.TryGetValue(name, out var layout))
             {
                 previousLayout = (previousLayout == null) ? layout : currentLayout;
-
+                RhinoApp.WriteLine("SetLayout:" + name);
                 currentLayout = layout;
                 Message?.Invoke(this, new DisplayEventArgs($"Layout: {name}"));
             }
@@ -35,6 +36,7 @@ namespace Daxs
 
         public void SetToPreviousLayout() 
         {
+            RhinoApp.WriteLine("SetToPreviousLayout");
             string mode = (previousLayout == null || currentLayout == null) ? "Fly" : previousLayout.Name;
             SetLayout(mode);
         }

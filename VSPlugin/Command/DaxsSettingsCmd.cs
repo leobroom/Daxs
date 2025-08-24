@@ -6,7 +6,6 @@ namespace Daxs
 {
     public class DaxsSettingsCmd : Command
     {
-        private DaxsSettings dSettings;
         public DaxsSettingsCmd()=> Instance = this;
         public static DaxsSettingsCmd Instance { get; private set; }
 
@@ -16,13 +15,13 @@ namespace Daxs
         {
             var dSettings = new DaxsSettings();
             EtoExtensions.UseRhinoStyle(dSettings);
-            LayoutManager.Instance.SetLayout("Menu");
+            //LayoutManager.Instance.SetLayout("Menu");
 
             var result = dSettings.ShowSemiModal(RhinoDoc.ActiveDoc, RhinoEtoApp.MainWindow);
 
             if (!result)
             {
-                LayoutManager.Instance.SetLayout("Fly");
+                //LayoutManager.Instance.SetLayout("Fly");
 
                 return Result.Cancel;
             }
@@ -30,7 +29,7 @@ namespace Daxs
             foreach (var nv in Daxs.Settings.Instance.AllValues)
                 RhinoApp.WriteLine($"{nv.Name}: {nv.Value}");
 
-            LayoutManager.Instance.SetLayout("Fly");
+            //LayoutManager.Instance.SetLayout("Fly");
             return Result.Success;
         }
     }

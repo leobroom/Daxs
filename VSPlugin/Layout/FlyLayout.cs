@@ -1,5 +1,4 @@
-﻿// #! csharp
-using System;
+﻿using System;
 using Rhino;
 using Rhino.Geometry;
 using Rhino.Display;
@@ -130,8 +129,6 @@ namespace Daxs
 
             // Recalculate right vector after rotation
             right = Vector3d.CrossProduct(camDir, vp.CameraUp);
-
-     
 
             // Movement
             Vector3d move = Vector3d.ZAxis * vertical +

@@ -1,10 +1,7 @@
-﻿// #! csharp
-using System;
+﻿using System;
 using System.IO;
 using Rhino.PlugIns;
 using Rhino;
-using Rhino.Geometry;
-using Rhino.Display;
 
 namespace Daxs
 {
@@ -35,7 +32,7 @@ namespace Daxs
         public static string GetFile(string fileName)
         {
             string folder = GetPackageFolderPath();
-            return System.IO.Path.Combine(folder, fileName);
+            return Path.Combine(folder, fileName);
         }
     }
 }

@@ -5,12 +5,12 @@ namespace Daxs
 {
     internal class LensAction : IAction
     {
-        private LensInput mode;
+        private InputVert mode;
         private readonly RhinoDoc doc = RhinoDoc.ActiveDoc;
         private readonly double defaultVal;
         private readonly double strength;
 
-        public LensAction(LensInput mode, double strength)
+        public LensAction(InputVert mode, double strength)
         {
             this.mode = mode;
             this.strength = strength;
@@ -25,13 +25,13 @@ namespace Daxs
 
             switch (mode)
             {
-                case LensInput.Up:
+                case InputVert.Up:
                     actual += strength;
                     break;
-                case LensInput.Down:
+                case InputVert.Down:
                     actual -= strength;
                     break;
-                case LensInput.Reset:
+                case InputVert.Default:
                     actual = defaultVal;
                     break;
             }
@@ -39,12 +39,5 @@ namespace Daxs
             vp.Camera35mmLensLength = actual;
             view.Redraw();
         }
-    }
-
-    internal enum LensInput
-    {
-        Up,
-        Down,
-        Reset
     }
 }
