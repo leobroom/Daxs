@@ -28,9 +28,9 @@ namespace Daxs
             actionManager.Register(GamepadButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
             actionManager.Register(GamepadButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
             actionManager.Register(GamepadButton.DPadUp, InputX.IsDown, new SwitchAction());
-            actionManager.Register(GamepadButton.DPadRight, InputX.IsDown, new LensAction( InputVert.Up,2));
-            actionManager.Register(GamepadButton.DPadLeft, InputX.IsDown, new LensAction( InputVert.Down,2));
-            actionManager.Register(GamepadButton.DPadDown, InputX.IsDown, new LensAction(InputVert.Default,2));
+            actionManager.Register(GamepadButton.DPadRight, InputX.IsDown, new LensAction( InputY.Up,2));
+            actionManager.Register(GamepadButton.DPadLeft, InputX.IsDown, new LensAction( InputY.Down,2));
+            actionManager.Register(GamepadButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default,2));
             //actionManager.RegisterBinding(GamepadButton.LR2, new EscalatorAction());
             //actionManager.RegisterBinding(GamepadButton.LR1, new TeleportAction());
         }
@@ -58,6 +58,8 @@ namespace Daxs
         IGamepad gamepad = null;
 
         LayoutManager layoutManager = LayoutManager.Instance;
+
+
 
         public enum Status
         {
@@ -140,6 +142,8 @@ namespace Daxs
                 }
 
                 var state = gamepad.GetState();
+
+                actionManager.Update(state);
 
                 // Update the camera on the UI thread.                    
                 lastTime = layoutManager.CurrentLayout.HandleInput(state, stopwatch, lastTime);

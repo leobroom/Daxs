@@ -8,7 +8,7 @@
         IsReleased
     }
 
-    public enum InputVert
+    public enum InputY
     {
         Default,
         Up,

@@ -1,5 +1,4 @@
-﻿using Eto.Forms;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Daxs
@@ -10,6 +9,14 @@ namespace Daxs
         public static ActionManager Instance => _instance.Value;
   
         private readonly Dictionary<GamepadButton, Tuple<InputX, IAction>> actionTable = new Dictionary<GamepadButton, Tuple<InputX, IAction>>();
+
+        private double myVar;
+
+        public double SpeedMulti
+        {
+            get { return myVar; }
+            set { myVar = value; }
+        }
 
 
         public void Register(GamepadButton button, InputX input, IAction dAction)

@@ -10,8 +10,6 @@ namespace Daxs
 {
     public class WalkLayout : FlyLayout
     {
-
-
         public override string Name => "Walk";
 
         private Mesh collider = null;
@@ -44,12 +42,12 @@ namespace Daxs
 
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || r1 || l1;
 
-            InputVert jDir = InputVert.Default;
+            InputY jDir = InputY.Default;
 
             if (r1)
-                jDir = InputVert.Up;
+                jDir = InputY.Up;
             else if (l1)
-                jDir = InputVert.Down;
+                jDir = InputY.Down;
 
             // Update the camera on the UI thread.
             RhinoApp.InvokeOnUiThread((Action)(() =>
@@ -76,7 +74,7 @@ namespace Daxs
             return lastTime;
         }
 
-        protected void ApplyCameraControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed, InputVert jumpDir)
+        protected void ApplyCameraControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed, InputY jumpDir)
         {
             Vector3d camDir = vp.CameraDirection;
 
@@ -105,14 +103,14 @@ namespace Daxs
             vp.SetCameraLocation(pos, true);
         }
 
-        private void GetMeshCollision(ref Point3d pos, Mesh colMsh, InputVert jumpDir)
+        private void GetMeshCollision(ref Point3d pos, Mesh colMsh, InputY jumpDir)
         {
-            Vector3d dir = (jumpDir == InputVert.Up) ? Vector3d.ZAxis : -Vector3d.ZAxis;
+            Vector3d dir = (jumpDir == InputY.Up) ? Vector3d.ZAxis : -Vector3d.ZAxis;
             Ray3d ray = new Ray3d(pos, dir);
 
-            double distance = Rhino.Geometry.Intersect.Intersection.MeshRay(colMsh, ray);
+            double distance = Intersection.MeshRay(colMsh, ray);
 
-            if (jumpDir == InputVert.Down || jumpDir == InputVert.Up)
+            if (jumpDir == InputY.Down || jumpDir == InputY.Up)
             {
                 Jump(ref pos, colMsh, jumpDir);
             }
@@ -137,17 +135,16 @@ namespace Daxs
 
         //----------Jump
 
-        private void Jump(ref Point3d pos, Mesh colMsh, InputVert jumpDir)
+        private void Jump(ref Point3d pos, Mesh colMsh, InputY jumpDir)
         {
-            if (jumpDir == InputVert.Default)
+            if (jumpDir == InputY.Default)
                 return;
 
             RhinoApp.WriteLine($"JUmp: " + jumpDir);
 
-            Ray3d ray = new(pos, -Vector3d.ZAxis);
             Point3d[] pts = Intersection.ProjectPointsToMeshes(new Mesh[] { colMsh }, new Point3d[] { pos }, Vector3d.ZAxis, 0.1);
 
-            List<double> lst = new List<double>();
+            List<double> lst = new();
 
             for (int i = 0; i < pts.Length; i++)
             {
@@ -156,16 +153,16 @@ namespace Daxs
 
                 if (pt.Z > pos.Z)
                 {
-                    if (jumpDir == InputVert.Up)
+                    if (jumpDir == InputY.Up)
                         lst.Add(dist);
                 }
-                else if (jumpDir == InputVert.Down)
+                else if (jumpDir == InputY.Down)
                     lst.Add(dist);
             }
 
             lst.Sort();
 
-            pos.Z += (jumpDir == InputVert.Up) ? GetNextUp(lst, eyeHeight) : GetNextDown(lst, eyeHeight);
+            pos.Z += (jumpDir == InputY.Up) ? GetNextUp(lst, eyeHeight) : GetNextDown(lst, eyeHeight);
         }
 
         static double GetNextDown(List<double> lst, double eyeHeight)

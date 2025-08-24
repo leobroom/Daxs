@@ -5,12 +5,12 @@ namespace Daxs
 {
     internal class LensAction : IAction
     {
-        private InputVert mode;
+        private InputY mode;
         private readonly RhinoDoc doc = RhinoDoc.ActiveDoc;
         private readonly double defaultVal;
         private readonly double strength;
 
-        public LensAction(InputVert mode, double strength)
+        public LensAction(InputY mode, double strength)
         {
             this.mode = mode;
             this.strength = strength;
@@ -25,13 +25,13 @@ namespace Daxs
 
             switch (mode)
             {
-                case InputVert.Up:
+                case InputY.Up:
                     actual += strength;
                     break;
-                case InputVert.Down:
+                case InputY.Down:
                     actual -= strength;
                     break;
-                case InputVert.Default:
+                case InputY.Default:
                     actual = defaultVal;
                     break;
             }
