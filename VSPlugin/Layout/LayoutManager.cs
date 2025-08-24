@@ -15,14 +15,12 @@ namespace Daxs
         public IGamepadLayout PreviousLayout => previousLayout;
         private IGamepadLayout previousLayout;
 
-        //Gamepad Layout
-        private Dictionary<string, IGamepadLayout> layouts = new();
+        private readonly Dictionary<string, IGamepadLayout> layouts = new();
         
-
         public event EventHandler<DisplayEventArgs> Message;
         private LayoutManager(){}
 
-        public void RegisterLayout(IGamepadLayout layout) => layouts[layout.Name] = layout;
+        public void Register(IGamepadLayout layout) => layouts[layout.Name] = layout;
 
         public void SetLayout(string name)
         {
@@ -37,7 +35,6 @@ namespace Daxs
 
         public void SetToPreviousLayout() 
         {
-
             string mode = (previousLayout == null || currentLayout == null) ? "Fly" : previousLayout.Name;
             SetLayout(mode);
         }

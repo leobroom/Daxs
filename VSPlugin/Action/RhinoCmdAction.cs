@@ -2,10 +2,10 @@
 
 namespace Daxs
 {
-    internal class RhinoCmdAction: IAction
+    internal class RhinoCmdAction : IAction
     {
-        private string commandName;
-        private bool switchToMenuControll;
+        private readonly string commandName;
+        private readonly bool switchToMenuControll;
 
         public RhinoCmdAction(string commandName, bool switchToMenuControll)
         {
@@ -15,7 +15,7 @@ namespace Daxs
 
         public void Execute()
         {
-            if(switchToMenuControll)
+            if (switchToMenuControll)
                 LayoutManager.Instance.SetLayout("Menu");
             RhinoApp.RunScript(commandName, true);
             if (switchToMenuControll)

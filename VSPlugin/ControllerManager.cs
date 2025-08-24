@@ -18,19 +18,19 @@ namespace Daxs
         {
             RhinoApp.Closing += (sender, e) => { settings.SaveSettings(); };
 
-            layoutManager.RegisterLayout(new FlyLayout());
-            layoutManager.RegisterLayout(new WalkLayout());
-            layoutManager.RegisterLayout(new MenuLayout());
+            layoutManager.Register(new FlyLayout());
+            layoutManager.Register(new WalkLayout());
+            layoutManager.Register(new MenuLayout());
 
             layoutManager.Message += (sender, e) => SetMessage(e.Message);
 
-            //Test
-            actionManager.RegisterBinding(GamepadButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
-            actionManager.RegisterBinding(GamepadButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
-            //actionManager.RegisterBinding(GamepadButton.DPadUp, new SwitchAction());
-            //actionManager.RegisterBinding(GamepadButton.DPadRight, new LensAction("Up"));
-            //actionManager.RegisterBinding(GamepadButton.DPadLeft, new LensAction("Down"));
-            //actionManager.RegisterBinding(GamepadButton.DPadDown, new LensAction("Reset"));
+            //SctionManager Test
+            actionManager.Register(GamepadButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
+            actionManager.Register(GamepadButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
+            actionManager.Register(GamepadButton.DPadUp, InputX.IsDown, new SwitchAction());
+            actionManager.Register(GamepadButton.DPadRight, InputX.IsDown, new LensAction( LensInput.Up,2));
+            actionManager.Register(GamepadButton.DPadLeft, InputX.IsDown, new LensAction( LensInput.Down,2));
+            actionManager.Register(GamepadButton.DPadDown, InputX.IsDown, new LensAction( LensInput.Reset,2));
             //actionManager.RegisterBinding(GamepadButton.LR2, new EscalatorAction());
             //actionManager.RegisterBinding(GamepadButton.LR1, new TeleportAction());
         }

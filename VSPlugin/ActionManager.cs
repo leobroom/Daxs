@@ -12,7 +12,7 @@ namespace Daxs
         private readonly Dictionary<GamepadButton, Tuple<InputX, IAction>> actionTable = new Dictionary<GamepadButton, Tuple<InputX, IAction>>();
 
 
-        public void RegisterBinding(GamepadButton button, InputX input, IAction dAction)
+        public void Register(GamepadButton button, InputX input, IAction dAction)
         {
             Tuple < InputX, IAction > entry =  new(input, dAction);
 

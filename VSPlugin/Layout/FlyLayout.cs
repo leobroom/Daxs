@@ -13,6 +13,7 @@ namespace Daxs
         protected double moveSpeed, deadzone, yawSensitivity, pitchSensitivity;
         protected RhinoDoc doc = RhinoDoc.ActiveDoc;
         protected Settings settings;
+        private ActionManager actionManager = ActionManager.Instance;
 
         public FlyLayout()
         {
@@ -54,7 +55,7 @@ namespace Daxs
                 float delta = (float)(currentTime - lastTime);
                 lastTime = currentTime;
 
-                ActionManager.Instance.ExecuteActionsOnMainThread(state);
+                actionManager.ExecuteActionsOnMainThread(state);
 
                 if (hasMoved)
                 {
