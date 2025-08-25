@@ -14,16 +14,14 @@ namespace Daxs
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
-            using (var helper = new RunScriptHelper(doc.RuntimeSerialNumber))
-            {
-                LayoutManager.Instance.Set("Menu");
-                
-                helper.RunScript("_ViewCaptureToFile", true);
+            using var helper = new RunScriptHelper(doc.RuntimeSerialNumber);
+            LayoutManager.Instance.Set("Menu");
 
-                LayoutManager.Instance.SetToPreviousLayout();
+            helper.RunScript("_ViewCaptureToFile", true);
 
-                return Result.Success;
-            }
+            LayoutManager.Instance.SetToPreviousLayout();
+
+            return Result.Success;
         }
     }
 }

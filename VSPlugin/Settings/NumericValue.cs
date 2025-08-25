@@ -8,7 +8,7 @@ namespace Daxs
         private double _value = 1;
         private double _displayValue = 1;
         private double _displayFactor = 1;
-        private double defaultValue = 1;
+        private readonly double defaultValue = 1;
 
         public string Name { get; private set; } = "unset";
 

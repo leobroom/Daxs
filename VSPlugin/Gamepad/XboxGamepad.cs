@@ -4,7 +4,7 @@ namespace Daxs
 {
     public class XboxGamepad : Gamepad
     {
-        private SharpDX.XInput.Controller controller;
+        private readonly SharpDX.XInput.Controller controller;
 
         public XboxGamepad() => controller = new SharpDX.XInput.Controller(SharpDX.XInput.UserIndex.One);
 

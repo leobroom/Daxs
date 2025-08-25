@@ -28,45 +28,7 @@ namespace Daxs
             maximalJump = mj.Value;
         }
 
-        public override double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime)
-        {
-            double speed = actionManager.Speedmulti;
-            double rotSpeed = actionManager.RotSpeedmulti;
-            double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
-
-            var (yaw, pitch) = NormalizeStick(state.RightThumbX, state.RightThumbY);
-            var (strafe, forward) = NormalizeStick(state.LeftThumbX, state.LeftThumbY);
-
-            InputY teleport = actionManager.Teleport;
-
-            bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
-
-            // Update the camera on the UI thread.
-            RhinoApp.InvokeOnUiThread((Action)(() =>
-            {
-                var view = doc.Views.ActiveView;
-                var vp = view.ActiveViewport;
-
-                double currentTime = stopwatch.Elapsed.TotalSeconds;
-                float delta = (float)(currentTime - lastTime);
-                lastTime = currentTime;
-
-                ActionManager.Instance.ExecuteActionsOnMainThread();
-
-                if (hasMoved)
-                {
-                    if (vp.IsPlanView)
-                        ApplyCameraPanControls(vp, forward, strafe, vertical ,yaw, pitch, speed * delta);
-                    else
-                        ApplyCameraControls(vp, forward, -strafe, vertical, yaw , pitch, speed * delta, rotSpeed * delta, teleport);
-
-                    view.Redraw();
-                }
-            }));
-            return lastTime;
-        }
-
-        protected void ApplyCameraControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed, InputY teleport)
+        protected override void ApplyCameraControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed, InputY teleport)
         {
             Vector3d camDir = vp.CameraDirection;
 
@@ -98,7 +60,7 @@ namespace Daxs
         private void GetMeshCollision(ref Point3d pos, Mesh colMsh, InputY teleport)
         {
             Vector3d dir = (teleport == InputY.Up) ? Vector3d.ZAxis : -Vector3d.ZAxis;
-            Ray3d ray = new Ray3d(pos, dir);
+            Ray3d ray = new(pos, dir);
 
             double distance = Intersection.MeshRay(colMsh, ray);
 

@@ -40,7 +40,7 @@ namespace Daxs
         public void SaveSettings()
         {
             Guid id = PlugIn.IdFromName("Daxs");
-            PlugInInfo info = PlugIn.GetPlugInInfo(id);
+            //PlugInInfo info = PlugIn.GetPlugInInfo(id);
 
             PersistentSettings settings = PlugIn.GetPluginSettings(id, true);
 
@@ -57,7 +57,7 @@ namespace Daxs
         public void LoadSettings()
         {
             Guid id = PlugIn.IdFromName("Daxs");
-            PlugInInfo info = PlugIn.GetPlugInInfo(id);
+            //PlugInInfo info = PlugIn.GetPlugInInfo(id);
 
             PersistentSettings settings = PlugIn.GetPluginSettings(id, true);
 

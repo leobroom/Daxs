@@ -5,7 +5,7 @@ namespace Daxs
 {
     internal class LensAction : IAction
     {
-        private InputY mode;
+        private readonly InputY mode;
         private readonly RhinoDoc doc = RhinoDoc.ActiveDoc;
         private readonly double defaultVal;
         private readonly double strength;

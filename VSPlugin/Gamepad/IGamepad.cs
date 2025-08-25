@@ -11,7 +11,7 @@
         public abstract bool IsConnected { get; }
 
         protected GamepadState current;
-        protected GamepadState previous = new GamepadState();
+        protected GamepadState previous = new();
 
         public abstract GamepadState GetState();
 
@@ -25,6 +25,21 @@
                 return InputX.IsReleased;
             else
                 return InputX.IsUnset;
+        }
+
+        internal static IGamepad TryGetGamepad()
+        {
+            var xbox = new XboxGamepad();
+            if (xbox.IsConnected)
+                return xbox;
+            else
+            {
+                var ps4 = new PS4Gamepad();
+                if (ps4.IsConnected)
+                    return ps4;
+            }
+
+            return null;
         }
     }
 }

@@ -8,11 +8,11 @@ namespace Daxs
         private static readonly Lazy<ActionManager> _instance = new(() => new ActionManager());
         public static ActionManager Instance => _instance.Value;
   
-        private readonly Dictionary<GButton, Tuple<InputX, IAction>> actionTable = new Dictionary<GButton, Tuple<InputX, IAction>>();
+        private readonly Dictionary<GButton, Tuple<InputX, IAction>> actionTable = new();
 
-        private readonly Dictionary<AProperty, GButton> stateTable = new Dictionary<AProperty, GButton>();
+        private readonly Dictionary<AProperty, GButton> stateTable = new();
 
-        private GamepadState state = new GamepadState();
+        private GamepadState state = new();
 
         public void Register(GButton button, InputX input, IAction dAction)
         {
@@ -68,10 +68,7 @@ namespace Daxs
             };
         }
 
-        internal void Update(GamepadState state)
-        {
-            this.state = state;
-        }
+        internal void Update(GamepadState state)=> this.state = state;
 
         public void Register(GButton button, AProperty aState)
         {
@@ -83,13 +80,13 @@ namespace Daxs
 
         ////////////////////////
 
-        private double speedmulti =3;
+        private readonly double speedmulti =3;
 
         public double Speedmulti => stateTable.TryGetValue(AProperty.Speedmulti, out var button) && GetButtonState(button) == InputX.IsDown? speedmulti: 1;
 
 
 
-        private double rotSpeedmulti = 3;
+        private readonly double rotSpeedmulti = 3;
 
         public double RotSpeedmulti => stateTable.TryGetValue(AProperty.RotSpeedMulti, out var button) && GetButtonState(button) == InputX.IsDown ? rotSpeedmulti : 1;
 

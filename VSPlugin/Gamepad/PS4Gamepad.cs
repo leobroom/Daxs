@@ -9,19 +9,19 @@ namespace Daxs
     {
         public override bool IsConnected => joystick != null;
 
-        private DirectInput _directInput;
-        private Joystick joystick;
+        private readonly DirectInput directInput;
+        private readonly Joystick joystick;
 
         public PS4Gamepad()
         {
-            _directInput = new DirectInput();
+            directInput = new DirectInput();
 
-            var devices = _directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
+            var devices = directInput.GetDevices(DeviceClass.GameControl, DeviceEnumerationFlags.AttachedOnly);
             var ps4Device = devices.FirstOrDefault(); // Or filter for specific name/product GUID if needed
 
             if (ps4Device != null)
             {
-                joystick = new Joystick(_directInput, ps4Device.InstanceGuid);
+                joystick = new Joystick(directInput, ps4Device.InstanceGuid);
                 joystick.Properties.BufferSize = 128;
                 try
                 {joystick.Acquire();}

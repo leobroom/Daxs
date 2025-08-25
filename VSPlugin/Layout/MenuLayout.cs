@@ -68,7 +68,7 @@ namespace Daxs
         }
 
         // Simulate Arrow Down key press and release
-        private void SimulateKey(byte bVk)
+        private static void SimulateKey(byte bVk)
         {
             keybd_event(bVk, 0, 0x0000, UIntPtr.Zero); //KEYDOWN
             keybd_event(bVk, 0, 0x0002, UIntPtr.Zero); //KEYUP

@@ -42,9 +42,11 @@ namespace Daxs
 
             var (yaw, pitch) = NormalizeStick(state.RightThumbX, state.RightThumbY);
             var (strafe, forward) = NormalizeStick(state.LeftThumbX, state.LeftThumbY);
-            bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02;
 
-            // Update the camera on the UI thread.
+            InputY teleport = actionManager.Teleport;
+
+            bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
+
             RhinoApp.InvokeOnUiThread((Action)(() =>
             {
                 var view = doc.Views.ActiveView;
@@ -59,9 +61,9 @@ namespace Daxs
                 if (hasMoved)
                 {
                     if (vp.IsPlanView)
-                        ApplyCameraPanControls(vp, forward, strafe, vertical, yaw, pitch, speed * delta);
+                        ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, speed * delta);
                     else
-                        ApplyCameraControls(vp, forward, -strafe, vertical, yaw, pitch, speed * delta, rotSpeed * delta);
+                        ApplyCameraControls(vp, forward, -strafe, vertical, yaw, pitch, speed * delta, rotSpeed * delta, teleport);
 
                     view.Redraw();
                 }
@@ -96,7 +98,7 @@ namespace Daxs
         }
 
         /// Used for panning over a plan views (example left right bottom etc)
-        protected void ApplyCameraPanControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed)
+        protected static void ApplyCameraPanControls(RhinoViewport vp, double forward, double strafe, double vertical, double pitch, double speed)
         {
             // Get the right and up vectors in the view plane
             Vector3d right = -vp.CameraX;
@@ -120,7 +122,7 @@ namespace Daxs
             }
         }
 
-        protected virtual void ApplyCameraControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed)
+        protected virtual void ApplyCameraControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed, InputY teleport)
         {
             Vector3d camDir = vp.CameraDirection;
 
@@ -144,6 +146,6 @@ namespace Daxs
             vp.SetCameraLocation(vp.CameraLocation + move, true);
         }
 
-        protected double GetNonLinearTrigger(double raw) => Math.Pow(raw, 2); // quadratic curve 
+        protected static double GetNonLinearTrigger(double raw) => Math.Pow(raw, 2); // quadratic curve 
     }
 }

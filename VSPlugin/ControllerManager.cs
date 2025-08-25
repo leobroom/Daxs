@@ -123,7 +123,7 @@ namespace Daxs
         #region LOOP
         async Task Loop(CancellationToken token)
         {
-            Stopwatch stopwatch = new Stopwatch();
+            Stopwatch stopwatch = new();
             stopwatch.Start();
 
             double lastTime = stopwatch.Elapsed.TotalSeconds;
@@ -133,7 +133,7 @@ namespace Daxs
                 // Try to (re)initialize the controller
                 if (gamepad == null || !gamepad.IsConnected)
                 {
-                    gamepad = TryGetGamepad();
+                    gamepad = Gamepad.TryGetGamepad();
                     if (gamepad == null)
                     {
                         RhinoApp.WriteLine("No supported controller found.");
@@ -158,20 +158,5 @@ namespace Daxs
             }
         }
         #endregion
-
-        private IGamepad TryGetGamepad()
-        {
-            var xbox = new XboxGamepad();
-            if (xbox.IsConnected)
-                return xbox;
-            else
-            {
-                var ps4 = new PS4Gamepad();
-                if (ps4.IsConnected)
-                    return ps4;
-            }
-
-            return null;
-        }
     }
 }
