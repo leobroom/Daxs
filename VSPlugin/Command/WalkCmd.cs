@@ -13,7 +13,7 @@ namespace Daxs
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
-            LayoutManager.Instance.SetLayout("Walk");
+            LayoutManager.Instance.Set("Walk");
             return Result.Success;
         }
     }

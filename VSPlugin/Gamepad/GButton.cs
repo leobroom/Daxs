@@ -1,6 +1,6 @@
 ﻿namespace Daxs
 {
-    public enum GamepadButton
+    public enum GButton
     {
         Unset = 0,
         A = 1,
@@ -11,6 +11,8 @@
         Back = 6,
         L1 = 7,
         R1 = 8,
+        L2 = 9,
+        R2 = 10,
         L3 = 11,
         R3 =12,
         DPadUp = 13,

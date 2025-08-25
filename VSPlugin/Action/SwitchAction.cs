@@ -13,7 +13,7 @@
             else
                 name = "Fly";
 
-            LayoutManager.Instance.SetLayout(name);
+            LayoutManager.Instance.Set(name);
         }
     }
 }

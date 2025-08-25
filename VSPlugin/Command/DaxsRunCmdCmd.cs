@@ -16,7 +16,7 @@ namespace Daxs
         {
             using (var helper = new RunScriptHelper(doc.RuntimeSerialNumber))
             {
-                LayoutManager.Instance.SetLayout("Menu");
+                LayoutManager.Instance.Set("Menu");
                 
                 helper.RunScript("_ViewCaptureToFile", true);
 

@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace Daxs
 {
-    public class WalkLayout : FlyLayout
+    internal class WalkLayout : FlyLayout
     {
         public override string Name => "Walk";
 
@@ -30,24 +30,16 @@ namespace Daxs
 
         public override double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime)
         {
-            double speed = state.L3 == InputX.IsHold ? 3 * moveSpeed : moveSpeed;
-            double rotSpeed = state.R3 == InputX.IsHold ? 3 : 1;
-            double vertical = GetNonLinearTrigger(state.R2) - GetNonLinearTrigger(state.L2);
+            double speed = actionManager.Speedmulti;
+            double rotSpeed = actionManager.RotSpeedmulti;
+            double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
 
-            var (yaw, pitch) = NormalizeStickInput(state.RightThumbX, state.RightThumbY);
-            var (strafe, forward) = NormalizeStickInput(state.LeftThumbX, state.LeftThumbY);
+            var (yaw, pitch) = NormalizeStick(state.RightThumbX, state.RightThumbY);
+            var (strafe, forward) = NormalizeStick(state.LeftThumbX, state.LeftThumbY);
 
-            bool r1 = (state.R1 == InputX.IsDown);
-            bool l1 = (state.L1 == InputX.IsDown);
+            InputY teleport = actionManager.Teleport;
 
-            bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || r1 || l1;
-
-            InputY jDir = InputY.Default;
-
-            if (r1)
-                jDir = InputY.Up;
-            else if (l1)
-                jDir = InputY.Down;
+            bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
 
             // Update the camera on the UI thread.
             RhinoApp.InvokeOnUiThread((Action)(() =>
@@ -59,14 +51,14 @@ namespace Daxs
                 float delta = (float)(currentTime - lastTime);
                 lastTime = currentTime;
 
-                ActionManager.Instance.ExecuteActionsOnMainThread(state);
+                ActionManager.Instance.ExecuteActionsOnMainThread();
 
                 if (hasMoved)
                 {
                     if (vp.IsPlanView)
                         ApplyCameraPanControls(vp, forward, strafe, vertical ,yaw, pitch, speed * delta);
                     else
-                        ApplyCameraControls(vp, forward, -strafe, vertical, yaw , pitch, speed * delta, rotSpeed * delta, jDir);
+                        ApplyCameraControls(vp, forward, -strafe, vertical, yaw , pitch, speed * delta, rotSpeed * delta, teleport);
 
                     view.Redraw();
                 }
@@ -74,7 +66,7 @@ namespace Daxs
             return lastTime;
         }
 
-        protected void ApplyCameraControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed, InputY jumpDir)
+        protected void ApplyCameraControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed, InputY teleport)
         {
             Vector3d camDir = vp.CameraDirection;
 
@@ -98,21 +90,21 @@ namespace Daxs
 
             //Collision
             if (collider != null)
-                GetMeshCollision(ref pos, collider, jumpDir);
+                GetMeshCollision(ref pos, collider, teleport);
 
             vp.SetCameraLocation(pos, true);
         }
 
-        private void GetMeshCollision(ref Point3d pos, Mesh colMsh, InputY jumpDir)
+        private void GetMeshCollision(ref Point3d pos, Mesh colMsh, InputY teleport)
         {
-            Vector3d dir = (jumpDir == InputY.Up) ? Vector3d.ZAxis : -Vector3d.ZAxis;
+            Vector3d dir = (teleport == InputY.Up) ? Vector3d.ZAxis : -Vector3d.ZAxis;
             Ray3d ray = new Ray3d(pos, dir);
 
             double distance = Intersection.MeshRay(colMsh, ray);
 
-            if (jumpDir == InputY.Down || jumpDir == InputY.Up)
+            if (teleport == InputY.Down || teleport == InputY.Up)
             {
-                Jump(ref pos, colMsh, jumpDir);
+                Teleport(ref pos, colMsh, teleport);
             }
             else if (distance > 0 && distance < maximalJump + eyeHeight)
             {
@@ -135,12 +127,12 @@ namespace Daxs
 
         //----------Jump
 
-        private void Jump(ref Point3d pos, Mesh colMsh, InputY jumpDir)
+        private void Teleport(ref Point3d pos, Mesh colMsh, InputY teleport)
         {
-            if (jumpDir == InputY.Default)
+            if (teleport == InputY.Default)
                 return;
 
-            RhinoApp.WriteLine($"JUmp: " + jumpDir);
+            RhinoApp.WriteLine($"JUmp: " + teleport);
 
             Point3d[] pts = Intersection.ProjectPointsToMeshes(new Mesh[] { colMsh }, new Point3d[] { pos }, Vector3d.ZAxis, 0.1);
 
@@ -153,16 +145,16 @@ namespace Daxs
 
                 if (pt.Z > pos.Z)
                 {
-                    if (jumpDir == InputY.Up)
+                    if (teleport == InputY.Up)
                         lst.Add(dist);
                 }
-                else if (jumpDir == InputY.Down)
+                else if (teleport == InputY.Down)
                     lst.Add(dist);
             }
 
             lst.Sort();
 
-            pos.Z += (jumpDir == InputY.Up) ? GetNextUp(lst, eyeHeight) : GetNextDown(lst, eyeHeight);
+            pos.Z += (teleport == InputY.Up) ? GetNextUp(lst, eyeHeight) : GetNextDown(lst, eyeHeight);
         }
 
         static double GetNextDown(List<double> lst, double eyeHeight)

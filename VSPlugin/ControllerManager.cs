@@ -13,26 +13,33 @@ namespace Daxs
     {
         private static ControllerManager instance = null;
 
-        private ActionManager actionManager = ActionManager.Instance;
+        private readonly ActionManager actionManager = ActionManager.Instance;
+        private readonly LayoutManager layoutManager = LayoutManager.Instance;
         private ControllerManager()
         {
             RhinoApp.Closing += (sender, e) => { settings.SaveSettings(); };
 
-            layoutManager.Register(new FlyLayout());
-            layoutManager.Register(new WalkLayout());
-            layoutManager.Register(new MenuLayout());
-
             layoutManager.Message += (sender, e) => SetMessage(e.Message);
 
             //ActionManager Test
-            actionManager.Register(GamepadButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
-            actionManager.Register(GamepadButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
-            actionManager.Register(GamepadButton.DPadUp, InputX.IsDown, new SwitchAction());
-            actionManager.Register(GamepadButton.DPadRight, InputX.IsDown, new LensAction( InputY.Up,2));
-            actionManager.Register(GamepadButton.DPadLeft, InputX.IsDown, new LensAction( InputY.Down,2));
-            actionManager.Register(GamepadButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default,2));
-            //actionManager.RegisterBinding(GamepadButton.LR2, new EscalatorAction());
-            //actionManager.RegisterBinding(GamepadButton.LR1, new TeleportAction());
+            actionManager.Register(GButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
+            actionManager.Register(GButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
+            actionManager.Register(GButton.DPadUp, InputX.IsDown, new SwitchAction());
+            actionManager.Register(GButton.DPadRight, InputX.IsDown, new LensAction( InputY.Up,2));
+            actionManager.Register(GButton.DPadLeft, InputX.IsDown, new LensAction( InputY.Down,2));
+            actionManager.Register(GButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default,2));
+
+            //SpeedMulti
+            actionManager.Register(GButton.L3, AProperty.Speedmulti);
+            actionManager.Register(GButton.R3, AProperty.RotSpeedMulti);
+
+            //Elevator
+            actionManager.Register(GButton.L2, AProperty.ElevateDown);
+            actionManager.Register(GButton.R2, AProperty.ElevateUp);
+
+            //Teleport
+            actionManager.Register(GButton.L1, AProperty.TeleportDown);
+            actionManager.Register(GButton.R1, AProperty.TeleportUp);
         }
 
         public static ControllerManager Instance
@@ -53,12 +60,8 @@ namespace Daxs
         //Buttons
         private DateTime lastPressedTime;
         private string displayMessage = "";
-        private GamepadState previousState = new GamepadState();
 
-        IGamepad gamepad = null;
-
-        LayoutManager layoutManager = LayoutManager.Instance;
-
+        private IGamepad gamepad = null;
 
 
         public enum Status
@@ -84,7 +87,7 @@ namespace Daxs
 
             DisplayPipeline.DrawForeground += DrawText;
 
-            layoutManager.SetLayout("Fly");
+            layoutManager.Set("Fly");
 
             RhinoApp.WriteLine($"Daxs {Utils.GetPackageVersion()} Start");
         }
@@ -151,7 +154,6 @@ namespace Daxs
                 if ((DateTime.Now - lastPressedTime).TotalSeconds > 2)
                     displayMessage = "";
 
-                previousState = state;
                 await Task.Delay(10, token);
             }
         }

@@ -16,7 +16,7 @@ namespace Daxs
         public void Execute()
         {
             if (switchToMenuControll)
-                LayoutManager.Instance.SetLayout("Menu");
+                LayoutManager.Instance.Set("Menu");
             RhinoApp.RunScript(commandName, true);
             if (switchToMenuControll)
                 LayoutManager.Instance.SetToPreviousLayout();

@@ -6,13 +6,13 @@ using System.Diagnostics;
 
 namespace Daxs
 {
-    public class FlyLayout : IGamepadLayout
+    internal class FlyLayout : IGamepadLayout
     {
         public virtual string Name => "Fly";
         protected double moveSpeed, deadzone, yawSensitivity, pitchSensitivity;
         protected RhinoDoc doc = RhinoDoc.ActiveDoc;
         protected Settings settings;
-        private ActionManager actionManager = ActionManager.Instance;
+        protected ActionManager actionManager = ActionManager.Instance;
 
         public FlyLayout()
         {
@@ -36,12 +36,12 @@ namespace Daxs
 
         public virtual double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime)
         {
-            double speed = state.L3 == InputX.IsHold ? 3 * moveSpeed : moveSpeed;
-            double rotSpeed = state.R3 == InputX.IsHold ? 3 : 1;
-            double vertical = GetNonLinearTrigger(state.R2) - GetNonLinearTrigger(state.L2);
+            double speed = actionManager.Speedmulti;
+            double rotSpeed = actionManager.RotSpeedmulti;
+            double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
 
-            var (yaw, pitch) = NormalizeStickInput(state.RightThumbX, state.RightThumbY);
-            var (strafe, forward) = NormalizeStickInput(state.LeftThumbX, state.LeftThumbY);
+            var (yaw, pitch) = NormalizeStick(state.RightThumbX, state.RightThumbY);
+            var (strafe, forward) = NormalizeStick(state.LeftThumbX, state.LeftThumbY);
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02;
 
             // Update the camera on the UI thread.
@@ -54,7 +54,7 @@ namespace Daxs
                 float delta = (float)(currentTime - lastTime);
                 lastTime = currentTime;
 
-                actionManager.ExecuteActionsOnMainThread(state);
+                actionManager.ExecuteActionsOnMainThread();
 
                 if (hasMoved)
                 {
@@ -70,7 +70,13 @@ namespace Daxs
             return lastTime;
         }
 
-        protected (double x, double y) NormalizeStickInput(double normX, double normY)
+        /// <summary>
+        /// Normalize stick input
+        /// </summary>
+        /// <param name="normX"></param>
+        /// <param name="normY"></param>
+        /// <returns></returns>
+        protected (double x, double y) NormalizeStick(double normX, double normY)
         {
             double magnitude = Math.Sqrt(normX * normX + normY * normY);
             if (magnitude < deadzone)

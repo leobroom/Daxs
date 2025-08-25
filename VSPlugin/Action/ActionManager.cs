@@ -8,18 +8,13 @@ namespace Daxs
         private static readonly Lazy<ActionManager> _instance = new(() => new ActionManager());
         public static ActionManager Instance => _instance.Value;
   
-        private readonly Dictionary<GamepadButton, Tuple<InputX, IAction>> actionTable = new Dictionary<GamepadButton, Tuple<InputX, IAction>>();
+        private readonly Dictionary<GButton, Tuple<InputX, IAction>> actionTable = new Dictionary<GButton, Tuple<InputX, IAction>>();
 
-        private double myVar;
+        private readonly Dictionary<AProperty, GButton> stateTable = new Dictionary<AProperty, GButton>();
 
-        public double SpeedMulti
-        {
-            get { return myVar; }
-            set { myVar = value; }
-        }
+        private GamepadState state = new GamepadState();
 
-
-        public void Register(GamepadButton button, InputX input, IAction dAction)
+        public void Register(GButton button, InputX input, IAction dAction)
         {
             Tuple < InputX, IAction > entry =  new(input, dAction);
 
@@ -29,11 +24,11 @@ namespace Daxs
                 actionTable.Add(button, entry);
         }
 
-        internal void ExecuteActionsOnMainThread(GamepadState state)
+        internal void ExecuteActionsOnMainThread()
         {
-            foreach (KeyValuePair<GamepadButton, Tuple<InputX, IAction>> pair in actionTable)
+            foreach (KeyValuePair<GButton, Tuple<InputX, IAction>> pair in actionTable)
             {
-                InputX inputA = GetButtonState(pair.Key, state);
+                InputX inputA = GetButtonState(pair.Key);
                 var tuple = pair.Value;
 
                 if (inputA == tuple.Item1)
@@ -41,26 +36,99 @@ namespace Daxs
             }
         }
         
-        private static InputX GetButtonState(GamepadButton button , GamepadState state) 
+        private InputX GetButtonState(GButton button) 
         {
             return button switch
             {
-                GamepadButton.A => state.A,
-                GamepadButton.B => state.B,
-                GamepadButton.X => state.X,
-                GamepadButton.Y => state.Y,
-                GamepadButton.Start => state.Start,
-                GamepadButton.Back => state.Back,
-                GamepadButton.DPadUp => state.DPadUp,
-                GamepadButton.DPadDown => state.DPadDown,
-                GamepadButton.DPadLeft => state.DPadLeft,
-                GamepadButton.DPadRight => state.DPadRight,
-                GamepadButton.L1 => state.L1,
-                GamepadButton.R1 => state.R1,
-                GamepadButton.L3 => state.L3,
-                GamepadButton.R3 => state.R3,
+                GButton.A => state.A,
+                GButton.B => state.B,
+                GButton.X => state.X,
+                GButton.Y => state.Y,
+                GButton.Start => state.Start,
+                GButton.Back => state.Back,
+                GButton.DPadUp => state.DPadUp,
+                GButton.DPadDown => state.DPadDown,
+                GButton.DPadLeft => state.DPadLeft,
+                GButton.DPadRight => state.DPadRight,
+                GButton.L1 => state.L1,
+                GButton.R1 => state.R1,
+                GButton.L3 => state.L3,
+                GButton.R3 => state.R3,
                 _ => throw new NotImplementedException(),
             };
         }
+
+        private float GetValueState(GButton button)
+        {
+            return button switch
+            {
+                GButton.L2 => state.L2,
+                GButton.R2 => state.R2,
+                _ => throw new NotImplementedException(),
+            };
+        }
+
+        internal void Update(GamepadState state)
+        {
+            this.state = state;
+        }
+
+        public void Register(GButton button, AProperty aState)
+        {
+            if (stateTable.ContainsKey(aState))
+                stateTable[aState] = button;
+            else
+                stateTable.Add(aState, button);
+        }
+
+        ////////////////////////
+
+        private double speedmulti =3;
+
+        public double Speedmulti => stateTable.TryGetValue(AProperty.Speedmulti, out var button) && GetButtonState(button) == InputX.IsDown? speedmulti: 1;
+
+
+
+        private double rotSpeedmulti = 3;
+
+        public double RotSpeedmulti => stateTable.TryGetValue(AProperty.RotSpeedMulti, out var button) && GetButtonState(button) == InputX.IsDown ? rotSpeedmulti : 1;
+
+        
+        public float ElevateUp => stateTable.TryGetValue(AProperty.ElevateUp, out var trigger) ? GetValueState(trigger) : 0;
+
+        public float ElevateDown=> stateTable.TryGetValue(AProperty.ElevateDown, out var trigger) ? GetValueState(trigger) : 0;
+
+
+        //public InputY Teleport => stateTable.TryGetValue(AProperty., out var trigger) ? GetValueState(trigger) : 0;
+
+
+
+
+        public InputY Teleport
+        {
+            get 
+            {
+                InputY jDir = InputY.Default;
+
+                if (stateTable.TryGetValue(AProperty.TeleportUp, out var buttonR) && GetButtonState(buttonR) == InputX.IsDown)
+                    jDir = InputY.Up;
+                else if (stateTable.TryGetValue(AProperty.TeleportDown, out var buttonL) && GetButtonState(buttonL) == InputX.IsDown)
+                    jDir = InputY.Down;
+                return jDir;
+
+            }
+        }
+
+
+    }
+
+    public enum AProperty
+    {
+        Speedmulti,
+        RotSpeedMulti,
+        ElevateUp,
+        ElevateDown,
+        TeleportUp,
+        TeleportDown
     }
 }
