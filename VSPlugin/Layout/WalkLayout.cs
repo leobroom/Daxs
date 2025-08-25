@@ -8,7 +8,7 @@ namespace Daxs
 {
     internal class WalkLayout : FlyLayout
     {
-        public override string Name => "Walk";
+        public override Layout Name => Layout.Walk;
 
         private Mesh collider = null;
 

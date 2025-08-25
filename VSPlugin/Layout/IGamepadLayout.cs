@@ -5,7 +5,7 @@ namespace Daxs
     /// Abstract Interface to allow different layouts
     public interface IGamepadLayout
     {
-        string Name { get; }
+        Layout Name { get; }
         double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime);
     }
 }

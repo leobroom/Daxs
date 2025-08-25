@@ -5,6 +5,13 @@ using System.Collections.Generic;
 
 namespace Daxs
 {
+    public enum Layout
+    {
+        Fly,
+        Walk,
+        Menu
+    }
+
     public sealed class LayoutManager
     {
         private static readonly Lazy<LayoutManager> _instance = new(() => new LayoutManager());
@@ -16,7 +23,7 @@ namespace Daxs
         public IGamepadLayout PreviousLayout => previousLayout;
         private IGamepadLayout previousLayout;
 
-        private readonly Dictionary<string, IGamepadLayout> layouts = new();
+        private readonly Dictionary<Layout, IGamepadLayout> layouts = new();
         
         public event EventHandler<DisplayEventArgs> Message;
         private LayoutManager()
@@ -28,7 +35,7 @@ namespace Daxs
 
         private void Register(IGamepadLayout layout) => layouts[layout.Name] = layout;
 
-        public void Set(string name)
+        public void Set(Layout name)
         {
             if (layouts.TryGetValue(name, out var layout))
             {
@@ -42,11 +49,11 @@ namespace Daxs
         public void SetToPreviousLayout() 
         {
             RhinoApp.WriteLine("SetToPreviousLayout");
-            string mode = (previousLayout == null || currentLayout == null) ? "Fly" : previousLayout.Name;
+            Layout mode = (previousLayout == null || currentLayout == null) ? Layout .Fly: previousLayout.Name;
             Set(mode);
         }
 
-        public IGamepadLayout GetLayout(string name)
+        public IGamepadLayout Get(Layout name)
         {
             if (!layouts.TryGetValue(name, out var layout))
                 throw new KeyNotFoundException($"Layout '{name}' not found.");
@@ -55,7 +62,7 @@ namespace Daxs
 
         public void SetCollisionMesh(Mesh colMesh)
         {
-            WalkLayout wLayout = (WalkLayout)GetLayout("Walk");
+            WalkLayout wLayout = (WalkLayout)Get(Layout.Walk);
             wLayout.SetCollider(colMesh);
         }
     }

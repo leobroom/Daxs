@@ -6,12 +6,12 @@
         public void Execute() 
         {
             var current = LayoutManager.Instance.CurrentLayout;
-            
-            string name = current.Name;
-            if (name == "Fly")
-                name = "Walk";
+
+            Layout name = current.Name;
+            if (name == Layout.Fly)
+                name = Layout.Walk;
             else
-                name = "Fly";
+                name = Layout.Fly;
 
             LayoutManager.Instance.Set(name);
         }

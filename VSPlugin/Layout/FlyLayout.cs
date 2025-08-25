@@ -8,7 +8,7 @@ namespace Daxs
 {
     internal class FlyLayout : IGamepadLayout
     {
-        public virtual string Name => "Fly";
+        public virtual Layout Name => Layout.Fly;
         protected double moveSpeed, deadzone, yawSensitivity, pitchSensitivity;
         protected RhinoDoc doc = RhinoDoc.ActiveDoc;
         protected Settings settings;

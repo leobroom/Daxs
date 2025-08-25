@@ -77,7 +77,7 @@ namespace Daxs
 
             DisplayPipeline.DrawForeground += DrawText;
 
-            layout.Set("Fly");
+            layout.Set(Layout.Fly);
 
             RhinoApp.WriteLine($"Daxs {Utils.GetPackageVersion()} Start");
         }

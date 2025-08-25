@@ -14,7 +14,7 @@ namespace Daxs
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
             using var helper = new RunScriptHelper(doc.RuntimeSerialNumber);
-            LayoutManager.Instance.Set("Menu");
+            LayoutManager.Instance.Set(Layout.Menu);
 
             helper.RunScript("_ViewCaptureToFile", true);
 

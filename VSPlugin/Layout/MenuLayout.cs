@@ -8,7 +8,7 @@ namespace Daxs
 {
     public class MenuLayout : IGamepadLayout
     {
-        public string Name => "Menu";
+        public Layout Name => Layout.Menu;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
