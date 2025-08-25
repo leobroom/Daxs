@@ -85,7 +85,6 @@ namespace Daxs
         public double Speedmulti => stateTable.TryGetValue(AProperty.Speedmulti, out var button) && GetButtonState(button) == InputX.IsDown? speedmulti: 1;
 
 
-
         private readonly double rotSpeedmulti = 3;
 
         public double RotSpeedmulti => stateTable.TryGetValue(AProperty.RotSpeedMulti, out var button) && GetButtonState(button) == InputX.IsDown ? rotSpeedmulti : 1;
@@ -94,12 +93,6 @@ namespace Daxs
         public float ElevateUp => stateTable.TryGetValue(AProperty.ElevateUp, out var trigger) ? GetValueState(trigger) : 0;
 
         public float ElevateDown=> stateTable.TryGetValue(AProperty.ElevateDown, out var trigger) ? GetValueState(trigger) : 0;
-
-
-        //public InputY Teleport => stateTable.TryGetValue(AProperty., out var trigger) ? GetValueState(trigger) : 0;
-
-
-
 
         public InputY Teleport
         {

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Rhino;
 using Rhino.Geometry;
 using Rhino.Display;
 using Rhino.Geometry.Intersect;
-using System.Diagnostics;
 
 namespace Daxs
 {

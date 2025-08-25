@@ -1,12 +1,7 @@
-﻿// #! csharp
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Eto.Forms;
 using Eto.Drawing;
-using Rhino;
-using Rhino.UI;
 using Rhino.UI.Controls;
-using Daxs;
 using System.Reflection;
 
 namespace Daxs

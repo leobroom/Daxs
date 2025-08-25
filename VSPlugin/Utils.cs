@@ -28,7 +28,6 @@ namespace Daxs
             return packageInfo.Version;
         }
 
-
         public static string GetFile(string fileName)
         {
             string folder = GetPackageFolderPath();

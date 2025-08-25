@@ -9,60 +9,50 @@ using System.Diagnostics;
 
 namespace Daxs
 {
-    public class ControllerManager
+    public sealed class ControllerManager
     {
-        private static ControllerManager instance = null;
+        public static ControllerManager Instance { get; } = new ControllerManager();
 
-        private readonly ActionManager actionManager = ActionManager.Instance;
-        private readonly LayoutManager layoutManager = LayoutManager.Instance;
         private ControllerManager()
         {
             RhinoApp.Closing += (sender, e) => { settings.SaveSettings(); };
 
-            layoutManager.Message += (sender, e) => SetMessage(e.Message);
+            layout.Message += (sender, e) => SetMessage(e.Message);
 
             //ActionManager Test
-            actionManager.Register(GButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
-            actionManager.Register(GButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
-            actionManager.Register(GButton.DPadUp, InputX.IsDown, new SwitchAction());
-            actionManager.Register(GButton.DPadRight, InputX.IsDown, new LensAction( InputY.Up,2));
-            actionManager.Register(GButton.DPadLeft, InputX.IsDown, new LensAction( InputY.Down,2));
-            actionManager.Register(GButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default,2));
+            actions.Register(GButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
+            actions.Register(GButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
+            actions.Register(GButton.DPadUp, InputX.IsDown, new SwitchAction());
+            actions.Register(GButton.DPadRight, InputX.IsDown, new LensAction(InputY.Up, 2));
+            actions.Register(GButton.DPadLeft, InputX.IsDown, new LensAction(InputY.Down, 2));
+            actions.Register(GButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default, 2));
 
             //SpeedMulti
-            actionManager.Register(GButton.L3, AProperty.Speedmulti);
-            actionManager.Register(GButton.R3, AProperty.RotSpeedMulti);
+            actions.Register(GButton.L3, AProperty.Speedmulti);
+            actions.Register(GButton.R3, AProperty.RotSpeedMulti);
 
             //Elevator
-            actionManager.Register(GButton.L2, AProperty.ElevateDown);
-            actionManager.Register(GButton.R2, AProperty.ElevateUp);
+            actions.Register(GButton.L2, AProperty.ElevateDown);
+            actions.Register(GButton.R2, AProperty.ElevateUp);
 
             //Teleport
-            actionManager.Register(GButton.L1, AProperty.TeleportDown);
-            actionManager.Register(GButton.R1, AProperty.TeleportUp);
+            actions.Register(GButton.L1, AProperty.TeleportDown);
+            actions.Register(GButton.R1, AProperty.TeleportUp);
         }
 
-        public static ControllerManager Instance
-        {
-            get
-            {
-                instance ??= new ControllerManager();
+        private readonly ActionManager actions = ActionManager.Instance;
+        private readonly LayoutManager layout = LayoutManager.Instance;
+        private readonly Settings settings = Settings.Instance;
 
-                return instance;
-            }
-        }
-
+        //Loop
         private CancellationTokenSource _cts;
         private Status status = Status.NotInitialized;
 
-        private readonly Settings settings = Settings.Instance;
-
-        //Buttons
+        //Messages
         private DateTime lastPressedTime;
         private string displayMessage = "";
 
         private IGamepad gamepad = null;
-
 
         public enum Status
         {
@@ -87,7 +77,7 @@ namespace Daxs
 
             DisplayPipeline.DrawForeground += DrawText;
 
-            layoutManager.Set("Fly");
+            layout.Set("Fly");
 
             RhinoApp.WriteLine($"Daxs {Utils.GetPackageVersion()} Start");
         }
@@ -146,10 +136,10 @@ namespace Daxs
 
                 var state = gamepad.GetState();
 
-                actionManager.Update(state);
+                actions.Update(state);
 
                 // Update the camera on the UI thread.                    
-                lastTime = layoutManager.CurrentLayout.HandleInput(state, stopwatch, lastTime);
+                lastTime = layout.CurrentLayout.HandleInput(state, stopwatch, lastTime);
 
                 if ((DateTime.Now - lastPressedTime).TotalSeconds > 2)
                     displayMessage = "";

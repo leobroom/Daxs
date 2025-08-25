@@ -75,9 +75,6 @@ namespace Daxs
         /// <summary>
         /// Normalize stick input
         /// </summary>
-        /// <param name="normX"></param>
-        /// <param name="normY"></param>
-        /// <returns></returns>
         protected (double x, double y) NormalizeStick(double normX, double normY)
         {
             double magnitude = Math.Sqrt(normX * normX + normY * normY);
@@ -100,12 +97,8 @@ namespace Daxs
         /// Used for panning over a plan views (example left right bottom etc)
         protected static void ApplyCameraPanControls(RhinoViewport vp, double forward, double strafe, double vertical, double pitch, double speed)
         {
-            // Get the right and up vectors in the view plane
-            Vector3d right = -vp.CameraX;
-            Vector3d up = vp.CameraY;
-
             // Movement in the view plane
-            Vector3d move = (right * strafe + up * forward) * speed;
+            Vector3d move = ((-vp.CameraX) * strafe + vp.CameraY * forward) * speed;
 
             // Optionally allow movement along the world Z axis
             move += Vector3d.ZAxis * vertical * speed;
@@ -139,9 +132,7 @@ namespace Daxs
             right = Vector3d.CrossProduct(camDir, vp.CameraUp);
 
             // Movement
-            Vector3d move = Vector3d.ZAxis * vertical +
-                            camDir * forward * speed +
-                            right * strafe * speed;
+            Vector3d move = Vector3d.ZAxis * vertical +camDir * forward * speed +right * strafe * speed;
 
             vp.SetCameraLocation(vp.CameraLocation + move, true);
         }
