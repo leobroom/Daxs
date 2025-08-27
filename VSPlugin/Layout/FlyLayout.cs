@@ -9,7 +9,7 @@ namespace Daxs
     internal class FlyLayout : IGamepadLayout
     {
         public virtual Layout Name => Layout.Fly;
-        protected double moveSpeed, deadzone, yawSensitivity, pitchSensitivity;
+        protected double moveSpeed, deadzone, yawSensitivity, pitchSensitivity, elevateSpeed;
         protected RhinoDoc doc = RhinoDoc.ActiveDoc;
         protected Settings settings;
         protected ActionManager actionManager = ActionManager.Instance;
@@ -22,22 +22,25 @@ namespace Daxs
             var dZ = settings["Deadzone"];
             var yS = settings["YawSensitivity"];
             var pS = settings["PitchSensitivity"];
+            var eS = settings["ElevateSpeed"];
 
             mV.ValueChanged += (s, val) => moveSpeed = val;
             dZ.ValueChanged += (s, val) => deadzone = val;
             yS.ValueChanged += (s, val) => yawSensitivity = val;
             pS.ValueChanged += (s, val) => pitchSensitivity = val;
+            eS.ValueChanged += (s, val) => elevateSpeed = val;
 
             moveSpeed = mV.Value;
             deadzone = dZ.Value;
             yawSensitivity = yS.Value;
             pitchSensitivity = pS.Value;
+            elevateSpeed = eS.Value;
         }
 
         public virtual double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime)
         {
-            double speed = actionManager.Speedmulti;
-            double rotSpeed = actionManager.RotSpeedmulti;
+            double speedMulti = actionManager.Speedmulti * moveSpeed;
+            double rotSpeedMulti = actionManager.RotSpeedmulti;
             double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
 
             var (yaw, pitch) = NormalizeStick(state.RightThumbX, state.RightThumbY);
@@ -61,9 +64,9 @@ namespace Daxs
                 if (hasMoved)
                 {
                     if (vp.IsPlanView)
-                        ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, speed * delta);
+                        ApplyCameraPanControls(vp, forward, strafe, vertical * delta * elevateSpeed, pitch, speedMulti * delta);
                     else
-                        ApplyCameraControls(vp, forward, -strafe, vertical, yaw, pitch, speed * delta, rotSpeed * delta, teleport);
+                        ApplyCameraControls(vp, forward, -strafe, vertical * delta * elevateSpeed, yaw, pitch, speedMulti * delta, rotSpeedMulti * delta, teleport);
 
                     view.Redraw();
                 }
@@ -110,7 +113,7 @@ namespace Daxs
             if (Math.Abs(pitch) > 1e-6)
             {
                 // Sensible scaling factor: pitch > 0 zooms in; < 0 zooms out
-                double scale = Math.Pow(1.1, pitch * speed); // invert pitch for natural stick direction
+                double scale = Math.Pow(1.1, pitch * speed); 
                 vp.Magnify(scale, false);
             }
         }

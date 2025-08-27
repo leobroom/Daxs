@@ -18,13 +18,14 @@ namespace Daxs
             Add("YawSensitivity", 0.0009, 100000);
             Add("PitchSensitivity", 0.0009, 100000);
             Add("Deadzone", 0.169, 1000);
-            Add("MoveSpeed", 140.6, 1);
+            Add("MoveSpeed", 140.6, 0.1);
+            Add("ElevateSpeed", 140.6, 0.1);
 
             //Text
             Add("TextTime", 2, 1);
 
             //Walking
-            Add("EyeHeight", 1.70, 1);
+            Add("EyeHeight", 1.7, 1);
             Add("MaximalJump", 1.5, 1);
 
             LoadSettings();
