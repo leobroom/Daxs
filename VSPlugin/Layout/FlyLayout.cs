@@ -37,6 +37,8 @@ namespace Daxs
             elevateSpeed = eS.Value;
         }
 
+        volatile bool _uiUpdatePending = false;
+
         public virtual double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime)
         {
             double speedMulti = actionManager.Speedmulti * moveSpeed;
@@ -50,27 +52,35 @@ namespace Daxs
 
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
 
-            RhinoApp.InvokeOnUiThread((Action)(() =>
+
+                if (hasMoved && !_uiUpdatePending)
             {
-                var view = doc.Views.ActiveView;
-                var vp = view.ActiveViewport;
-
-                double currentTime = stopwatch.Elapsed.TotalSeconds;
-                float delta = (float)(currentTime - lastTime);
-                lastTime = currentTime;
-
-                actionManager.ExecuteActionsOnMainThread();
-
-                if (hasMoved)
+                _uiUpdatePending = true;
+                RhinoApp.InvokeOnUiThread((Action)(() =>
                 {
-                    if (vp.IsPlanView)
-                        ApplyCameraPanControls(vp, forward, strafe, vertical * delta * elevateSpeed, pitch, speedMulti * delta);
-                    else
-                        ApplyCameraControls(vp, forward, -strafe, vertical * delta * elevateSpeed, yaw, pitch, speedMulti * delta, rotSpeedMulti * delta, teleport);
+                    var view = doc.Views.ActiveView;
+                    var vp = view.ActiveViewport;
+
+                    actionManager.ExecuteActionsOnMainThread();
+
+                    double currentTime = stopwatch.Elapsed.TotalSeconds;
+                    float delta = (float)(currentTime - lastTime);
+                    lastTime = currentTime;
+
+                    if (hasMoved)
+                    {
+                        if (vp.IsPlanView)
+                            ApplyCameraPanControls(vp, forward, strafe, vertical * delta * elevateSpeed, pitch, speedMulti * delta);
+                        else
+                            ApplyCameraControls(vp, forward, -strafe, vertical * delta * elevateSpeed, yaw, pitch, speedMulti * delta, rotSpeedMulti * delta, teleport);
+                    }
 
                     view.Redraw();
-                }
-            }));
+                    _uiUpdatePending = false;
+
+
+                }));
+            }
 
             return lastTime;
         }
