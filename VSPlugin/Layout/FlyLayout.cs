@@ -39,46 +39,70 @@ namespace Daxs
 
         volatile bool _uiUpdatePending = false;
 
+
+        static Plane camDir = Plane.WorldXY;
+        private readonly object _camLock = new();
         public virtual double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime)
         {
-            double speedMulti = actionManager.Speedmulti * moveSpeed;
-            double rotSpeedMulti = actionManager.RotSpeedmulti;
-            double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
+            // Inputs
+            double speedMulti = actionManager.Speedmulti * moveSpeed;   // planar speed multiplier
+            double rotSpeedMulti = actionManager.RotSpeedmulti;         // rotation speed multiplier
+            double vertical = GetNonLinearTrigger(actionManager.ElevateUp)
+                            - GetNonLinearTrigger(actionManager.ElevateDown);
 
             var (yaw, pitch) = NormalizeStick(state.RightThumbX, state.RightThumbY);
             var (strafe, forward) = NormalizeStick(state.LeftThumbX, state.LeftThumbY);
 
             InputY teleport = actionManager.Teleport;
 
+            // Timing
+            double currentTime = stopwatch.Elapsed.TotalSeconds;
+            float delta = (float)(currentTime - lastTime);
+            delta = 1;
+            lastTime = currentTime;
+
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
 
+            if (hasMoved)
+            {
+                camDir.Transform(Transform.Rotation(yaw * rotSpeedMulti, camDir.ZAxis, camDir.Origin));
+                camDir.Transform(Transform.Rotation(pitch * rotSpeedMulti, -camDir.YAxis, camDir.Origin));
 
-                if (hasMoved && !_uiUpdatePending)
+                Vector3d move = camDir.XAxis * forward * speedMulti + camDir.YAxis * strafe * speedMulti + camDir.ZAxis * vertical ; 
+
+                camDir.Translate(move);
+            }
+
+            if (hasMoved && !_uiUpdatePending)
             {
                 _uiUpdatePending = true;
+
                 RhinoApp.InvokeOnUiThread((Action)(() =>
                 {
+                    Plane snap;
+                    lock (_camLock) snap = camDir;  // snapshot
+
                     var view = doc.Views.ActiveView;
                     var vp = view.ActiveViewport;
 
                     actionManager.ExecuteActionsOnMainThread();
 
-                    double currentTime = stopwatch.Elapsed.TotalSeconds;
-                    float delta = (float)(currentTime - lastTime);
-                    lastTime = currentTime;
-
                     if (hasMoved)
                     {
                         if (vp.IsPlanView)
-                            ApplyCameraPanControls(vp, forward, strafe, vertical * delta * elevateSpeed, pitch, speedMulti * delta);
+                        {
+                            // Keep your existing planar handler; note it already expects delta-scaled args
+                            ApplyCameraPanControls(vp, forward, strafe, vertical * (delta * elevateSpeed), pitch, speedMulti * delta);
+                        }
                         else
-                            ApplyCameraControls(vp, forward, -strafe, vertical * delta * elevateSpeed, yaw, pitch, speedMulti * delta, rotSpeedMulti * delta, teleport);
+                        {
+                            vp.SetCameraLocation(camDir.Origin, true);
+                            vp.SetCameraDirection(camDir.XAxis, true);
+                        }
+                        view.Redraw();
                     }
 
-                    view.Redraw();
                     _uiUpdatePending = false;
-
-
                 }));
             }
 
