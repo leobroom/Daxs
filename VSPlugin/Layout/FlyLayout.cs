@@ -63,15 +63,40 @@ namespace Daxs
 
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
 
+            //if (hasMoved)
+            //{
+            //    camDir.Transform(Transform.Rotation(yaw * rotSpeedMulti, camDir.ZAxis, camDir.Origin));
+            //    camDir.Transform(Transform.Rotation(pitch * rotSpeedMulti, -camDir.YAxis, camDir.Origin));
+
+            //    Vector3d move = camDir.XAxis * forward * speedMulti + camDir.YAxis * strafe * speedMulti + camDir.ZAxis * vertical ; 
+
+            //    camDir.Translate(move);
+            //}
+
             if (hasMoved)
             {
-                camDir.Transform(Transform.Rotation(yaw * rotSpeedMulti, camDir.ZAxis, camDir.Origin));
-                camDir.Transform(Transform.Rotation(pitch * rotSpeedMulti, -camDir.YAxis, camDir.Origin));
+                // 1) compose a single transform in the camera's local frame
+                var tYaw = Transform.Rotation(yaw * rotSpeedMulti, camDir.ZAxis, camDir.Origin);
+                var tPitch = Transform.Rotation(pitch * rotSpeedMulti, -camDir.YAxis, camDir.Origin);
+                var t = tPitch * tYaw; // order matters: yaw first, then pitch in the new frame
 
-                Vector3d move = camDir.XAxis * forward * speedMulti + camDir.YAxis * strafe * speedMulti + camDir.ZAxis * vertical ; 
+                camDir.Transform(t);
 
+                // 2) Gram–Schmidt (keep a tight, right-handed, unit basis)
+                var x = camDir.XAxis; x.Unitize();
+                var z = camDir.ZAxis; z.Unitize();
+                var y = Vector3d.CrossProduct(z, x); y.Unitize();
+                z = Vector3d.CrossProduct(x, y); z.Unitize();
+                camDir = new Plane(camDir.Origin, x, y);
+
+                // 3) translate in the camera frame
+                Vector3d move = camDir.XAxis * forward * speedMulti
+                              + camDir.YAxis * strafe * speedMulti
+                              + camDir.ZAxis * vertical;
                 camDir.Translate(move);
             }
+
+        https://chatgpt.com/g/g-p-67e9bd1beeac8191a0f9ff9d384c27a1-xboxcontroller/c/68b7712b-dd7c-8332-bd77-83ef8ed105fc
 
             if (hasMoved && !_uiUpdatePending)
             {
