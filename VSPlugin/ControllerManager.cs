@@ -113,11 +113,14 @@ namespace Daxs
         #region LOOP
         async Task Loop(CancellationToken token)
         {
-            Stopwatch stopwatch = new();
-            stopwatch.Start();
+            //dalta
+            var sw = Stopwatch.StartNew();
+            long prevTicks = sw.ElapsedTicks;
+            double tickToSec = 1.0 / Stopwatch.Frequency;
 
-            double lastTime = stopwatch.Elapsed.TotalSeconds;
 
+
+            //Whileloop
             while (!token.IsCancellationRequested)
             {
                 // Try to (re)initialize the controller
@@ -134,17 +137,29 @@ namespace Daxs
                         RhinoApp.WriteLine($"Connected to {gamepad.GetType().Name}");
                 }
 
-                var state = gamepad.GetState();
+                long now = sw.ElapsedTicks;
+                double delta = (now - prevTicks) * tickToSec;
 
+
+
+                // clamp to avoid huge jumps 
+                if (delta < 1e-5)
+                    delta = 1e-5;   // min ~0.01 ms
+                if (delta > 0.05)
+                    delta = 0.05;   // max 50 ms (~20 FPS)
+
+                prevTicks = now;
+
+                var state = gamepad.GetState();
                 actions.Update(state);
 
                 // Update the camera on the UI thread.                    
-                lastTime = layout.CurrentLayout.HandleInput(state, stopwatch, lastTime);
+               layout.CurrentLayout.HandleInput(state,delta);
 
-                if ((DateTime.Now - lastPressedTime).TotalSeconds > 2)
+                if ((DateTime.Now - lastPressedTime).TotalSeconds > 2) 
                     displayMessage = "";
 
-                await Task.Delay(10, token);
+                await Task.Delay(1, token);
             }
         }
         #endregion

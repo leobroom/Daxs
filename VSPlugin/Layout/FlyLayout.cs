@@ -2,7 +2,6 @@
 using Rhino;
 using Rhino.Geometry;
 using Rhino.Display;
-using System.Diagnostics;
 
 namespace Daxs
 {
@@ -37,121 +36,127 @@ namespace Daxs
             elevateSpeed = eS.Value;
         }
 
+        // fields
         volatile bool _uiUpdatePending = false;
+        protected Rhino.Geometry.Plane camPlane;
 
+        // fields
+        double yawAcc = 0.0, pitchAcc = 0.0;
+        protected Vector3d zAxis = Vector3d.ZAxis;
+        double rad85 = RhinoMath.ToRadians(89);
 
-        static Plane camDir = Plane.WorldXY;
-        private readonly object _camLock = new();
-        public virtual double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime)
+        // UI throttle accumulator and target interval (~60 FPS)
+        double sinceLastUi = 0.0;
+        const double uiDt = 1.0 / 60.0;
+
+        public void HandleInput(GamepadState state, double delta)
         {
+            sinceLastUi += delta;   //  accumulate time for UI throttling
+
             // Inputs
             double speedMulti = actionManager.Speedmulti * moveSpeed;   // planar speed multiplier
             double rotSpeedMulti = actionManager.RotSpeedmulti;         // rotation speed multiplier
-            double vertical = GetNonLinearTrigger(actionManager.ElevateUp)
-                            - GetNonLinearTrigger(actionManager.ElevateDown);
+            double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
 
             var (yaw, pitch) = NormalizeStick(state.RightThumbX, state.RightThumbY);
             var (strafe, forward) = NormalizeStick(state.LeftThumbX, state.LeftThumbY);
 
             InputY teleport = actionManager.Teleport;
 
-            // Timing
-            double currentTime = stopwatch.Elapsed.TotalSeconds;
-            float delta = (float)(currentTime - lastTime);
-            delta = 1;
-            lastTime = currentTime;
-
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
 
-            //if (hasMoved)
-            //{
-            //    camDir.Transform(Transform.Rotation(yaw * rotSpeedMulti, camDir.ZAxis, camDir.Origin));
-            //    camDir.Transform(Transform.Rotation(pitch * rotSpeedMulti, -camDir.YAxis, camDir.Origin));
+            if (!hasMoved && !_uiUpdatePending) //GetActual Campos
+            {
+                var vp = doc.Views.ActiveView.ActiveViewport;
 
-            //    Vector3d move = camDir.XAxis * forward * speedMulti + camDir.YAxis * strafe * speedMulti + camDir.ZAxis * vertical ; 
+                Vector3d camDir = vp.CameraDirection; // Read current viewport camera
+                Vector3d right = Vector3d.CrossProduct(zAxis, camDir); // Turntable basis (use world up to remove roll)
 
-            //    camDir.Translate(move);
-            //}
+                if (!right.Unitize())
+                    right = Vector3d.XAxis; // guard near poles
+
+                camPlane = new Plane(vp.CameraLocation, camDir, right);
+
+                // Rebase angle accumulators to match viewport direction
+                double newYaw = Math.Atan2(camDir.Y, camDir.X);
+                double newPitch = Math.Asin(camDir.Z);
+
+                pitchAcc = GetPitch(newPitch);
+                yawAcc = newYaw;
+            }
 
             if (hasMoved)
             {
-                // 1) compose a single transform in the camera's local frame
-                var tYaw = Transform.Rotation(yaw * rotSpeedMulti, camDir.ZAxis, camDir.Origin);
-                var tPitch = Transform.Rotation(pitch * rotSpeedMulti, -camDir.YAxis, camDir.Origin);
-                var t = tPitch * tYaw; // order matters: yaw first, then pitch in the new frame
+                yawAcc += yaw * yawSensitivity * delta * rotSpeedMulti;
+                pitchAcc += pitch * pitchSensitivity * delta * rotSpeedMulti;
+                pitchAcc = GetPitch(pitchAcc);
 
-                camDir.Transform(t);
+                // Rebuild basis from yaw/pitch (turntable, world-up = +Z)
+                double cy = Math.Cos(yawAcc);
+                double sy = Math.Sin(yawAcc);
+                double cp = Math.Cos(pitchAcc);
+                double sp = Math.Sin(pitchAcc);
 
-                // 2) Gram–Schmidt (keep a tight, right-handed, unit basis)
-                var x = camDir.XAxis; x.Unitize();
-                var z = camDir.ZAxis; z.Unitize();
-                var y = Vector3d.CrossProduct(z, x); y.Unitize();
-                z = Vector3d.CrossProduct(x, y); z.Unitize();
-                camDir = new Plane(camDir.Origin, x, y);
-
-                // 3) translate in the camera frame
-                Vector3d move = camDir.XAxis * forward * speedMulti
-                              + camDir.YAxis * strafe * speedMulti
-                              + camDir.ZAxis * vertical;
-                camDir.Translate(move);
+                camPlane = GetCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti, delta);
             }
 
-        https://chatgpt.com/g/g-p-67e9bd1beeac8191a0f9ff9d384c27a1-xboxcontroller/c/68b7712b-dd7c-8332-bd77-83ef8ed105fc
-
-            if (hasMoved && !_uiUpdatePending)
+            if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending)
             {
                 _uiUpdatePending = true;
 
                 RhinoApp.InvokeOnUiThread((Action)(() =>
                 {
-                    Plane snap;
-                    lock (_camLock) snap = camDir;  // snapshot
-
                     var view = doc.Views.ActiveView;
                     var vp = view.ActiveViewport;
 
-                    actionManager.ExecuteActionsOnMainThread();
+                    vp.SetCameraLocation(camPlane.Origin, true);
+                    vp.SetCameraDirection(camPlane.XAxis, true);
 
-                    if (hasMoved)
-                    {
-                        if (vp.IsPlanView)
-                        {
-                            // Keep your existing planar handler; note it already expects delta-scaled args
-                            ApplyCameraPanControls(vp, forward, strafe, vertical * (delta * elevateSpeed), pitch, speedMulti * delta);
-                        }
-                        else
-                        {
-                            vp.SetCameraLocation(camDir.Origin, true);
-                            vp.SetCameraDirection(camDir.XAxis, true);
-                        }
-                        view.Redraw();
-                    }
+                    view.Redraw();
 
                     _uiUpdatePending = false;
                 }));
             }
-
-            return lastTime;
         }
 
-        /// <summary>
-        /// Normalize stick input
-        /// </summary>
-        protected (double x, double y) NormalizeStick(double normX, double normY)
+        protected virtual Plane GetCamPlane(double cp , double cy, double sy, double sp, double forward, double strafe, double vertical, double speedMulti, double delta) 
         {
-            double magnitude = Math.Sqrt(normX * normX + normY * normY);
-            if (magnitude < deadzone)
+            var fwd = new Vector3d(cp * cy, cp * sy, sp);
+            var right = new Vector3d(-sy, cy, 0);
+
+            Vector3d move = fwd * (forward * speedMulti * delta)
+                        + right * (strafe * speedMulti * delta)
+                        + zAxis * (vertical * speedMulti * delta);
+
+            return new Plane(camPlane.Origin + move, fwd, right);
+        }
+
+        double GetPitch(double pitchAcc) => Math.Max(-rad85, Math.Min(rad85, pitchAcc));  // Limit
+
+        double GetNonLinearTrigger(float raw) => Math.Pow(raw, 2); // quadratic curve 
+
+
+        protected (double x, double y) NormalizeStick(double nx, double ny)
+        {
+            double r2 = nx * nx + ny * ny;
+            double dz = deadzone;
+            double dz2 = dz * dz;
+
+            if (r2 <= dz2)
                 return (0, 0);
 
-            double scaled = Math.Clamp((magnitude - deadzone) / (1 - deadzone), 0, 1);
+            double r = Math.Sqrt(r2);
+            double invR = 1.0 / r;
 
-            // Normalize direction
-            double dirX = normX / magnitude;
-            double dirY = normY / magnitude;
+            // direction
+            double dirX = nx * invR;
+            double dirY = ny * invR;
 
-            // Apply sensitivity and scale
-            double yaw = -dirX * scaled * yawSensitivity;
-            double pitch = dirY * scaled * pitchSensitivity;
+            // scale from deadzone to 1
+            double scale = (r - dz) * (1.0 / Math.Max(1e-6, 1.0 - dz));
+
+            double yaw = -dirX * scale * yawSensitivity;
+            double pitch = dirY * scale * pitchSensitivity;
 
             return (yaw, pitch);
         }
@@ -175,28 +180,6 @@ namespace Daxs
                 double scale = Math.Pow(1.1, pitch * speed); 
                 vp.Magnify(scale, false);
             }
-        }
-
-        protected virtual void ApplyCameraControls(RhinoViewport vp, double forward, double strafe, double vertical, double yaw, double pitch, double speed, double rotSpeed, InputY teleport)
-        {
-            Vector3d camDir = vp.CameraDirection;
-
-            // Rotation: Yaw around world Z
-            camDir.Transform(Transform.Rotation(yaw * rotSpeed, Vector3d.ZAxis, Point3d.Origin));
-
-            // Rotation: Pitch around right vector
-            Vector3d right = Vector3d.CrossProduct(camDir, Vector3d.ZAxis);
-
-            camDir.Transform(Transform.Rotation(pitch * rotSpeed, right, Point3d.Origin));
-            vp.SetCameraDirection(camDir, true);
-
-            // Recalculate right vector after rotation
-            right = Vector3d.CrossProduct(camDir, vp.CameraUp);
-
-            // Movement
-            Vector3d move = Vector3d.ZAxis * vertical +camDir * forward * speed +right * strafe * speed;
-
-            vp.SetCameraLocation(vp.CameraLocation + move, true);
         }
 
         protected static double GetNonLinearTrigger(double raw) => Math.Pow(raw, 2); // quadratic curve 
