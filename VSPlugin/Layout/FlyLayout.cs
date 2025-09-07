@@ -97,7 +97,7 @@ namespace Daxs
                 double cp = Math.Cos(pitchAcc);
                 double sp = Math.Sin(pitchAcc);
 
-                camPlane = GetCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti, delta);
+                camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti, delta, teleport);
             }
 
             if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending)
@@ -119,7 +119,7 @@ namespace Daxs
             }
         }
 
-        protected virtual Plane GetCamPlane(double cp , double cy, double sy, double sp, double forward, double strafe, double vertical, double speedMulti, double delta) 
+        protected virtual Plane CalculateCamPlane(double cp , double cy, double sy, double sp, double forward, double strafe, double vertical, double speedMulti, double delta, InputY teleport ) 
         {
             var fwd = new Vector3d(cp * cy, cp * sy, sp);
             var right = new Vector3d(-sy, cy, 0);
@@ -181,7 +181,5 @@ namespace Daxs
                 vp.Magnify(scale, false);
             }
         }
-
-        protected static double GetNonLinearTrigger(double raw) => Math.Pow(raw, 2); // quadratic curve 
     }
 }
