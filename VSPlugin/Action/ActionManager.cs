@@ -24,6 +24,18 @@ namespace Daxs
                 actionTable.Add(button, entry);
         }
 
+        internal bool HasActionsOnMainThread()
+        {
+            foreach (KeyValuePair<GButton, Tuple<InputX, IAction>> pair in actionTable)
+            {
+                InputX inputA = GetButtonState(pair.Key);
+
+                if (inputA == pair.Value.Item1)
+                    return true;
+            }
+            return false;
+        }
+
         internal void ExecuteActionsOnMainThread()
         {
             foreach (KeyValuePair<GButton, Tuple<InputX, IAction>> pair in actionTable)

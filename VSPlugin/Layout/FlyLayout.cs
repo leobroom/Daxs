@@ -100,17 +100,27 @@ namespace Daxs
                 camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti, delta, teleport);
             }
 
-            if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending)
+            bool hasAction = actionManager.HasActionsOnMainThread();
+            RhinoApp.InvokeOnUiThread((Action)(() => { actionManager.ExecuteActionsOnMainThread(); }));
+
+            if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending )
             {
                 _uiUpdatePending = true;
 
                 RhinoApp.InvokeOnUiThread((Action)(() =>
                 {
+                    
+
                     var view = doc.Views.ActiveView;
                     var vp = view.ActiveViewport;
 
-                    vp.SetCameraLocation(camPlane.Origin, true);
-                    vp.SetCameraDirection(camPlane.XAxis, true);
+                    if (!vp.IsPlanView)
+                    {
+                        vp.SetCameraLocation(camPlane.Origin, true);
+                        vp.SetCameraDirection(camPlane.XAxis, true);
+                    }
+                    else 
+                        ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
 
                     view.Redraw();
 
@@ -134,7 +144,6 @@ namespace Daxs
         double GetPitch(double pitchAcc) => Math.Max(-rad85, Math.Min(rad85, pitchAcc));  // Limit
 
         double GetNonLinearTrigger(float raw) => Math.Pow(raw, 2); // quadratic curve 
-
 
         protected (double x, double y) NormalizeStick(double nx, double ny)
         {
@@ -162,10 +171,10 @@ namespace Daxs
         }
 
         /// Used for panning over a plan views (example left right bottom etc)
-        protected static void ApplyCameraPanControls(RhinoViewport vp, double forward, double strafe, double vertical, double pitch, double speed)
+        protected static void ApplyCameraPanControls(RhinoViewport vp, double forward, double strafe, double vertical, double pitch, double speed, double delta)
         {
             // Movement in the view plane
-            Vector3d move = ((-vp.CameraX) * strafe + vp.CameraY * forward) * speed;
+            Vector3d move = ((-vp.CameraX) * strafe * delta + vp.CameraY * forward * delta) * speed;
 
             // Optionally allow movement along the world Z axis
             move += Vector3d.ZAxis * vertical * speed;
@@ -177,7 +186,7 @@ namespace Daxs
             if (Math.Abs(pitch) > 1e-6)
             {
                 // Sensible scaling factor: pitch > 0 zooms in; < 0 zooms out
-                double scale = Math.Pow(1.1, pitch * speed); 
+                double scale = Math.Pow(1.1, pitch * speed * delta);
                 vp.Magnify(scale, false);
             }
         }

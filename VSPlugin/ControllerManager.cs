@@ -151,10 +151,10 @@ namespace Daxs
                 prevTicks = now;
 
                 var state = gamepad.GetState();
-                actions.Update(state);
+                actions.Update(state); //https://chatgpt.com/g/g-p-67e9bd1beeac8191a0f9ff9d384c27a1-xboxcontroller/c/68bdc840-3b1c-8321-93cc-6ff4bbe5a5c6
 
                 // Update the camera on the UI thread.                    
-               layout.CurrentLayout.HandleInput(state,delta);
+                layout.CurrentLayout.HandleInput(state,delta);
 
                 if ((DateTime.Now - lastPressedTime).TotalSeconds > 2) 
                     displayMessage = "";
