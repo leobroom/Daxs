@@ -13,6 +13,8 @@ namespace Daxs
         protected Settings settings;
         protected ActionManager actionManager = ActionManager.Instance;
 
+        HUD hud = new HUD(); 
+
         public FlyLayout()
         {
             settings = Settings.Instance;
@@ -34,6 +36,9 @@ namespace Daxs
             yawSensitivity = yS.Value;
             pitchSensitivity = pS.Value;
             elevateSpeed = eS.Value;
+
+            hud.Enabled = true;
+            
         }
 
         // fields
