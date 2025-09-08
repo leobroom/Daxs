@@ -10,7 +10,7 @@ namespace Daxs
         public override bool IsConnected => joystick != null;
 
         private readonly DirectInput directInput;
-        private readonly Joystick joystick;
+        private readonly Joystick joystick; 
 
         public PS4Gamepad()
         {

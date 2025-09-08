@@ -6,6 +6,6 @@ namespace Daxs
     public interface IGamepadLayout
     {
         Layout Name { get; }
-        double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime);
+        void HandleInput(GamepadState state, double delta);
     }
 }

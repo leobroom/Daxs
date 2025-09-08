@@ -39,10 +39,10 @@ namespace Daxs
                 R2: pad.RightTrigger / 255f,
                 R3: GetInputState((buttons & GamepadButtonFlags.RightThumb) != 0, previous.R3),
 
-                LeftThumbX: pad.LeftThumbX / 32767.0,
-                LeftThumbY: pad.LeftThumbY / 32767.0,
-                RightThumbX: pad.RightThumbX / 32767.0,
-                RightThumbY: pad.RightThumbY / 32767.0
+                LeftThumbX: pad.LeftThumbX / 32767.0f,
+                LeftThumbY: pad.LeftThumbY / 32767.0f,
+                RightThumbX: pad.RightThumbX / 32767.0f,
+                RightThumbY: pad.RightThumbY / 32767.0f
             );
 
             return current;

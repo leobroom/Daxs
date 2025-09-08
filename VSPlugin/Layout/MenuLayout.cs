@@ -1,7 +1,5 @@
 ﻿using Rhino;
-using Rhino.Display;
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace Daxs
@@ -15,15 +13,13 @@ namespace Daxs
 
         private const byte KEY_UP = 0x26, KEY_DOWN = 0x28, KEY_TAB = 0x09, KEY_SHIFT = 0x10, KEY_ESCAPE = 0x1B, KEY_ENTER = 0x0D;
 
-        public double HandleInput(GamepadState state, Stopwatch stopwatch, double lastTime)
+        public void HandleInput(GamepadState state, double delta)
         {
 
             Rhino.RhinoApp.InvokeOnUiThread((Action)(() =>
             {
 
-                double currentTime = stopwatch.Elapsed.TotalSeconds;
-                float deltaTime = (float)(currentTime - lastTime);
-                lastTime = currentTime;
+
 
                 //Enter
                 if (state.A == InputX.IsDown)
@@ -64,7 +60,6 @@ namespace Daxs
                     SimulateKey(KEY_TAB);
                 }
             }));
-            return lastTime;
         }
 
         // Simulate Arrow Down key press and release
