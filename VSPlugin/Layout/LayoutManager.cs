@@ -25,7 +25,6 @@ namespace Daxs
 
         private readonly Dictionary<Layout, IGamepadLayout> layouts = new();
         
-        public event EventHandler<DisplayEventArgs> Message;
         private LayoutManager()
         {
             Register(new FlyLayout());
@@ -42,7 +41,6 @@ namespace Daxs
                 previousLayout = (previousLayout == null) ? layout : currentLayout;
                 RhinoApp.WriteLine("SetLayout:" + name);
                 currentLayout = layout;
-                Message?.Invoke(this, new DisplayEventArgs($"Layout: {name}"));
             }
         }
 

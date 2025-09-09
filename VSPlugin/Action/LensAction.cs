@@ -17,6 +17,8 @@ namespace Daxs
             defaultVal = doc.Views.ActiveView.ActiveViewport.Camera35mmLensLength;
         }
 
+        public string HUD_Name => "Lens: " + strength;
+
         public void Execute()
         {
             RhinoView view = doc.Views.ActiveView;

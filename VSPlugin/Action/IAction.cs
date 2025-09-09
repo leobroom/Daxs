@@ -2,6 +2,8 @@
 {
     interface IAction
     {
+        string HUD_Name { get; }
+
         void Execute();
     }
 }

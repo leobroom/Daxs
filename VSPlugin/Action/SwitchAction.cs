@@ -3,6 +3,9 @@
     internal class SwitchAction : IAction
     {
         public SwitchAction() {}
+
+        public string HUD_Name => LayoutManager.Instance.CurrentLayout.Name.ToString();
+
         public void Execute() 
         {
             var current = LayoutManager.Instance.CurrentLayout;

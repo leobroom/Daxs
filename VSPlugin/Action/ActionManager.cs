@@ -7,16 +7,18 @@ namespace Daxs
     {
         private static readonly Lazy<ActionManager> _instance = new(() => new ActionManager());
         public static ActionManager Instance => _instance.Value;
-  
+
         private readonly Dictionary<GButton, Tuple<InputX, IAction>> actionTable = new();
 
         private readonly Dictionary<AProperty, GButton> stateTable = new();
 
         private GamepadState state = new();
 
+        private HUD hud = HUD.Instance;
+
         public void Register(GButton button, InputX input, IAction dAction)
         {
-            Tuple < InputX, IAction > entry =  new(input, dAction);
+            Tuple<InputX, IAction> entry = new(input, dAction);
 
             if (actionTable.ContainsKey(button))
                 actionTable[button] = new Tuple<InputX, IAction>(input, dAction);
@@ -44,11 +46,16 @@ namespace Daxs
                 var tuple = pair.Value;
 
                 if (inputA == tuple.Item1)
-                    tuple.Item2.Execute();
+                {
+                    IAction a = tuple.Item2;
+                    hud.SetText(a.HUD_Name, 2000);
+                    a.Execute();        
+                }
+
             }
         }
-        
-        private InputX GetButtonState(GButton button) 
+
+        private InputX GetButtonState(GButton button)
         {
             return button switch
             {
@@ -80,7 +87,7 @@ namespace Daxs
             };
         }
 
-        internal void Update(GamepadState state)=> this.state = state;
+        internal void Update(GamepadState state) => this.state = state;
 
         public void Register(GButton button, AProperty aState)
         {
@@ -92,23 +99,23 @@ namespace Daxs
 
         ////////////////////////
 
-        private readonly double speedmulti =3;
+        private readonly double speedmulti = 3;
 
-        public double Speedmulti => stateTable.TryGetValue(AProperty.Speedmulti, out var button) && GetButtonState(button) == InputX.IsDown? speedmulti: 1;
+        public double Speedmulti => stateTable.TryGetValue(AProperty.Speedmulti, out var button) && GetButtonState(button) == InputX.IsDown ? speedmulti : 1;
 
 
         private readonly double rotSpeedmulti = 3;
 
         public double RotSpeedmulti => stateTable.TryGetValue(AProperty.RotSpeedMulti, out var button) && GetButtonState(button) == InputX.IsDown ? rotSpeedmulti : 1;
 
-        
+
         public float ElevateUp => stateTable.TryGetValue(AProperty.ElevateUp, out var trigger) ? GetValueState(trigger) : 0;
 
-        public float ElevateDown=> stateTable.TryGetValue(AProperty.ElevateDown, out var trigger) ? GetValueState(trigger) : 0;
+        public float ElevateDown => stateTable.TryGetValue(AProperty.ElevateDown, out var trigger) ? GetValueState(trigger) : 0;
 
         public InputY Teleport
         {
-            get 
+            get
             {
                 InputY jDir = InputY.Default;
 

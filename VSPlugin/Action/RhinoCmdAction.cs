@@ -13,6 +13,8 @@ namespace Daxs
             this.switchToMenuControll = switchToMenuControll;
         }
 
+        public string HUD_Name => commandName;
+
         public void Execute()
         {
             if (switchToMenuControll)

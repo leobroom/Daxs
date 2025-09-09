@@ -13,7 +13,7 @@ namespace Daxs
         protected Settings settings;
         protected ActionManager actionManager = ActionManager.Instance;
 
-        HUD hud = new HUD(); 
+        private readonly HUD hud = HUD.Instance;
 
         public FlyLayout()
         {
@@ -127,6 +127,8 @@ namespace Daxs
                     else 
                         ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
 
+
+        
                     view.Redraw();
 
                     _uiUpdatePending = false;
