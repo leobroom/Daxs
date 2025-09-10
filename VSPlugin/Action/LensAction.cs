@@ -1,5 +1,6 @@
 ﻿using Rhino;
 using Rhino.Display;
+using System;
 
 namespace Daxs
 {
@@ -7,17 +8,15 @@ namespace Daxs
     {
         private readonly InputY mode;
         private readonly RhinoDoc doc = RhinoDoc.ActiveDoc;
-        private readonly double defaultVal;
         private readonly double strength;
 
         public LensAction(InputY mode, double strength)
         {
             this.mode = mode;
             this.strength = strength;
-            defaultVal = doc.Views.ActiveView.ActiveViewport.Camera35mmLensLength;
         }
 
-        public string HUD_Name => "Lens: " + strength;
+        public string HUD_Name => "Lens: " + Math.Round(doc.Views.ActiveView.ActiveViewport.Camera35mmLensLength);
 
         public void Execute()
         {
@@ -34,11 +33,11 @@ namespace Daxs
                     actual -= strength;
                     break;
                 case InputY.Default:
-                    actual = defaultVal;
+                    actual = strength;
                     break;
             }
 
-            vp.Camera35mmLensLength = actual;
+            vp.Camera35mmLensLength = Math.Round(actual);
             view.Redraw();
         }
     }

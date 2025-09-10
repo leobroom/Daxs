@@ -1,8 +1,10 @@
 ﻿using Rhino;
 using Rhino.Display;
+using Rhino.DocObjects;
 using Rhino.Geometry;
 using System;
 using System.Diagnostics;
+using System.Drawing;
 
 namespace Daxs
 {
@@ -15,10 +17,14 @@ namespace Daxs
         private string text;
         private int durationMs;
 
-        internal HUD() 
-        {
-            //Stopwatch.StartNew();
-        }
+        // Tune these to taste
+        private const double FontScale = 0.04;   // ~% of viewport height
+        private const int MinFontPx = 12;
+        private const int MaxFontPx = 56;
+        private const double MarginScale = 2;  // margin ≈ 0.6 * font size
+        private const string FontFace = "Segoe UI"; // optional; omit if you want default
+
+        internal HUD() { }
 
         /// <summary>
         /// Updates stopwatch and deactivates HUD if expired.
@@ -41,7 +47,10 @@ namespace Daxs
             this.text = text;
             this.durationMs = durationMs;
 
-            Enabled = true;
+            sw.Restart();
+
+            if (!Enabled)
+                Enabled = true;
         }
 
         protected override void DrawForeground(DrawEventArgs e)
@@ -49,7 +58,12 @@ namespace Daxs
             if (e.Viewport.Id != RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewportID)
                 return;
 
-            e.Display.Draw2dText(text, System.Drawing.Color.DarkGreen, new Point2d(200, 200),true,20);
+            var vp = e.Viewport.Size;
+            int fontPx = Math.Clamp((int)(vp.Height * FontScale), MinFontPx, MaxFontPx);
+            int margin = Math.Max(8, (int)(fontPx * MarginScale));
+
+            var pt = new Point2d(vp.Width - margin, vp.Height - margin);
+            e.Display.Draw2dText(text, Color.Black, pt, true, fontPx, FontFace);
         }
 
         protected override void OnEnable(bool enable)
@@ -59,13 +73,12 @@ namespace Daxs
             if (enable) 
             {
                 sw.Restart();
-                RhinoDoc.ActiveDoc.Views.Redraw();
+                RhinoDoc.ActiveDoc.Views.Redraw(); //HACK
             }
             else 
             {
-
                 sw.Stop();
-                RhinoDoc.ActiveDoc.Views.Redraw();
+                RhinoDoc.ActiveDoc.Views.Redraw(); //HACK
             }
         }
     }

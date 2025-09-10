@@ -18,9 +18,11 @@ namespace Daxs
             actions.Register(GButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
             actions.Register(GButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
             actions.Register(GButton.DPadUp, InputX.IsDown, new SwitchAction());
-            actions.Register(GButton.DPadRight, InputX.IsDown, new LensAction(InputY.Up, 2));
-            actions.Register(GButton.DPadLeft, InputX.IsDown, new LensAction(InputY.Down, 2));
-            actions.Register(GButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default, 2));
+            actions.Register(GButton.DPadRight, InputX.IsDown, new LensAction(InputY.Up, 1));
+            actions.Register(GButton.DPadLeft, InputX.IsDown, new LensAction(InputY.Down, 1));
+            actions.Register(GButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default,35));
+
+            actions.Register(GButton.X, InputX.IsDown, new NothingAction());
 
             //SpeedMulti
             actions.Register(GButton.L3, AProperty.Speedmulti);
