@@ -22,7 +22,7 @@ namespace Daxs
             actions.Register(GButton.DPadLeft, InputX.IsDown, new LensAction(InputY.Down, 1));
             actions.Register(GButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default,35));
 
-            actions.Register(GButton.X, InputX.IsDown, new NothingAction());
+            //actions.Register(GButton.X, InputX.IsDown, new SimpleAction("Simple"));
 
             //SpeedMulti
             actions.Register(GButton.L3, AProperty.Speedmulti);

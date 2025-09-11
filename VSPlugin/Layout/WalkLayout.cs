@@ -82,8 +82,6 @@ namespace Daxs
             if (teleport == InputY.Default)
                 return;
 
-            RhinoApp.WriteLine($"JUmp: " + teleport);
-
             Point3d[] pts = Intersection.ProjectPointsToMeshes(new Mesh[] { colMsh }, new Point3d[] { pos }, Vector3d.ZAxis, 0.1);
 
             List<double> lst = new();
@@ -103,8 +101,11 @@ namespace Daxs
             }
 
             lst.Sort();
+            double addZ = (teleport == InputY.Up) ? GetNextUp(lst, eyeHeight) : GetNextDown(lst, eyeHeight);
+            if (addZ != 0 && teleport!= InputY.Default)
+                hud.SetText("Teleport " + teleport.ToString(),2000);
 
-            pos.Z += (teleport == InputY.Up) ? GetNextUp(lst, eyeHeight) : GetNextDown(lst, eyeHeight);
+            pos.Z += addZ;
         }
 
         static double GetNextDown(List<double> lst, double eyeHeight)

@@ -14,7 +14,7 @@ namespace Daxs
 
         private GamepadState state = new();
 
-        private HUD hud = HUD.Instance;
+        private readonly HUD hud = HUD.Instance;
 
         public void Register(GButton button, InputX input, IAction dAction)
         {
@@ -24,6 +24,14 @@ namespace Daxs
                 actionTable[button] = new Tuple<InputX, IAction>(input, dAction);
             else
                 actionTable.Add(button, entry);
+        }
+
+        public void Register(GButton button, AProperty aState)
+        {
+            if (stateTable.ContainsKey(aState))
+                stateTable[aState] = button;
+            else
+                stateTable.Add(aState, button);
         }
 
         internal bool HasActionsOnMainThread()
@@ -89,15 +97,7 @@ namespace Daxs
 
         internal void Update(GamepadState state) => this.state = state;
 
-        public void Register(GButton button, AProperty aState)
-        {
-            if (stateTable.ContainsKey(aState))
-                stateTable[aState] = button;
-            else
-                stateTable.Add(aState, button);
-        }
 
-        ////////////////////////
 
         private readonly double speedmulti = 3;
 

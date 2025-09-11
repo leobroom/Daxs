@@ -13,7 +13,7 @@ namespace Daxs
         protected Settings settings;
         protected ActionManager actionManager = ActionManager.Instance;
 
-        private readonly HUD hud = HUD.Instance;
+        protected readonly HUD hud = HUD.Instance;
 
         public FlyLayout()
         {
@@ -43,12 +43,12 @@ namespace Daxs
 
         // fields
         volatile bool _uiUpdatePending = false;
-        protected Rhino.Geometry.Plane camPlane;
+        protected Plane camPlane;
 
         // fields
         double yawAcc = 0.0, pitchAcc = 0.0;
         protected Vector3d zAxis = Vector3d.ZAxis;
-        double rad85 = RhinoMath.ToRadians(89);
+        readonly double rad85 = RhinoMath.ToRadians(89);
 
         // UI throttle accumulator and target interval (~60 FPS)
         double sinceLastUi = 0.0;
@@ -59,8 +59,15 @@ namespace Daxs
             sinceLastUi += delta;   //  accumulate time for UI throttling
 
             // Inputs
-            double speedMulti = actionManager.Speedmulti * moveSpeed;   // planar speed multiplier
+            double speedMulti = actionManager.Speedmulti ;   // planar speed multiplier
             double rotSpeedMulti = actionManager.RotSpeedmulti;         // rotation speed multiplier
+
+            if (speedMulti > 1.00)
+                hud.SetText("Speed X " + speedMulti, 2000);
+
+            if (rotSpeedMulti > 1.00)
+                hud.SetText("Rotation X " + rotSpeedMulti, 2000);
+
             double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
 
             var (yaw, pitch) = NormalizeStick(state.RightThumbX, state.RightThumbY);
@@ -102,11 +109,14 @@ namespace Daxs
                 double cp = Math.Cos(pitchAcc);
                 double sp = Math.Sin(pitchAcc);
 
-                camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti, delta, teleport);
+                camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti * moveSpeed, delta, teleport);
             }
 
             bool hasAction = actionManager.HasActionsOnMainThread();
-            RhinoApp.InvokeOnUiThread((Action)(() => { actionManager.ExecuteActionsOnMainThread(); }));
+            if (hasAction)
+            {
+                RhinoApp.InvokeOnUiThread((Action)(() => { actionManager.ExecuteActionsOnMainThread(); }));
+            }
 
             if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending )
             {
@@ -114,8 +124,6 @@ namespace Daxs
 
                 RhinoApp.InvokeOnUiThread((Action)(() =>
                 {
-                    
-
                     var view = doc.Views.ActiveView;
                     var vp = view.ActiveViewport;
 
@@ -126,8 +134,6 @@ namespace Daxs
                     }
                     else 
                         ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
-
-
         
                     view.Redraw();
 
@@ -150,7 +156,7 @@ namespace Daxs
 
         double GetPitch(double pitchAcc) => Math.Max(-rad85, Math.Min(rad85, pitchAcc));  // Limit
 
-        double GetNonLinearTrigger(float raw) => Math.Pow(raw, 2); // quadratic curve 
+        static double GetNonLinearTrigger(float raw) => Math.Pow(raw, 2); // quadratic curve 
 
         protected (double x, double y) NormalizeStick(double nx, double ny)
         {

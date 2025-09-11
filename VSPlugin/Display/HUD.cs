@@ -1,6 +1,5 @@
 ﻿using Rhino;
 using Rhino.Display;
-using Rhino.DocObjects;
 using Rhino.Geometry;
 using System;
 using System.Diagnostics;
@@ -13,15 +12,15 @@ namespace Daxs
         private static readonly Lazy<HUD> _instance = new(() => new HUD());
         public static HUD Instance => _instance.Value;
 
-        private readonly Stopwatch sw = new Stopwatch();
+        private readonly Stopwatch sw = new ();
         private string text;
         private int durationMs;
 
         // Tune these to taste
-        private const double FontScale = 0.04;   // ~% of viewport height
-        private const int MinFontPx = 12;
+        private const double FontScale = 0.03;   // ~% of viewport height
+        private const int MinFontPx = 6;
         private const int MaxFontPx = 56;
-        private const double MarginScale = 2;  // margin ≈ 0.6 * font size
+        private const double MarginScale = 2.5;  // margin ≈ 0.6 * font size
         private const string FontFace = "Segoe UI"; // optional; omit if you want default
 
         internal HUD() { }

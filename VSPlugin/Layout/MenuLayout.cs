@@ -7,57 +7,41 @@ namespace Daxs
     public class MenuLayout : IGamepadLayout
     {
         public Layout Name => Layout.Menu;
+        private readonly HUD hud = HUD.Instance;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
         private const byte KEY_UP = 0x26, KEY_DOWN = 0x28, KEY_TAB = 0x09, KEY_SHIFT = 0x10, KEY_ESCAPE = 0x1B, KEY_ENTER = 0x0D;
-
         public void HandleInput(GamepadState state, double delta)
         {
-
-            Rhino.RhinoApp.InvokeOnUiThread((Action)(() =>
+            RhinoApp.InvokeOnUiThread((Action)(() =>
             {
-
-
-
                 //Enter
                 if (state.A == InputX.IsDown)
                 {
-                    RhinoApp.WriteLine("state.A");
+                    hud.SetText("Enter", 2000);
                     SimulateKey(KEY_ENTER);
                 }
 
                 //Escape
                 if (state.B == InputX.IsDown || state.Start == InputX.IsDown)
                 {
-                    RhinoApp.WriteLine("state.B");
+                    hud.SetText("Escape", 2000);
                     SimulateKey(KEY_ESCAPE);
                 }
 
                 if (state.DPadRight == InputX.IsDown)
-                {
-                    RhinoApp.WriteLine("DPadRight");
                     SimulateKey(KEY_UP);
-                }
 
                 if (state.DPadLeft == InputX.IsDown)
-                {
-                    RhinoApp.WriteLine("DPadLeft");
                     SimulateKey(KEY_DOWN);
-                }
 
                 if (state.DPadUp == InputX.IsDown)
-                {
-                    RhinoApp.WriteLine("DPadUp");
                     SimulateCombinedKey(KEY_SHIFT, KEY_TAB);
-                }
 
                 if (state.DPadDown == InputX.IsDown)
-                {
-                    RhinoApp.WriteLine("DPadDown");
                     SimulateKey(KEY_TAB);
-                }
             }));
         }
 
@@ -67,7 +51,6 @@ namespace Daxs
             keybd_event(bVk, 0, 0x0000, UIntPtr.Zero); //KEYDOWN
             keybd_event(bVk, 0, 0x0002, UIntPtr.Zero); //KEYUP
         }
-
         private void SimulateCombinedKey(byte modifier, byte key)
         {
             keybd_event(modifier, 0, 0x0000, UIntPtr.Zero); // Modifier down (e.g., Shift)
