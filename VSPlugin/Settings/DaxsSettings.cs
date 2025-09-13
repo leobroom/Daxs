@@ -4,6 +4,7 @@ using Eto.Drawing;
 using Rhino.UI.Controls;
 using System.Reflection;
 using System.Linq;
+using System;
 
 namespace Daxs
 {
@@ -17,19 +18,31 @@ namespace Daxs
         public DaxsSettings()
         {
             Title = "Daxs Gamepad Settings";
-            ClientSize = new Size(400, 700);
+            ClientSize = new Size(400, 500);
             Resizable = false;
 
+            CreateUi();
+
+            // Handle key down for Escape
+            this.KeyDown += (sender, e) =>
+            {
+                if (e.Key == Keys.Escape)
+                {
+                    this.Close(false);
+                    e.Handled = true;
+                }
+            };             
+        }
+
+        void CreateUi()
+        {
             var content = new TableLayout
             {
-                Padding = 10,
+                Padding = new Padding(10, 10, 0, 10),
                 Spacing = new Size(5, 10),
             };
 
-
-            
-            ImageView cImage = CreateControllerImage();
-            TableLayout dialogButtons = CreateDialogButtons();
+            ImageView cImage = CreateControllerImage(ClientSize.Width - 50);
 
             List<TableRow> rows = new();
 
@@ -42,7 +55,6 @@ namespace Daxs
                 "ElevateSpeed"
             };
 
-            rows.Add(new LabelSeparator { Text = "Gamepad Layout" });
             rows.Add(cImage);
             rows.AddRange(CreateLayout("Input Response", input));
 
@@ -62,50 +74,55 @@ namespace Daxs
 
             rows.AddRange(CreateLayout("WalkMode", walk));
 
-
-
             rows.Add(new LabelSeparator { Text = "Test" });
 
             // Dummy options to pass into your method
             var options = new (string Key, string Text)[]
             {
-    ("none",   "None"),
-    ("presetA","Preset A"),
-    ("presetB","Preset B"),
-    ("custom", "Custom…") // selecting this should enable the textbox
+                ("none",   "None"),
+                ("presetA","Preset A"),
+                ("presetB","Preset B"),
+                ("custom", "Custom…") // selecting this should enable the textbox
+            };
+
+            //--------------------
+
+            var inputLayout = new TableLayout
+            {
+                Padding = new Padding(10, 0, 0, 0),
+                Spacing = new Size(5, 5)
             };
 
             // Example call (initially selects "Preset B")
-            var special = CreateRow_LabelDrop_CustomText(
-                labelText: "Mode",
-                options: options,
-                activateKey: "custom",
-                initialKey: "presetB"
-            );
+            var special = CreateRow_LabelDrop_CustomText(labelText: "Mode", options: options, activateKey: "custom", initialKey: "presetB");
 
-            rows.Add(special);
+            inputLayout.Rows.Add(special);
 
-            rows.Add(dialogButtons);
-         
+            rows.Add(inputLayout);
+
             foreach (TableRow row in rows)
                 content.Rows.Add(row);
 
-            Content = new Scrollable
+            var scroll = new Scrollable
             {
                 Content = content,
                 ExpandContentWidth = true,   // fill width
                 ExpandContentHeight = false  // natural height -> vertical scroll
             };
 
-            // Handle key down for Escape
-            this.KeyDown += (sender, e) =>
+            var page = new TableLayout
             {
-                if (e.Key == Keys.Escape)
-                {
-                    this.Close(false);
-                    e.Handled = true;
-                }
-            };    
+                Padding = 10,
+                Spacing = new Size(5, 10)
+            };
+
+            // scrollable region grows, shows vertical scrollbar when needed
+            page.Rows.Add(new TableRow(scroll) { ScaleHeight = true });
+
+            // footer stays visible
+            page.Rows.Add(new TableRow(CreateDialogButtons()));
+
+            Content = page;
 
             okButton.Focus();
         }
@@ -131,7 +148,7 @@ namespace Daxs
         {
             var inputLayout = new TableLayout
             {
-                Padding = 10,
+                Padding = new Padding(10, 0, 0, 0),
                 Spacing = new Size(5, 5)
             };
 
@@ -165,19 +182,25 @@ namespace Daxs
                 control = box;
             }
 
-            Label label = new() { Text = settingsName };
+            Label label = new() 
+            { 
+                Text = settingsName,
+                Width =80
+            };
 
-            return new TableRow(new Label { Text = settingsName }, control);
+            return new TableRow( new TableCell(label), new TableCell(control, scaleWidth: true));
         }
 
-        TableRow CreateRow_LabelDrop_CustomText(
-            string labelText,
-            (string Key, string Text)[] options,
-            string activateKey = "custom",
-            string? initialKey = null)
+        TableRow CreateRow_LabelDrop_CustomText(string labelText, (string Key, string Text)[] options,string activateKey = "custom", string? initialKey = null)
         {
-            var label = new Label { Text = labelText, VerticalAlignment = VerticalAlignment.Center };
+            //LABEL
+            Label label = new()
+            {
+                Text = labelText,
+                Width = 80
+            };
 
+            //DOWPDOWN
             var dropdown = new DropDown();
             foreach (var (key, text) in options)
                 dropdown.Items.Add(new ListItem { Key = key, Text = text });
@@ -191,7 +214,7 @@ namespace Daxs
             var customText = new TextBox
             {
                 PlaceholderText = "Custom…",
-                Width = 140
+                Width = 120
             };
 
             void Sync()
@@ -199,18 +222,16 @@ namespace Daxs
                 bool isActive = dropdown.SelectedKey == activateKey;
                 customText.Enabled = isActive;
                 customText.Visible = isActive;     // hide when inactive (optional)
-                if (isActive) customText.Focus();
-                else customText.Text = string.Empty; // optional clear
+                if (isActive) 
+                    customText.Focus();
+                else
+                    customText.Text = string.Empty; // optional clear
             }
 
             dropdown.SelectedIndexChanged += (_, __) => Sync();
             Sync(); // set initial state without using protected members
 
-            return new TableRow(
-                new TableCell(label),
-                new TableCell(dropdown, scaleWidth: true),
-                new TableCell(customText)
-            );
+            return new TableRow(label, dropdown, customText);
         }
 
         TableLayout CreateDialogButtons()
@@ -235,7 +256,7 @@ namespace Daxs
             };
         }
 
-        static ImageView CreateControllerImage()
+        static ImageView CreateControllerImage(int targetWidth)
         {
             Bitmap bmp;
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Daxs.Shared.xBoxDummy.png"))
@@ -243,10 +264,15 @@ namespace Daxs
                 bmp = new Bitmap(stream);
             }
 
+            // preserve aspect ratio
+            double aspect = (double)bmp.Width / bmp.Height;
+            int w = Math.Max(1, targetWidth);
+            int h = (int)Math.Round(w / aspect);
+
             return new ImageView
             {
                 Image = bmp,
-                Size = new Size(400, 250),
+                Size = new Size(w, h) // ImageView scales image to control size
             };
         }
     }
