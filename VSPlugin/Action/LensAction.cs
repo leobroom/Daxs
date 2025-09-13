@@ -9,35 +9,39 @@ namespace Daxs
         private readonly InputY mode;
         private readonly RhinoDoc doc = RhinoDoc.ActiveDoc;
         private readonly double strength;
+        private double actualLens =-1;
 
         public LensAction(InputY mode, double strength)
         {
             this.mode = mode;
             this.strength = strength;
+            actualLens = Math.Round(doc.Views.ActiveView.ActiveViewport.Camera35mmLensLength);
         }
 
-        public string HUD_Name => "Lens: " + Math.Round(doc.Views.ActiveView.ActiveViewport.Camera35mmLensLength);
+        public string HUD_Name => "Lens: " + actualLens;
 
         public void Execute()
         {
             RhinoView view = doc.Views.ActiveView;
             RhinoViewport vp = view.ActiveViewport;
-            double actual = vp.Camera35mmLensLength;
+            actualLens = Math.Round(vp.Camera35mmLensLength);
 
             switch (mode)
             {
                 case InputY.Up:
-                    actual += strength;
+                    actualLens += strength;
                     break;
                 case InputY.Down:
-                    actual -= strength;
+                    actualLens -= strength;
                     break;
                 case InputY.Default:
-                    actual = strength;
+                    actualLens = strength;
                     break;
             }
 
-            vp.Camera35mmLensLength = Math.Round(actual);
+            Math.Round(actualLens);
+
+            vp.Camera35mmLensLength = actualLens;
             view.Redraw();
         }
     }

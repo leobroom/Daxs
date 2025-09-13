@@ -12,7 +12,7 @@
     <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>0.1.97</Version>
+    <Version>0.1.107</Version>
     <Title>Daxs</Title>
     <Company>Leon Brohmann</Company>
     <Description>Daxs is a Rhino package that enables support for gamepad input, making it easier to integrate Xbox and PlayStation 4 controllers into your Rhino workflows or plugins.</Description>
@@ -72,7 +72,7 @@
     <!-- Copy icon -->
     <Copy SourceFiles="$(MSBuildProjectDirectory)/icon.png" DestinationFolder="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
     <!-- check for lines in manifest.yml -->
-    <Exec WorkingDirectory="$(OutputPath)" Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Get-Content -LiteralPath 'manifest.yml' | ForEach-Object { Write-Host BLAA $_ }&quot;" />
+    <Exec WorkingDirectory="$(OutputPath)" Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Get-Content -LiteralPath 'manifest.yml' | ForEach-Object { Write-Host $_ }&quot;" />
     <!-- replace url -->
     <Exec WorkingDirectory="$(OutputPath)" Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;(Get-Content -LiteralPath 'manifest.yml') -replace '^(url:\s*).*$','url: https://github.com/leobroom/Daxs' | Set-Content -LiteralPath 'manifest.yml' -Encoding UTF8&quot;" />
     <!-- remove weird version number apendix -->
@@ -88,5 +88,21 @@
     <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="- ps4" Overwrite="false" WriteOnlyWhenDifferent="true" />
     <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="- playstation" Overwrite="false" WriteOnlyWhenDifferent="true" />
     <Exec Command="&quot;$(YakExecutable)&quot; build" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
+  </Target>
+  <!-- Optional: set to False to skip auto-install -->
+  <PropertyGroup>
+    <AutoInstallYak Condition="'$(AutoInstallYak)' == ''">True</AutoInstallYak>
+  </PropertyGroup>
+  <!-- Install the most recently built .yak -->
+  <Target Name="InstallYakPackage" AfterTargets="BuildYakPackage" Condition="$(BuildYakPackage) == 'True' and $(AutoInstallYak) == 'True'">
+    <PropertyGroup>
+      <!-- YakExecutable already resolved in BuildYakPackage -->
+      <YakExecutable Condition="$(YakExecutable) == '' and $([MSBuild]::IsOSPlatform(windows)) and Exists('C:\Program Files\Rhino 8\System\Yak.exe')">C:\Program Files\Rhino 8\System\Yak.exe</YakExecutable>
+      <YakExecutable Condition="$(YakExecutable) == '' and $([MSBuild]::IsOSPlatform(macos)) and Exists('/Applications/Rhino 8.app/Contents/Resources/bin/yak')">/Applications/Rhino 8.app/Contents/Resources/bin/yak</YakExecutable>
+    </PropertyGroup>
+    <Warning Text="Could not find Yak executable; skipping install." Condition="$(YakExecutable) == ''" />
+    <!-- Pick newest .yak from the OutputPath -->
+    <Exec Condition="$(YakExecutable) != '' and $([MSBuild]::IsOSPlatform('Windows'))" WorkingDirectory="$(OutputPath)" Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$pkg = Get-ChildItem -LiteralPath . -Filter *.yak | Sort-Object LastWriteTime -Descending | Select-Object -First 1; if (-not $pkg) { Write-Error 'No .yak found in $(OutputPath)'; exit 1 }; &amp; '$(YakExecutable)' install $pkg.FullName&quot;" />
+    <Exec Condition="$(YakExecutable) != '' and ($([MSBuild]::IsOSPlatform('OSX')) Or $([MSBuild]::IsOSPlatform('Linux')))" WorkingDirectory="$(OutputPath)" Command="pwsh -NoProfile -Command &quot;$pkg = Get-ChildItem -LiteralPath . -Filter *.yak | Sort-Object LastWriteTime -Descending | Select-Object -First 1; if (-not $pkg) { Write-Error 'No .yak found in $(OutputPath)'; exit 1 }; &amp; '$(YakExecutable)' install $pkg.FullName&quot;" />
   </Target>
 </Project>

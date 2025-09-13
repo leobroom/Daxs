@@ -15,8 +15,8 @@ namespace Daxs
 
         public WalkLayout() : base()
         {
-            var eH = settings["EyeHeight"];
-            var mj = settings["MaximalJump"];
+            var eH = (NumericValue)settings["EyeHeight"];
+            var mj = (NumericValue)settings["MaximalJump"];
 
             eH.ValueChanged += (s, val) => eyeHeight = val;
             mj.ValueChanged += (s, val) => maximalJump = val;

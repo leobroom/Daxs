@@ -19,11 +19,11 @@ namespace Daxs
         {
             settings = Settings.Instance;
 
-            var mV = settings["MoveSpeed"];
-            var dZ = settings["Deadzone"];
-            var yS = settings["YawSensitivity"];
-            var pS = settings["PitchSensitivity"];
-            var eS = settings["ElevateSpeed"];
+            var mV = (NumericValue)settings["MoveSpeed"];
+            var dZ = (NumericValue)settings["Deadzone"];
+            var yS = (NumericValue)settings["YawSensitivity"];
+            var pS = (NumericValue)settings["PitchSensitivity"];
+            var eS = (NumericValue)settings["ElevateSpeed"];
 
             mV.ValueChanged += (s, val) => moveSpeed = val;
             dZ.ValueChanged += (s, val) => deadzone = val;

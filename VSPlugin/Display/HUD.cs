@@ -12,14 +12,12 @@ namespace Daxs
         private static readonly Lazy<HUD> _instance = new(() => new HUD());
         public static HUD Instance => _instance.Value;
 
-        private readonly Stopwatch sw = new ();
+        private readonly Stopwatch sw = new();
         private string text;
         private int durationMs;
 
         // Tune these to taste
-        private const double FontScale = 0.03;   // ~% of viewport height
-        private const int MinFontPx = 6;
-        private const int MaxFontPx = 56;
+        private const double FontScale = 0.03;   // % of viewport height
         private const double MarginScale = 2.5;  // margin ≈ 0.6 * font size
         private const string FontFace = "Segoe UI"; // optional; omit if you want default
 
@@ -29,7 +27,7 @@ namespace Daxs
         /// Updates stopwatch and deactivates HUD if expired.
         /// Called regularly from gamepad loop.
         /// </summary>
-        public void Tick() 
+        public void Tick()
         {
             if (Enabled && sw.ElapsedMilliseconds > durationMs)
             {
@@ -58,23 +56,29 @@ namespace Daxs
                 return;
 
             var vp = e.Viewport.Size;
-            int fontPx = Math.Clamp((int)(vp.Height * FontScale), MinFontPx, MaxFontPx);
-            int margin = Math.Max(8, (int)(fontPx * MarginScale));
+            int fontPx = (int)(vp.Height * FontScale);
+            int margin = (int)(fontPx * MarginScale);
+
+            Rectangle bounds = e.Display.Measure2dText(text, Point2d.Origin, true, 0, fontPx, FontFace);
 
             var pt = new Point2d(vp.Width - margin, vp.Height - margin);
-            e.Display.Draw2dText(text, Color.Black, pt, true, fontPx, FontFace);
+
+            double x = vp.Width - margin - bounds.Width;
+            double y = vp.Height - margin - bounds.Height;
+
+            e.Display.Draw2dText(text,Color.Black,new Point2d(x, y),middleJustified: false,fontPx,FontFace);
         }
 
         protected override void OnEnable(bool enable)
         {
             base.OnEnable(enable);
 
-            if (enable) 
+            if (enable)
             {
                 sw.Restart();
                 RhinoDoc.ActiveDoc.Views.Redraw(); //HACK
             }
-            else 
+            else
             {
                 sw.Stop();
                 RhinoDoc.ActiveDoc.Views.Redraw(); //HACK

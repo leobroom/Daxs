@@ -3,7 +3,7 @@ using System;
 
 namespace Daxs
 {
-    public class NumericValue
+    public class NumericValue : IValue
     {
         private double _value = 1;
         private double _displayValue = 1;
@@ -60,5 +60,7 @@ namespace Daxs
         public void Reset() => Value = defaultValue;
 
         protected virtual void OnValueChanged(double newValue) => ValueChanged?.Invoke(this, newValue);
+
+        public override string ToString()=> $"{Name}: {Value}";
     }
 }

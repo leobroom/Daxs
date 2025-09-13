@@ -17,14 +17,13 @@ namespace Daxs
             EtoExtensions.UseRhinoStyle(dSettings);
 
             var result = dSettings.ShowSemiModal(RhinoDoc.ActiveDoc, RhinoEtoApp.MainWindow);
-
             if (!result)
             {
                 return Result.Cancel;
             }
 
-            foreach (var nv in Daxs.Settings.Instance.AllValues)
-                RhinoApp.WriteLine($"{nv.Name}: {nv.Value}");
+            foreach (var nv in Daxs.Settings.Instance.AllNumValues)
+                RhinoApp.WriteLine(nv.ToString());
 
             return Result.Success;
         }

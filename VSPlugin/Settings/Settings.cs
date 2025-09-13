@@ -10,7 +10,8 @@ namespace Daxs
         private static Settings instance = null;
         public static Settings Instance => instance ??= new Settings();
 
-        private readonly Dictionary<string, NumericValue> values = new();
+        private readonly Dictionary<string, NumericValue> numValues = new();
+        private readonly Dictionary<string, BooleanValue> boolValues = new();
 
         private Settings()
         {
@@ -22,7 +23,8 @@ namespace Daxs
             Add("ElevateSpeed", 140.6, 0.1);
 
             //Text
-            Add("TextTime", 2, 1);
+            Add("TextTime", 2000, 1);
+            Add("TextVisible", true);
 
             //Walking
             Add("EyeHeight", 1.7, 1);
@@ -32,11 +34,26 @@ namespace Daxs
         }
 
         private void Add(string name, double defaultValue, double displayFactor)
-        { values[name] = new NumericValue(defaultValue, displayFactor, name); }
+        { numValues[name] = new NumericValue(defaultValue, displayFactor, name); }
 
-        public NumericValue this[string name] => values[name];
+        private void Add(string name, bool defaultValue)
+        { boolValues[name] = new BooleanValue(defaultValue, name); }
 
-        public IEnumerable<NumericValue> AllValues => values.Values;
+        public IValue this[string name]
+        {
+            get
+            {
+                if (numValues.TryGetValue(name, out var num))
+                    return num;
+                if (boolValues.TryGetValue(name, out var b))
+                    return b;
+
+                throw new KeyNotFoundException($"No setting with the name '{name}' was found.");
+            }
+        }
+
+
+        public IEnumerable<NumericValue> AllNumValues => numValues.Values;
 
         public void SaveSettings()
         {
@@ -45,14 +62,14 @@ namespace Daxs
 
             PersistentSettings settings = PlugIn.GetPluginSettings(id, true);
 
-            foreach (NumericValue nV in values.Values)
+            foreach (NumericValue nV in numValues.Values)
             {
                 settings.SetDouble(nV.Name, nV.Value);
             }
 
             PlugIn.SavePluginSettings(id);
 
-            Rhino.RhinoApp.WriteLine($"settings saved.");
+            RhinoApp.WriteLine($"settings saved.");
         }
 
         public void LoadSettings()
@@ -62,7 +79,7 @@ namespace Daxs
 
             PersistentSettings settings = PlugIn.GetPluginSettings(id, true);
 
-            foreach (NumericValue nV in values.Values)
+            foreach (NumericValue nV in numValues.Values)
                 nV.Value = settings.GetDouble(nV.Name, nV.Value);
 
             Rhino.RhinoApp.WriteLine($"settings loaded.");
