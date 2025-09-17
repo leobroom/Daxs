@@ -42,12 +42,12 @@ namespace Daxs
                 Spacing = new Size(5, 10),
             };
 
-            ImageView cImage = CreateControllerImage(ClientSize.Width - 50);
-
             List<TableRow> rows = new();
 
+            rows.Add(CreateControllerImage(ClientSize.Width - 50));
+
             string[] input =
-            {
+{
                 "YawSensitivity",
                 "PitchSensitivity",
                 "Deadzone",
@@ -55,7 +55,6 @@ namespace Daxs
                 "ElevateSpeed"
             };
 
-            rows.Add(cImage);
             rows.AddRange(CreateLayout("Input Response", input));
 
             string[] hud =
@@ -74,7 +73,7 @@ namespace Daxs
 
             rows.AddRange(CreateLayout("WalkMode", walk));
 
-            rows.Add(new LabelSeparator { Text = "Test" });
+            rows.Add(new LabelSeparator { Text = "Input Layout" });
 
             // Dummy options to pass into your method
             var options = new (string Key, string Text)[]
@@ -85,8 +84,6 @@ namespace Daxs
                 ("custom", "Custom…") // selecting this should enable the textbox
             };
 
-            //--------------------
-
             var inputLayout = new TableLayout
             {
                 Padding = new Padding(10, 0, 0, 0),
@@ -94,21 +91,34 @@ namespace Daxs
             };
 
             // Example call (initially selects "Preset B")
-            var special = CreateRow_LabelDrop_CustomText(labelText: "Mode", options: options, activateKey: "custom", initialKey: "presetB");
 
-            inputLayout.Rows.Add(special);
+            TableRow[] gpButtons =
+          {
+                CreateDropdown( "A",  options,  "custom",  "presetB"),
+                CreateDropdown( "B",  options,  "custom",  "presetB"),
+                CreateDropdown( "X",  options,  "custom",  "presetB"),
+                CreateDropdown( "Y",  options,  "custom",  "presetB"),
+                CreateDropdown( "Start",  options,  "custom",  "presetB"),
+                CreateDropdown( "Back",  options,  "custom",  "presetB"),
+                CreateDropdown( "L1",  options,  "custom",  "presetB"),
+                CreateDropdown( "L3",  options,  "custom",  "presetB"),
+                CreateDropdown( "R1",  options,  "custom",  "presetB"),
+                CreateDropdown( "R3",  options,  "custom",  "presetB"),
+                CreateDropdown( "DPad Up",  options,  "custom",  "presetB"),
+                CreateDropdown( "DPad Down",  options,  "custom",  "presetB"),
+                CreateDropdown( "DPad Left",  options,  "custom",  "presetB"),
+                CreateDropdown( "DPad Right",  options,  "custom",  "presetB")
+            };
+
+            foreach (TableRow b in gpButtons)
+                inputLayout.Rows.Add(b);
 
             rows.Add(inputLayout);
 
             foreach (TableRow row in rows)
                 content.Rows.Add(row);
 
-            var scroll = new Scrollable
-            {
-                Content = content,
-                ExpandContentWidth = true,   // fill width
-                ExpandContentHeight = false  // natural height -> vertical scroll
-            };
+            var scroll = new Scrollable{ Content = content, ExpandContentWidth = true, ExpandContentHeight = false };
 
             var page = new TableLayout
             {
@@ -191,7 +201,7 @@ namespace Daxs
             return new TableRow( new TableCell(label), new TableCell(control, scaleWidth: true));
         }
 
-        TableRow CreateRow_LabelDrop_CustomText(string labelText, (string Key, string Text)[] options,string activateKey = "custom", string? initialKey = null)
+        TableRow CreateDropdown(string labelText, (string Key, string Text)[] options,string activateKey = "custom", string? initialKey = null)
         {
             //LABEL
             Label label = new()
@@ -217,11 +227,19 @@ namespace Daxs
                 Width = 120
             };
 
+
+            var cbox = new CheckBox { Checked = true };
+            cbox.ToolTip = "Simulate Keyboard";
+
             void Sync()
             {
                 bool isActive = dropdown.SelectedKey == activateKey;
                 customText.Enabled = isActive;
                 customText.Visible = isActive;     // hide when inactive (optional)
+
+                cbox.Enabled = isActive;
+                cbox.Visible = isActive;
+
                 if (isActive) 
                     customText.Focus();
                 else
@@ -231,7 +249,7 @@ namespace Daxs
             dropdown.SelectedIndexChanged += (_, __) => Sync();
             Sync(); // set initial state without using protected members
 
-            return new TableRow(label, dropdown, customText);
+            return new TableRow(label, dropdown, customText, cbox);
         }
 
         TableLayout CreateDialogButtons()
