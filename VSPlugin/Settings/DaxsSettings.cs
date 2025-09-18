@@ -18,7 +18,7 @@ namespace Daxs
         public DaxsSettings()
         {
             Title = "Daxs Gamepad Settings";
-            ClientSize = new Size(400, 500);
+            ClientSize = new Size(500, 800);
             Resizable = false;
 
             CreateUi();
@@ -75,14 +75,20 @@ namespace Daxs
 
             rows.Add(new LabelSeparator { Text = "Input Layout" });
 
-            // Dummy options to pass into your method
-            var options = new (string Key, string Text)[]
-            {
-                ("none",   "None"),
-                ("presetA","Preset A"),
-                ("presetB","Preset B"),
+
+            var inputOptions = new (string Key, string Text)[]
+             {
+                ("none", "None"),
+                ("lensPlus", "Lens +"),
+                ("lensMinus", "Lens -"),
+                ("lensDefault", "Lens Default"),
+                ("viewCaptureToFile", "ViewCaptureToFile"),
+                ("swichMode", "Switch Gamepad Mode"),
+                ("daxsSettings", "Daxs Settings"),
+                ("teleportUp", "Teleport Up"),
+                ("teleportDown", "Teleport Down"),
                 ("custom", "Custom…") // selecting this should enable the textbox
-            };
+             };
 
             var inputLayout = new TableLayout
             {
@@ -94,20 +100,20 @@ namespace Daxs
 
             TableRow[] gpButtons =
           {
-                CreateDropdown( "A",  options,  "custom",  "presetB"),
-                CreateDropdown( "B",  options,  "custom",  "presetB"),
-                CreateDropdown( "X",  options,  "custom",  "presetB"),
-                CreateDropdown( "Y",  options,  "custom",  "presetB"),
-                CreateDropdown( "Start",  options,  "custom",  "presetB"),
-                CreateDropdown( "Back",  options,  "custom",  "presetB"),
-                CreateDropdown( "L1",  options,  "custom",  "presetB"),
-                CreateDropdown( "L3",  options,  "custom",  "presetB"),
-                CreateDropdown( "R1",  options,  "custom",  "presetB"),
-                CreateDropdown( "R3",  options,  "custom",  "presetB"),
-                CreateDropdown( "DPad Up",  options,  "custom",  "presetB"),
-                CreateDropdown( "DPad Down",  options,  "custom",  "presetB"),
-                CreateDropdown( "DPad Left",  options,  "custom",  "presetB"),
-                CreateDropdown( "DPad Right",  options,  "custom",  "presetB")
+                CreateDropdown( "A",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "B",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "X",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "Y",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "Start",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "Back",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "L1",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "L3",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "R1",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "R3",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "DPad Up",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "DPad Down",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "DPad Left",  inputOptions,  "custom",  "none"),
+                CreateDropdown( "DPad Right",  inputOptions,  "custom",  "none")
             };
 
             foreach (TableRow b in gpButtons)
@@ -227,7 +233,6 @@ namespace Daxs
                 Width = 120
             };
 
-
             var cbox = new CheckBox { Checked = true };
             cbox.ToolTip = "Simulate Keyboard";
 
@@ -247,6 +252,7 @@ namespace Daxs
             }
 
             dropdown.SelectedIndexChanged += (_, __) => Sync();
+
             Sync(); // set initial state without using protected members
 
             return new TableRow(label, dropdown, customText, cbox);
@@ -277,7 +283,7 @@ namespace Daxs
         static ImageView CreateControllerImage(int targetWidth)
         {
             Bitmap bmp;
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Daxs.Shared.xBoxDummy.png"))
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Daxs.Shared.DaxsGamepadLayout.png"))
             {
                 bmp = new Bitmap(stream);
             }

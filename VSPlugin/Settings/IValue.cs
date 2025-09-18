@@ -1,11 +1,8 @@
-﻿using System;
-
-namespace Daxs
+﻿namespace Daxs
 {
     public interface IValue
     {
         string Name { get; }
-
         void Reset();
     }
 }
