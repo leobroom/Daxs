@@ -12,6 +12,7 @@ namespace Daxs
 
         private readonly Dictionary<string, NumericValue> numValues = new();
         private readonly Dictionary<string, BooleanValue> boolValues = new();
+        private readonly Dictionary<GButton, ActionValue> actionValues = new();
 
         private Settings()
         {
@@ -30,6 +31,26 @@ namespace Daxs
             Add("EyeHeight", 1.7, 1);
             Add("MaximalJump", 1.5, 1);
 
+            //Input
+            Add(GButton.Start, AProperty.DaxSettings, InputX.IsDown, true);
+            Add(GButton.B,  AProperty.Custom, InputX.IsDown, true, "_ViewCaptureToFile");
+            Add(GButton.DPadUp,  AProperty.Switch, InputX.IsDown);
+            Add(GButton.DPadRight,  AProperty.Lens, InputX.IsDown, InputY.Up, 1.00);
+            Add(GButton.DPadLeft,  AProperty.Lens, InputX.IsDown, InputY.Down, 1.00);
+            Add(GButton.DPadDown,  AProperty.Lens, InputX.IsDown, InputY.Default, 35.00);
+
+            //SpeedMulti
+            Add(GButton.L3, AProperty.Speedmulti);
+            Add(GButton.R3, AProperty.RotSpeedMulti);
+
+            //Elevator
+            Add(GButton.L2, AProperty.ElevateDown);
+            Add(GButton.R2, AProperty.ElevateUp);
+
+            //Teleport
+            Add(GButton.L1, AProperty.TeleportDown);
+            Add(GButton.R1, AProperty.TeleportUp);
+
             LoadSettings();
         }
 
@@ -38,6 +59,9 @@ namespace Daxs
 
         private void Add(string name, bool defaultValue)
         { boolValues[name] = new BooleanValue(defaultValue, name); }
+
+        private void Add(GButton button,  AProperty actionName, params object[] args)
+        { actionValues[button] = new ActionValue(button, actionName, args); }
 
         public IValue this[string name]
         {
@@ -67,6 +91,23 @@ namespace Daxs
                 settings.SetDouble(nV.Name, nV.Value);
             }
 
+            foreach (BooleanValue bV in boolValues.Values) 
+            {
+                settings.SetBool(bV.Name, bV.Value);
+            }
+
+            foreach (ActionValue aV in actionValues.Values)
+            { 
+                List<string > stringLst = new List<string>();
+
+                stringLst.Add(aV.ActionName.ToString());
+
+                foreach (object obj in aV.Args) 
+                    stringLst.Add(obj.ToString());
+
+                settings.SetStringList(aV.Button.ToString(), stringLst.ToArray());
+            }
+
             PlugIn.SavePluginSettings(id);
 
             RhinoApp.WriteLine($"settings saved.");
@@ -82,7 +123,10 @@ namespace Daxs
             foreach (NumericValue nV in numValues.Values)
                 nV.Value = settings.GetDouble(nV.Name, nV.Value);
 
-            Rhino.RhinoApp.WriteLine($"settings loaded.");
+            BoolValues....
+            ÂctionValues.
+
+            RhinoApp.WriteLine($"settings loaded.");
         }
     }
 }

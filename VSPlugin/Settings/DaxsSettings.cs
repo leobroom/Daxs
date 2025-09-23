@@ -5,6 +5,7 @@ using Rhino.UI.Controls;
 using System.Reflection;
 using System.Linq;
 using System;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Daxs
 {
@@ -193,7 +194,7 @@ namespace Daxs
             else if (val is BooleanValue bv)
             {
                 var box = new CheckBox { Checked = bv.Value };
-                box.CheckedChanged += (s, e) => bv.Value = box.Checked;
+                box.CheckedChanged += (s, e) => bv.Value = (bool)box.Checked;
                 inputBoolBoxes[bv.Name] = box;
                 control = box;
             }
@@ -226,6 +227,11 @@ namespace Daxs
                 dropdown.SelectedKey = initialKey;
             else if (dropdown.Items.Count > 0)
                 dropdown.SelectedIndex = 0;
+
+            // Value Changed
+            //box.ValueChanged += (s, e) => nv.DisplayValue = box.Value;
+            dropdown.SelectedValueChanged += (s, e) => { }; //continue here
+
 
             var customText = new TextBox
             {

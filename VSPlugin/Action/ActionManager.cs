@@ -138,6 +138,10 @@ namespace Daxs
         ElevateUp,
         ElevateDown,
         TeleportUp,
-        TeleportDown
+        TeleportDown,
+        DaxSettings,
+        Custom,
+        Switch,
+        Lens
     }
 }

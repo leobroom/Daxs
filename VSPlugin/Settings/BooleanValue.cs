@@ -4,14 +4,14 @@ namespace Daxs
 {
     public class BooleanValue : IValue
     {
-        private bool? _value = false;
+        private bool _value = false;
         private readonly bool _defaultValue = false;
 
         public string Name { get; private set; } = "unset";
 
         public event EventHandler<bool?> ValueChanged;
 
-        public bool? Value
+        public bool Value
         {
             get => _value;
             set
