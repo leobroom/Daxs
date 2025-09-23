@@ -87,14 +87,10 @@ namespace Daxs
             PersistentSettings settings = PlugIn.GetPluginSettings(id, true);
 
             foreach (NumericValue nV in numValues.Values)
-            {
                 settings.SetDouble(nV.Name, nV.Value);
-            }
 
             foreach (BooleanValue bV in boolValues.Values) 
-            {
                 settings.SetBool(bV.Name, bV.Value);
-            }
 
             foreach (ActionValue aV in actionValues.Values)
             { 
@@ -123,8 +119,8 @@ namespace Daxs
             foreach (NumericValue nV in numValues.Values)
                 nV.Value = settings.GetDouble(nV.Name, nV.Value);
 
-            BoolValues....
-            ÂctionValues.
+            //BoolValues....
+            //ÂctionValues.
 
             RhinoApp.WriteLine($"settings loaded.");
         }
