@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using Rhino.PlugIns;
 using Rhino;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Daxs
 {
@@ -12,7 +14,14 @@ namespace Daxs
 
         private readonly Dictionary<string, NumericValue> numValues = new();
         private readonly Dictionary<string, BooleanValue> boolValues = new();
-        private readonly Dictionary<GButton, ActionValue> actionValues = new();
+        //private readonly Dictionary<GButton, IAction> actionValues = new();
+
+        //Serialization
+        private static readonly JsonSerializerOptions jsonOpts = new()
+        {
+            WriteIndented = false,
+            Converters = { new JsonStringEnumConverter() }
+        };
 
         private Settings()
         {
@@ -32,24 +41,20 @@ namespace Daxs
             Add("MaximalJump", 1.5, 1);
 
             //Input
-            Add(GButton.Start, AProperty.DaxSettings, InputX.IsDown, true);
-            Add(GButton.B,  AProperty.Custom, InputX.IsDown, true, "_ViewCaptureToFile");
-            Add(GButton.DPadUp,  AProperty.Switch, InputX.IsDown);
-            Add(GButton.DPadRight,  AProperty.Lens, InputX.IsDown, InputY.Up, 1.00);
-            Add(GButton.DPadLeft,  AProperty.Lens, InputX.IsDown, InputY.Down, 1.00);
-            Add(GButton.DPadDown,  AProperty.Lens, InputX.IsDown, InputY.Default, 35.00);
 
-            //SpeedMulti
-            Add(GButton.L3, AProperty.Speedmulti);
-            Add(GButton.R3, AProperty.RotSpeedMulti);
+            ////SpeedMulti
+            //Add(GButton.L3, AProperty.Speedmulti);
+            //Add(GButton.R3, AProperty.RotSpeedMulti);
 
-            //Elevator
-            Add(GButton.L2, AProperty.ElevateDown);
-            Add(GButton.R2, AProperty.ElevateUp);
+            ////Elevator
+            //Add(GButton.L2, AProperty.ElevateDown);
+            //Add(GButton.R2, AProperty.ElevateUp);
 
-            //Teleport
-            Add(GButton.L1, AProperty.TeleportDown);
-            Add(GButton.R1, AProperty.TeleportUp);
+            ////Teleport
+            //Add(GButton.L1, AProperty.TeleportDown);
+            //Add(GButton.R1, AProperty.TeleportUp);
+
+            SaveSettings(); //For debug purposes
 
             LoadSettings();
         }
@@ -60,8 +65,8 @@ namespace Daxs
         private void Add(string name, bool defaultValue)
         { boolValues[name] = new BooleanValue(defaultValue, name); }
 
-        private void Add(GButton button,  AProperty actionName, params object[] args)
-        { actionValues[button] = new ActionValue(button, actionName, args); }
+        //private void Add(GButton button,  AProperty actionName, params object[] args)
+        //{ actionValues[button] = new ActionValue(button, actionName, args); }
 
         public IValue this[string name]
         {
@@ -82,7 +87,6 @@ namespace Daxs
         public void SaveSettings()
         {
             Guid id = PlugIn.IdFromName("Daxs");
-            //PlugInInfo info = PlugIn.GetPlugInInfo(id);
 
             PersistentSettings settings = PlugIn.GetPluginSettings(id, true);
 
@@ -92,37 +96,171 @@ namespace Daxs
             foreach (BooleanValue bV in boolValues.Values) 
                 settings.SetBool(bV.Name, bV.Value);
 
-            foreach (ActionValue aV in actionValues.Values)
-            { 
-                List<string > stringLst = new List<string>();
+            //GetAllIActions
 
-                stringLst.Add(aV.ActionName.ToString());
+            Dictionary<GButton, Tuple<InputX, IAction>> actions = ActionManager.Instance.GetActions();
 
-                foreach (object obj in aV.Args) 
-                    stringLst.Add(obj.ToString());
+            List< ActionBindingDto > actionBindingDtos = new ();
 
-                settings.SetStringList(aV.Button.ToString(), stringLst.ToArray());
+            foreach (GButton button in actions.Keys)
+            {
+                var tp = actions[button];
+                InputX ip = tp.Item1;
+                IAction action = tp.Item2;
+
+
+                object[] args = action.GetArgs();
+                ActionBindingDto dto = ToDto(button, action.Name, ip,  args);
+                actionBindingDtos.Add(dto);
             }
+
+            var json = JsonSerializer.Serialize(actionBindingDtos, jsonOpts);
+            settings.SetString("ActionBindingDtos", json);
 
             PlugIn.SavePluginSettings(id);
 
             RhinoApp.WriteLine($"settings saved.");
         }
 
+
+   
         public void LoadSettings()
         {
             Guid id = PlugIn.IdFromName("Daxs");
-            //PlugInInfo info = PlugIn.GetPlugInInfo(id);
 
             PersistentSettings settings = PlugIn.GetPluginSettings(id, true);
 
             foreach (NumericValue nV in numValues.Values)
                 nV.Value = settings.GetDouble(nV.Name, nV.Value);
 
-            //BoolValues....
-            //ÂctionValues.
+            foreach (BooleanValue bV in boolValues.Values)
+                bV.Value = settings.GetBool(bV.Name, bV.Value);
+
+            // actions
+            if (settings.TryGetString("ActionBindingDtos", out var json) && !string.IsNullOrWhiteSpace(json))
+            {
+                Dictionary<GButton, Tuple<InputX, IAction>> actions = new();
+
+                try
+                {
+                    var list = JsonSerializer.Deserialize<List<ActionBindingDto>>(json, jsonOpts) ?? new();
+                    foreach (var dto in list)
+                    {
+                        InputX input = dto.Input;
+                        IAction action = FromDto(dto);
+                        Tuple<InputX, IAction> tp = Tuple.Create(input, action);
+                        actions.Add(dto.Button, tp);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    RhinoApp.WriteLine("Failed to parse ActionBindingDtos: " + ex.Message);
+                }
+
+                if (actions.Count > 0)
+                    ActionManager.Instance.SetActions(actions);
+            } 
 
             RhinoApp.WriteLine($"settings loaded.");
+        }
+
+
+        //Serialisation
+
+        private static ActionBindingDto ToDto(GButton button, AProperty property, InputX input, object [] args)
+        {
+            var dto = new ActionBindingDto
+            {
+                Button = button,
+                Property = property,
+                Input = input
+            };
+
+            foreach (var obj in args)
+            {
+                dto.Args.Add(obj switch
+                {
+                    double d => new ArgDto { Kind = "double", Value = d.ToString(System.Globalization.CultureInfo.InvariantCulture) },
+                    bool b => new ArgDto { Kind = "bool", Value = b ? "true" : "false" },
+                    string s => new ArgDto { Kind = "string", Value = s },
+                    InputX x => new ArgDto { Kind = "enum:InputX", Value = x.ToString() },
+                    InputY y => new ArgDto { Kind = "enum:InputY", Value = y.ToString() },
+                    AProperty p => new ArgDto { Kind = "enum:AProperty", Value = p.ToString() },
+                    GButton gb => new ArgDto { Kind = "enum:GButton", Value = gb.ToString() },
+                    _ => new ArgDto { Kind = "string", Value = obj?.ToString() ?? "" } // fallback
+                });
+            }
+
+            return dto;
+        }
+
+        private static object ParseArg(ArgDto a)
+        {
+            switch (a.Kind)
+            {
+                case "double":
+                    if (double.TryParse(a.Value, System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out var d))
+                        return d;
+                    return 0.0;
+
+                case "bool":
+                    return string.Equals(a.Value, "true", StringComparison.OrdinalIgnoreCase);
+
+                case "string":
+                    return a.Value;
+
+                case "enum:InputX":
+                    return Enum.TryParse(typeof(InputX), a.Value, out var ex) ? ex : InputX.IsUnset;
+
+                case "enum:InputY":
+                    return Enum.TryParse(typeof(InputY), a.Value, out var ey) ? ey : InputY.Default;
+
+                case "enum:AProperty":
+                    return Enum.TryParse(typeof(AProperty), a.Value, out var ap) ? ap : AProperty.Unset;
+
+                case "enum:GButton":
+                    return Enum.TryParse(typeof(GButton), a.Value, out var gb) ? gb : GButton.Unset;
+
+                default:
+                    // unknown kind -> keep as string
+                    return a.Value;
+            }
+        }
+
+        private static IAction FromDto(ActionBindingDto dto)
+        {
+            var args = dto.Args.ConvertAll(ParseArg).ToArray();
+            AProperty prop = dto.Property;
+
+            switch (prop)
+            {
+                case AProperty.Speedmulti:
+                    break;
+                case AProperty.RotSpeedMulti:
+                    break;
+                case AProperty.ElevateUp:
+                    break;
+                case AProperty.ElevateDown:
+                    break;
+                case AProperty.TeleportUp:
+                    break;
+                case AProperty.TeleportDown:
+                    break;
+                case AProperty.DaxSettings:
+                    break;
+                case AProperty.Custom:
+                    break;
+                case AProperty.Switch:
+                    break;
+                case AProperty.Lens:
+                    return new LensAction(args);
+
+                default:
+                    break;
+            }
+
+            throw new Exception("AProperty invalid :" + prop);
         }
     }
 }

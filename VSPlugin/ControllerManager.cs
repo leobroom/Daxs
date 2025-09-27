@@ -14,28 +14,10 @@ namespace Daxs
         {
             RhinoApp.Closing += (sender, e) => { settings.SaveSettings(); };
 
-            //ActionManager Test
-            actions.Register(GButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
-            actions.Register(GButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
-            actions.Register(GButton.DPadUp, InputX.IsDown, new SwitchAction());
-            actions.Register(GButton.DPadRight, InputX.IsDown, new LensAction(InputY.Up, 1));
-            actions.Register(GButton.DPadLeft, InputX.IsDown, new LensAction(InputY.Down, 1));
-            actions.Register(GButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default,35));
-
-            //actions.Register(GButton.X, InputX.IsDown, new SimpleAction("Simple"));
-
-            //SpeedMulti
-            actions.Register(GButton.L3, AProperty.Speedmulti);
-            actions.Register(GButton.R3, AProperty.RotSpeedMulti);
-
-            //Elevator
-            actions.Register(GButton.L2, AProperty.ElevateDown);
-            actions.Register(GButton.R2, AProperty.ElevateUp);
-
-            //Teleport
-            actions.Register(GButton.L1, AProperty.TeleportDown);
-            actions.Register(GButton.R1, AProperty.TeleportUp);
+  
         }
+
+        
 
         private readonly ActionManager actions = ActionManager.Instance;
         private readonly LayoutManager layout = LayoutManager.Instance;

@@ -6,7 +6,31 @@ namespace Daxs
     internal class ActionManager
     {
         private static readonly Lazy<ActionManager> _instance = new(() => new ActionManager());
+
         public static ActionManager Instance => _instance.Value;
+
+        public ActionManager() 
+        {
+            //ActionManager Default
+            Register(GButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
+            Register(GButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
+            Register(GButton.DPadUp, InputX.IsDown, new SwitchAction());
+            Register(GButton.DPadRight, InputX.IsDown, new LensAction(InputY.Up, 1));
+            Register(GButton.DPadLeft, InputX.IsDown, new LensAction(InputY.Down, 1));
+            Register(GButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default, 35));
+
+            //SpeedMulti
+            Register(GButton.L3, AProperty.Speedmulti);
+            Register(GButton.R3, AProperty.RotSpeedMulti);
+
+            //Elevator
+            Register(GButton.L2, AProperty.ElevateDown);
+            Register(GButton.R2, AProperty.ElevateUp);
+
+            //Teleport
+            Register(GButton.L1, AProperty.TeleportDown);
+            Register(GButton.R1, AProperty.TeleportUp);
+        }
 
         private readonly Dictionary<GButton, Tuple<InputX, IAction>> actionTable = new();
 
@@ -34,12 +58,24 @@ namespace Daxs
                 stateTable.Add(aState, button);
         }
 
+        internal Dictionary<GButton, Tuple<InputX, IAction>> GetActions() 
+        {
+            return new Dictionary<GButton, Tuple<InputX, IAction>>(actionTable);
+        }
+
+        internal void SetActions(Dictionary<GButton, Tuple<InputX, IAction>> newActions)
+        {
+            actionTable.Clear();
+
+            foreach (var key in newActions.Keys)
+                actionTable.Add(key, newActions[key]);
+        }
+
         internal bool HasActionsOnMainThread()
         {
             foreach (KeyValuePair<GButton, Tuple<InputX, IAction>> pair in actionTable)
             {
                 InputX inputA = GetButtonState(pair.Key);
-
                 if (inputA == pair.Value.Item1)
                     return true;
             }
@@ -59,10 +95,8 @@ namespace Daxs
                     hud.SetText(a.HUD_Name, 2000);
                     a.Execute();        
                 }
-
             }
         }
-
         private InputX GetButtonState(GButton button)
         {
             return button switch
@@ -97,8 +131,6 @@ namespace Daxs
 
         internal void Update(GamepadState state) => this.state = state;
 
-
-
         private readonly double speedmulti = 3;
 
         public double Speedmulti => stateTable.TryGetValue(AProperty.Speedmulti, out var button) && GetButtonState(button) == InputX.IsDown ? speedmulti : 1;
@@ -127,12 +159,11 @@ namespace Daxs
 
             }
         }
-
-
     }
 
     public enum AProperty
     {
+        Unset,
         Speedmulti,
         RotSpeedMulti,
         ElevateUp,

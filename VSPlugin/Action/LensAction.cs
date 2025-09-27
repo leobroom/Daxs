@@ -18,7 +18,10 @@ namespace Daxs
             actualLens = Math.Round(doc.Views.ActiveView.ActiveViewport.Camera35mmLensLength);
         }
 
-        public string HUD_Name => "Lens: " + actualLens;
+        public LensAction(object[] args) : this((InputY)args[0], (double)args[1]){}
+
+        public string HUD_Name =>$"Lens: " + actualLens;
+        public AProperty Name => AProperty.Lens;
 
         public void Execute()
         {
@@ -43,6 +46,13 @@ namespace Daxs
 
             vp.Camera35mmLensLength = actualLens;
             view.Redraw();
+        }
+
+
+        //https://chatgpt.com/g/g-p-67e9bd1beeac8191a0f9ff9d384c27a1-xboxcontroller/c/68d57c92-667c-8329-bbbc-d3d9893e2b25
+        private object[] GetArgs()
+        {
+            return new object[] { mode, strength };
         }
     }
 }

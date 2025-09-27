@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Daxs
 {
     internal class ActionValue : IValue
     {
+
         public string Name { get; private set; } = "unset";
 
         public event EventHandler<double>? ValueChanged;
@@ -25,7 +28,14 @@ namespace Daxs
 
         public ActionValue(GButton button, AProperty actionName, params object[] args)
         {
-            _args = args;
+            List<object> objs = new List<object>();
+            objs.Add(button);
+            objs.Add(actionName);
+            objs.AddRange(args);
+            _args = args.ToArray();
+            Name = button.ToString();
+            Button = button;
+            ActionName = actionName;
         }
 
         public void Reset()
