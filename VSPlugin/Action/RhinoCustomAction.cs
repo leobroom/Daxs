@@ -2,18 +2,22 @@
 
 namespace Daxs
 {
-    internal class RhinoCmdAction : IAction
+    internal class RhinoCustomAction : IAction
     {
         private readonly string commandName;
         private readonly bool switchToMenuControll;
 
-        public RhinoCmdAction(string commandName, bool switchToMenuControll)
+        public RhinoCustomAction(string commandName, bool switchToMenuControll)
         {
             this.commandName = commandName;
             this.switchToMenuControll = switchToMenuControll;
         }
 
+        public RhinoCustomAction(object[] args) : this((string)args[0], (bool)args[1]) { }
+
         public string HUD_Name => commandName;
+
+        public AProperty Name => AProperty.Custom;
 
         public void Execute()
         {
@@ -22,6 +26,11 @@ namespace Daxs
             RhinoApp.RunScript(commandName, true);
             if (switchToMenuControll)
                 LayoutManager.Instance.SetToPreviousLayout();
+        }
+
+        public object[] GetArgs()
+        {
+            return new object[] { commandName, switchToMenuControll };
         }
     }
 }

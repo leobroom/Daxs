@@ -12,35 +12,37 @@ namespace Daxs
         public ActionManager() 
         {
             //ActionManager Default
-            Register(GButton.Start, InputX.IsDown, new RhinoCmdAction("_Daxs_Settings", true));
-            Register(GButton.B, InputX.IsDown, new RhinoCmdAction("_ViewCaptureToFile", true));
-            Register(GButton.DPadUp, InputX.IsDown, new SwitchAction());
-            Register(GButton.DPadRight, InputX.IsDown, new LensAction(InputY.Up, 1));
-            Register(GButton.DPadLeft, InputX.IsDown, new LensAction(InputY.Down, 1));
-            Register(GButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default, 35));
+            RegisterAction(GButton.Start, InputX.IsDown, new RhinoCustomAction("_Daxs_Settings", true));
+            RegisterAction(GButton.B, InputX.IsDown, new RhinoCustomAction("_ViewCaptureToFile", true));
+            RegisterAction(GButton.DPadUp, InputX.IsDown, new SwitchAction());
+            RegisterAction(GButton.DPadRight, InputX.IsDown, new LensAction(InputY.Up, 1));
+            RegisterAction(GButton.DPadLeft, InputX.IsDown, new LensAction(InputY.Down, 1));
+            RegisterAction(GButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default, 35));
 
             //SpeedMulti
-            Register(GButton.L3, AProperty.Speedmulti);
-            Register(GButton.R3, AProperty.RotSpeedMulti);
+            RegisterState(GButton.L3, InputX.IsDown, "Speedmulti", AProperty.Speedmulti, 3.00);
+            RegisterState(GButton.R3, InputX.IsDown, "RotSpeedMulti", AProperty.RotSpeedMulti, 3.00);
 
             //Elevator
-            Register(GButton.L2, AProperty.ElevateDown);
-            Register(GButton.R2, AProperty.ElevateUp);
+            RegisterState(GButton.L2, InputX.IsDown, "Elevate Down", AProperty.ElevateDown, 1.00);
+            RegisterState(GButton.R2, InputX.IsDown, "Elevate Up", AProperty.ElevateUp, 1.00);
 
             //Teleport
-            Register(GButton.L1, AProperty.TeleportDown);
-            Register(GButton.R1, AProperty.TeleportUp);
+            RegisterState(GButton.L1, InputX.IsDown, "Teleport Down", AProperty.TeleportDown,1.00);
+            RegisterState(GButton.R1, InputX.IsDown, "Teleport Up", AProperty.TeleportUp, 1.00);
         }
 
         private readonly Dictionary<GButton, Tuple<InputX, IAction>> actionTable = new();
 
-        private readonly Dictionary<AProperty, GButton> stateTable = new();
+        private readonly Dictionary<AProperty, IState> stateTable = new();
+
+
 
         private GamepadState state = new();
 
         private readonly HUD hud = HUD.Instance;
 
-        public void Register(GButton button, InputX input, IAction dAction)
+        public void RegisterAction(GButton button, InputX input, IAction dAction)
         {
             Tuple<InputX, IAction> entry = new(input, dAction);
 
@@ -50,15 +52,17 @@ namespace Daxs
                 actionTable.Add(button, entry);
         }
 
-        public void Register(GButton button, AProperty aState)
+        public void RegisterState(GButton button, InputX input, string hudname,  AProperty aState, object value)
         {
+            State state = new State(aState, button, input, hudname, value);
             if (stateTable.ContainsKey(aState))
-                stateTable[aState] = button;
+                stateTable[aState] = state;
             else
-                stateTable.Add(aState, button);
+                stateTable.Add(aState, state);
         }
 
-        internal Dictionary<GButton, Tuple<InputX, IAction>> GetActions() 
+
+        internal Dictionary<GButton, Tuple<InputX, IAction>> GetActions()
         {
             return new Dictionary<GButton, Tuple<InputX, IAction>>(actionTable);
         }
@@ -69,6 +73,20 @@ namespace Daxs
 
             foreach (var key in newActions.Keys)
                 actionTable.Add(key, newActions[key]);
+        }
+
+
+        internal Dictionary<AProperty, IState> GetStates()
+        {
+            return new Dictionary<AProperty, IState>(stateTable);
+        }
+
+        internal void SetStates(Dictionary<AProperty, IState> newStates)
+        {
+            newStates.Clear();
+
+            foreach (var key in newStates.Keys)
+                stateTable.Add(key, newStates[key]);
         }
 
         internal bool HasActionsOnMainThread()
@@ -131,19 +149,13 @@ namespace Daxs
 
         internal void Update(GamepadState state) => this.state = state;
 
-        private readonly double speedmulti = 3;
+        public double Speedmulti => stateTable.TryGetValue(AProperty.Speedmulti, out var state) && GetButtonState(state.Button) == state.Input ? (double)state.Value : 1;
 
-        public double Speedmulti => stateTable.TryGetValue(AProperty.Speedmulti, out var button) && GetButtonState(button) == InputX.IsDown ? speedmulti : 1;
+        public double RotSpeedmulti => stateTable.TryGetValue(AProperty.RotSpeedMulti, out var state) && GetButtonState(state.Button) == state.Input ? (double)state.Value : 1;
 
+        public float ElevateUp => stateTable.TryGetValue(AProperty.ElevateUp, out var state) ? GetValueState(state.Button) : 0;
 
-        private readonly double rotSpeedmulti = 3;
-
-        public double RotSpeedmulti => stateTable.TryGetValue(AProperty.RotSpeedMulti, out var button) && GetButtonState(button) == InputX.IsDown ? rotSpeedmulti : 1;
-
-
-        public float ElevateUp => stateTable.TryGetValue(AProperty.ElevateUp, out var trigger) ? GetValueState(trigger) : 0;
-
-        public float ElevateDown => stateTable.TryGetValue(AProperty.ElevateDown, out var trigger) ? GetValueState(trigger) : 0;
+        public float ElevateDown => stateTable.TryGetValue(AProperty.ElevateDown, out var state) ? GetValueState(state.Button) : 0;
 
         public InputY Teleport
         {
@@ -151,9 +163,9 @@ namespace Daxs
             {
                 InputY jDir = InputY.Default;
 
-                if (stateTable.TryGetValue(AProperty.TeleportUp, out var buttonR) && GetButtonState(buttonR) == InputX.IsDown)
+                if (stateTable.TryGetValue(AProperty.TeleportUp, out var buttonR) && GetButtonState(buttonR.Button) == buttonR.Input)
                     jDir = InputY.Up;
-                else if (stateTable.TryGetValue(AProperty.TeleportDown, out var buttonL) && GetButtonState(buttonL) == InputX.IsDown)
+                else if (stateTable.TryGetValue(AProperty.TeleportDown, out var buttonL) && GetButtonState(buttonL.Button) == buttonR.Input)
                     jDir = InputY.Down;
                 return jDir;
 

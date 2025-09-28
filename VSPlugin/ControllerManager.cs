@@ -13,11 +13,7 @@ namespace Daxs
         private ControllerManager()
         {
             RhinoApp.Closing += (sender, e) => { settings.SaveSettings(); };
-
-  
         }
-
-        
 
         private readonly ActionManager actions = ActionManager.Instance;
         private readonly LayoutManager layout = LayoutManager.Instance;

@@ -99,30 +99,44 @@ namespace Daxs
             //GetAllIActions
 
             Dictionary<GButton, Tuple<InputX, IAction>> actions = ActionManager.Instance.GetActions();
+            List<IBase> baseActions = new List<IBase>();
 
-            List< ActionBindingDto > actionBindingDtos = new ();
+            foreach (var item in actions.Values)
+                baseActions.Add(item.Item2);
 
-            foreach (GButton button in actions.Keys)
-            {
-                var tp = actions[button];
-                InputX ip = tp.Item1;
-                IAction action = tp.Item2;
+            SaveAllBindings(baseActions,  settings, "ActionBindingDtos");
 
+            Dictionary<AProperty, IState> states = ActionManager.Instance.GetStates();
+            List<IBase> baseStates = new List<IBase>();
 
-                object[] args = action.GetArgs();
-                ActionBindingDto dto = ToDto(button, action.Name, ip,  args);
-                actionBindingDtos.Add(dto);
-            }
+            foreach (var item in states.Values)
+                baseActions.Add(item);
 
-            var json = JsonSerializer.Serialize(actionBindingDtos, jsonOpts);
-            settings.SetString("ActionBindingDtos", json);
+            SaveAllBindings(baseStates,  settings, "StateBindingDtos");
 
             PlugIn.SavePluginSettings(id);
-
             RhinoApp.WriteLine($"settings saved.");
         }
 
+        void SaveAllBindings(List<IBase> lst, PersistentSettings settings, string settingsName) 
+        {
+            List<ActionBindingDto> bindingDtos = new();
 
+            foreach (var ibase in lst)
+            {
+                GButton button = ibase.Button;
+                InputX input = ibase.Input;
+                AProperty prop = ibase.Name;
+
+                object[] args = ibase.GetArgs();
+
+                ActionBindingDto dto = ToDto(button, prop, input, args);
+                bindingDtos.Add(dto);
+            }
+
+            var json = JsonSerializer.Serialize(bindingDtos, jsonOpts);
+            settings.SetString(settingsName, json);
+        }
    
         public void LoadSettings()
         {
@@ -166,7 +180,6 @@ namespace Daxs
 
 
         //Serialisation
-
         private static ActionBindingDto ToDto(GButton button, AProperty property, InputX input, object [] args)
         {
             var dto = new ActionBindingDto
@@ -248,11 +261,10 @@ namespace Daxs
                 case AProperty.TeleportDown:
                     break;
                 case AProperty.DaxSettings:
-                    break;
                 case AProperty.Custom:
-                    break;
+                    return new RhinoCustomAction(args);
                 case AProperty.Switch:
-                    break;
+                    return new SwitchAction();
                 case AProperty.Lens:
                     return new LensAction(args);
 

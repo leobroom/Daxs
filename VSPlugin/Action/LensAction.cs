@@ -50,7 +50,7 @@ namespace Daxs
 
 
         //https://chatgpt.com/g/g-p-67e9bd1beeac8191a0f9ff9d384c27a1-xboxcontroller/c/68d57c92-667c-8329-bbbc-d3d9893e2b25
-        private object[] GetArgs()
+        public object[] GetArgs()
         {
             return new object[] { mode, strength };
         }

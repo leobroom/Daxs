@@ -6,6 +6,8 @@
 
         public string HUD_Name => LayoutManager.Instance.CurrentLayout.Name.ToString();
 
+        public AProperty Name => AProperty.Switch;
+
         public void Execute() 
         {
             var current = LayoutManager.Instance.CurrentLayout;
@@ -17,6 +19,11 @@
                 name = Layout.Fly;
 
             LayoutManager.Instance.Set(name);
+        }
+
+        public object[] GetArgs()
+        {
+            return new object[0];
         }
     }
 }

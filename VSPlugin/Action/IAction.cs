@@ -1,16 +1,27 @@
 ﻿namespace Daxs
 {
-    interface IAction
+    interface IAction : IBase
     {
         string HUD_Name { get; }
 
-        //Used for serialization
-        AProperty Name { get; }
-
         void Execute();
+    }
 
+    interface IState : IBase
+    {
+        //Used for serialization
+
+
+        object Value { get; }
+    }
+
+    interface IBase
+    {
         object[] GetArgs();
 
-        //void ImportArgs(ArgDto args);
+        AProperty Name { get; }
+
+        GButton Button { get; }
+        InputX Input { get; }
     }
 }
