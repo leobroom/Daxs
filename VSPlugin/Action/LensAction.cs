@@ -4,27 +4,26 @@ using System;
 
 namespace Daxs
 {
-    internal class LensAction : IAction
+    internal class LensAction : BaseState, IAction
     {
-        private readonly InputY mode;
-        private readonly RhinoDoc doc = RhinoDoc.ActiveDoc;
+        private InputY mode;
         private readonly double strength;
         private double actualLens =-1;
 
-        public LensAction(InputY mode, double strength)
+        public LensAction( GButton Button, InputX Input, InputY mode, double strength) :base(AProperty.Lens,  Button,  Input)
         {
-            this.mode = mode;
+
             this.strength = strength;
-            actualLens = Math.Round(doc.Views.ActiveView.ActiveViewport.Camera35mmLensLength);
+            actualLens = Math.Round(RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.Camera35mmLensLength);
         }
 
-        public LensAction(object[] args) : this((InputY)args[0], (double)args[1]){}
+        public LensAction(GButton Button, InputX Input, object[] args) : this( Button,  Input, (InputY)args[0],(double)args[1]){}
 
-        public string HUD_Name =>$"Lens: " + actualLens;
-        public AProperty Name => AProperty.Lens;
+        public string HUD_Name => $"Lens: " + actualLens;
 
         public void Execute()
         {
+            RhinoDoc doc = RhinoDoc.ActiveDoc;
             RhinoView view = doc.Views.ActiveView;
             RhinoViewport vp = view.ActiveViewport;
             actualLens = Math.Round(vp.Camera35mmLensLength);
@@ -50,7 +49,8 @@ namespace Daxs
 
 
         //https://chatgpt.com/g/g-p-67e9bd1beeac8191a0f9ff9d384c27a1-xboxcontroller/c/68d57c92-667c-8329-bbbc-d3d9893e2b25
-        public object[] GetArgs()
+
+        public override object[] GetArgs()
         {
             return new object[] { mode, strength };
         }

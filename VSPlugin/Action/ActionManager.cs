@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Daxs
 {
@@ -12,12 +13,12 @@ namespace Daxs
         public ActionManager() 
         {
             //ActionManager Default
-            RegisterAction(GButton.Start, InputX.IsDown, new RhinoCustomAction("_Daxs_Settings", true));
-            RegisterAction(GButton.B, InputX.IsDown, new RhinoCustomAction("_ViewCaptureToFile", true));
-            RegisterAction(GButton.DPadUp, InputX.IsDown, new SwitchAction());
-            RegisterAction(GButton.DPadRight, InputX.IsDown, new LensAction(InputY.Up, 1));
-            RegisterAction(GButton.DPadLeft, InputX.IsDown, new LensAction(InputY.Down, 1));
-            RegisterAction(GButton.DPadDown, InputX.IsDown, new LensAction(InputY.Default, 35));
+            RegisterAction( new RhinoCustomAction(GButton.Start, InputX.IsDown, "_Daxs_Settings", true));
+            RegisterAction( new RhinoCustomAction(GButton.B, InputX.IsDown, "_ViewCaptureToFile", true));
+            RegisterAction( new SwitchAction(GButton.DPadUp, InputX.IsDown));
+            RegisterAction( new LensAction(GButton.DPadRight, InputX.IsDown, InputY.Up, 1));
+            RegisterAction( new LensAction(GButton.DPadLeft, InputX.IsDown, InputY.Down, 1));
+            RegisterAction( new LensAction(GButton.DPadDown, InputX.IsDown, InputY.Default, 35));
 
             //SpeedMulti
             RegisterState(GButton.L3, InputX.IsDown, "Speedmulti", AProperty.Speedmulti, 3.00);
@@ -32,7 +33,7 @@ namespace Daxs
             RegisterState(GButton.R1, InputX.IsDown, "Teleport Up", AProperty.TeleportUp, 1.00);
         }
 
-        private readonly Dictionary<GButton, Tuple<InputX, IAction>> actionTable = new();
+        private readonly Dictionary<GButton, IAction> actionTable = new();
 
         private readonly Dictionary<AProperty, IState> stateTable = new();
 
@@ -42,15 +43,7 @@ namespace Daxs
 
         private readonly HUD hud = HUD.Instance;
 
-        public void RegisterAction(GButton button, InputX input, IAction dAction)
-        {
-            Tuple<InputX, IAction> entry = new(input, dAction);
-
-            if (actionTable.ContainsKey(button))
-                actionTable[button] = new Tuple<InputX, IAction>(input, dAction);
-            else
-                actionTable.Add(button, entry);
-        }
+        public void RegisterAction(IAction dAction) => actionTable[dAction.Button] = dAction;
 
         public void RegisterState(GButton button, InputX input, string hudname,  AProperty aState, object value)
         {
@@ -62,59 +55,42 @@ namespace Daxs
         }
 
 
-        internal Dictionary<GButton, Tuple<InputX, IAction>> GetActions()
-        {
-            return new Dictionary<GButton, Tuple<InputX, IAction>>(actionTable);
-        }
+        internal List<IBase> GetActions() => actionTable.Values.Select(a => (IBase)a).ToList();
 
-        internal void SetActions(Dictionary<GButton, Tuple<InputX, IAction>> newActions)
+
+        internal void SetActions(Dictionary<GButton,  IAction> newActions)
         {
             actionTable.Clear();
 
-            foreach (var key in newActions.Keys)
-                actionTable.Add(key, newActions[key]);
+            foreach (var kv in newActions)
+                actionTable[kv.Key] = kv.Value;
         }
 
 
-        internal Dictionary<AProperty, IState> GetStates()
-        {
-            return new Dictionary<AProperty, IState>(stateTable);
-        }
+        internal List<IBase> GetStates() => stateTable.Values.Select(a => (IBase)a).ToList();
+
 
         internal void SetStates(Dictionary<AProperty, IState> newStates)
         {
             newStates.Clear();
 
             foreach (var key in newStates.Keys)
-                stateTable.Add(key, newStates[key]);
+                stateTable[key]= newStates[key];
         }
 
-        internal bool HasActionsOnMainThread()
-        {
-            foreach (KeyValuePair<GButton, Tuple<InputX, IAction>> pair in actionTable)
-            {
-                InputX inputA = GetButtonState(pair.Key);
-                if (inputA == pair.Value.Item1)
-                    return true;
-            }
-            return false;
-        }
-
+        internal bool HasActionsOnMainThread() => actionTable.Any(pair => GetButtonState(pair.Key) == pair.Value.Input);
         internal void ExecuteActionsOnMainThread()
         {
-            foreach (KeyValuePair<GButton, Tuple<InputX, IAction>> pair in actionTable)
+            foreach (var (button, action) in actionTable)
             {
-                InputX inputA = GetButtonState(pair.Key);
-                var tuple = pair.Value;
-
-                if (inputA == tuple.Item1)
+                if (GetButtonState(button) == action.Input)
                 {
-                    IAction a = tuple.Item2;
-                    hud.SetText(a.HUD_Name, 2000);
-                    a.Execute();        
+                    hud.SetText(action.HUD_Name, 2000);
+                    action.Execute();
                 }
             }
         }
+
         private InputX GetButtonState(GButton button)
         {
             return button switch

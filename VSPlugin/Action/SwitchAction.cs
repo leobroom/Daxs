@@ -1,8 +1,8 @@
 ﻿namespace Daxs
 {
-    internal class SwitchAction : IAction
+    internal class SwitchAction : BaseState, IAction
     {
-        public SwitchAction() {}
+        public SwitchAction( GButton Button, InputX Input) : base(AProperty.Switch,  Button,  Input) {}
 
         public string HUD_Name => LayoutManager.Instance.CurrentLayout.Name.ToString();
 
@@ -21,9 +21,6 @@
             LayoutManager.Instance.Set(name);
         }
 
-        public object[] GetArgs()
-        {
-            return new object[0];
-        }
+        public override object[] GetArgs()=> System.Array.Empty<object>();
     }
 }

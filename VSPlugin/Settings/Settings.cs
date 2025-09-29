@@ -4,6 +4,7 @@ using Rhino.PlugIns;
 using Rhino;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Reflection.Metadata.Ecma335;
 
 namespace Daxs
 {
@@ -96,22 +97,10 @@ namespace Daxs
             foreach (BooleanValue bV in boolValues.Values) 
                 settings.SetBool(bV.Name, bV.Value);
 
-            //GetAllIActions
-
-            Dictionary<GButton, Tuple<InputX, IAction>> actions = ActionManager.Instance.GetActions();
-            List<IBase> baseActions = new List<IBase>();
-
-            foreach (var item in actions.Values)
-                baseActions.Add(item.Item2);
-
+            List<IBase> baseActions = ActionManager.Instance.GetActions();
             SaveAllBindings(baseActions,  settings, "ActionBindingDtos");
 
-            Dictionary<AProperty, IState> states = ActionManager.Instance.GetStates();
-            List<IBase> baseStates = new List<IBase>();
-
-            foreach (var item in states.Values)
-                baseActions.Add(item);
-
+            List<IBase> baseStates = ActionManager.Instance.GetStates();
             SaveAllBindings(baseStates,  settings, "StateBindingDtos");
 
             PlugIn.SavePluginSettings(id);
@@ -151,29 +140,40 @@ namespace Daxs
                 bV.Value = settings.GetBool(bV.Name, bV.Value);
 
             // actions
-            if (settings.TryGetString("ActionBindingDtos", out var json) && !string.IsNullOrWhiteSpace(json))
+            if (settings.TryGetString("ActionBindingDtos", out var jsonA) && !string.IsNullOrWhiteSpace(jsonA))
             {
-                Dictionary<GButton, Tuple<InputX, IAction>> actions = new();
+                Dictionary<GButton, IAction> actions = new();
 
                 try
                 {
-                    var list = JsonSerializer.Deserialize<List<ActionBindingDto>>(json, jsonOpts) ?? new();
+                    var list = JsonSerializer.Deserialize<List<ActionBindingDto>>(jsonA, jsonOpts) ?? new();
                     foreach (var dto in list)
-                    {
-                        InputX input = dto.Input;
-                        IAction action = FromDto(dto);
-                        Tuple<InputX, IAction> tp = Tuple.Create(input, action);
-                        actions.Add(dto.Button, tp);
-                    }
+                        actions[dto.Button] = (IAction)FromDto<IAction>(dto);
                 }
                 catch (Exception ex)
-                {
-                    RhinoApp.WriteLine("Failed to parse ActionBindingDtos: " + ex.Message);
-                }
+                {RhinoApp.WriteLine("Failed to parse ActionBindingDtos: " + ex.Message);}
 
                 if (actions.Count > 0)
                     ActionManager.Instance.SetActions(actions);
-            } 
+            }
+
+            //states
+            if (settings.TryGetString("ActionBindingDtos", out var jsonS) && !string.IsNullOrWhiteSpace(jsonS))
+            {
+                Dictionary<AProperty, IState> states = new();
+
+                try
+                {
+                    var list = JsonSerializer.Deserialize<List<ActionBindingDto>>(jsonS, jsonOpts) ?? new();
+                    foreach (var dto in list)
+                        states[dto.Property] = (IState)FromDto<IState>(dto);
+                }
+                catch (Exception ex)
+                { RhinoApp.WriteLine("Failed to parse ActionBindingDtos: " + ex.Message); }
+
+                if (states.Count > 0)
+                    ActionManager.Instance.SetStates(states);
+            }
 
             RhinoApp.WriteLine($"settings loaded.");
         }
@@ -241,7 +241,7 @@ namespace Daxs
             }
         }
 
-        private static IAction FromDto(ActionBindingDto dto)
+        private static IBase FromDto<T>(ActionBindingDto dto) where T : IBase
         {
             var args = dto.Args.ConvertAll(ParseArg).ToArray();
             AProperty prop = dto.Property;
@@ -259,14 +259,15 @@ namespace Daxs
                 case AProperty.TeleportUp:
                     break;
                 case AProperty.TeleportDown:
+                   Continue here...
                     break;
                 case AProperty.DaxSettings:
                 case AProperty.Custom:
-                    return new RhinoCustomAction(args);
+                    return new RhinoCustomAction(dto.Button, dto.Input, args);
                 case AProperty.Switch:
-                    return new SwitchAction();
+                    return new SwitchAction(dto.Button, dto.Input);
                 case AProperty.Lens:
-                    return new LensAction(args);
+                    return new LensAction(dto.Button, dto.Input, args);
 
                 default:
                     break;
