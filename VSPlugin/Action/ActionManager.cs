@@ -10,31 +10,30 @@ namespace Daxs
 
         public static ActionManager Instance => _instance.Value;
 
-        public ActionManager() 
+        public ActionManager()
         {
             //ActionManager Default
-            RegisterAction( new RhinoCustomAction(GButton.Start, InputX.IsDown, "_Daxs_Settings", true));
-            RegisterAction( new RhinoCustomAction(GButton.B, InputX.IsDown, "_ViewCaptureToFile", true));
-            RegisterAction( new SwitchAction(GButton.DPadUp, InputX.IsDown));
-            RegisterAction( new LensAction(GButton.DPadRight, InputX.IsDown, InputY.Up, 1));
-            RegisterAction( new LensAction(GButton.DPadLeft, InputX.IsDown, InputY.Down, 1));
-            RegisterAction( new LensAction(GButton.DPadDown, InputX.IsDown, InputY.Default, 35));
+            RegisterAction(new RhinoCustomAction(GButton.Start, InputX.IsDown, "_Daxs_Settings", true));
+            RegisterAction(new RhinoCustomAction(GButton.B, InputX.IsDown, "_ViewCaptureToFile", true));
+            RegisterAction(new SwitchAction(GButton.DPadUp, InputX.IsDown));
+            RegisterAction(new LensAction(GButton.DPadRight, InputX.IsDown, InputY.Up, 1));
+            RegisterAction(new LensAction(GButton.DPadLeft, InputX.IsDown, InputY.Down, 1));
+            RegisterAction(new LensAction(GButton.DPadDown, InputX.IsDown, InputY.Default, 35));
 
             //SpeedMulti
-            RegisterState(GButton.L3, InputX.IsDown, "Speedmulti", AProperty.Speedmulti, 3.00);
-            RegisterState(GButton.R3, InputX.IsDown, "RotSpeedMulti", AProperty.RotSpeedMulti, 3.00);
+            RegisterState(new State(GButton.L3, InputX.IsDown, AProperty.Speedmulti, "Speedmulti", 3.00));
+            RegisterState(new State(GButton.R3, InputX.IsDown, AProperty.RotSpeedMulti, "RotSpeedMulti", 3.00));
 
             //Elevator
-            RegisterState(GButton.L2, InputX.IsDown, "Elevate Down", AProperty.ElevateDown, 1.00);
-            RegisterState(GButton.R2, InputX.IsDown, "Elevate Up", AProperty.ElevateUp, 1.00);
+            RegisterState(new State(GButton.L2, InputX.IsDown, AProperty.ElevateDown, "Elevate Down", 1.00));
+            RegisterState(new State(GButton.R2, InputX.IsDown, AProperty.ElevateUp, "Elevate Up", 1.00));
 
             //Teleport
-            RegisterState(GButton.L1, InputX.IsDown, "Teleport Down", AProperty.TeleportDown,1.00);
-            RegisterState(GButton.R1, InputX.IsDown, "Teleport Up", AProperty.TeleportUp, 1.00);
+            RegisterState(new State(GButton.L1, InputX.IsDown, AProperty.TeleportDown, "Teleport Down", 1.00));
+            RegisterState(new State(GButton.R1, InputX.IsDown, AProperty.TeleportUp, "Teleport Up", 1.00));
         }
 
         private readonly Dictionary<GButton, IAction> actionTable = new();
-
         private readonly Dictionary<AProperty, IState> stateTable = new();
 
 
@@ -45,18 +44,9 @@ namespace Daxs
 
         public void RegisterAction(IAction dAction) => actionTable[dAction.Button] = dAction;
 
-        public void RegisterState(GButton button, InputX input, string hudname,  AProperty aState, object value)
-        {
-            State state = new State(aState, button, input, hudname, value);
-            if (stateTable.ContainsKey(aState))
-                stateTable[aState] = state;
-            else
-                stateTable.Add(aState, state);
-        }
-
+        public void RegisterState(State state) => stateTable[state.Name] = state;
 
         internal List<IBase> GetActions() => actionTable.Values.Select(a => (IBase)a).ToList();
-
 
         internal void SetActions(Dictionary<GButton,  IAction> newActions)
         {
@@ -65,7 +55,6 @@ namespace Daxs
             foreach (var kv in newActions)
                 actionTable[kv.Key] = kv.Value;
         }
-
 
         internal List<IBase> GetStates() => stateTable.Values.Select(a => (IBase)a).ToList();
 

@@ -1,4 +1,6 @@
-﻿namespace Daxs
+﻿using System;
+
+namespace Daxs
 {
     internal class State : IState
     {
@@ -7,8 +9,8 @@
 		public object Value
 		{
 			get { return val; }
-			set { val = value; }
-		}
+            set { val = value; }
+        }
 
         private string hud_Name;
         public string HUD_Name => hud_Name;
@@ -22,18 +24,17 @@
 
         public InputX Input { get; }
 
-        public State(AProperty name, GButton button, InputX input, string hud_Name, object val)
+        public State(GButton button, InputX input, AProperty name, string hud_Name, object val)
         {
             this.name = name;
             this.hud_Name = hud_Name;
-            this.val = val;
             this.button = button;
-            Input = input;
+            this.Input = input;
+            this.val =  val;
         }
 
-        public object[] GetArgs()
-        {
-           return new object[] { val , hud_Name };
-        }
+        public State(ActionBindingDto dto, object[] args) : this(dto.Button, dto.Input, dto.Property, (string)args[1], args[0]) { }
+
+        public object[] GetArgs() => new object[] { val, hud_Name };
     }
 }

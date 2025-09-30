@@ -249,31 +249,23 @@ namespace Daxs
             switch (prop)
             {
                 case AProperty.Speedmulti:
-                    break;
                 case AProperty.RotSpeedMulti:
-                    break;
                 case AProperty.ElevateUp:
-                    break;
                 case AProperty.ElevateDown:
-                    break;
                 case AProperty.TeleportUp:
-                    break;
                 case AProperty.TeleportDown:
-                   Continue here...
-                    break;
                 case AProperty.DaxSettings:
+                    return new State(dto, args);
                 case AProperty.Custom:
-                    return new RhinoCustomAction(dto.Button, dto.Input, args);
+                    return new RhinoCustomAction(dto, args);
                 case AProperty.Switch:
-                    return new SwitchAction(dto.Button, dto.Input);
+                    return new SwitchAction(dto);
                 case AProperty.Lens:
-                    return new LensAction(dto.Button, dto.Input, args);
-
+                    return new LensAction(dto, args);
+                case AProperty.Unset:
                 default:
-                    break;
+                    throw new Exception("AProperty invalid :" + prop);
             }
-
-            throw new Exception("AProperty invalid :" + prop);
         }
     }
 }

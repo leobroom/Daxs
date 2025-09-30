@@ -4,9 +4,9 @@
     {
         public SwitchAction( GButton Button, InputX Input) : base(AProperty.Switch,  Button,  Input) {}
 
-        public string HUD_Name => LayoutManager.Instance.CurrentLayout.Name.ToString();
+        public SwitchAction(ActionBindingDto dto) : this(dto.Button, dto.Input) { }
 
-        public AProperty Name => AProperty.Switch;
+        public string HUD_Name => LayoutManager.Instance.CurrentLayout.Name.ToString();
 
         public void Execute() 
         {

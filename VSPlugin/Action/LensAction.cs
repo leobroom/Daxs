@@ -17,7 +17,7 @@ namespace Daxs
             actualLens = Math.Round(RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.Camera35mmLensLength);
         }
 
-        public LensAction(GButton Button, InputX Input, object[] args) : this( Button,  Input, (InputY)args[0],(double)args[1]){}
+        public LensAction(ActionBindingDto dto, object[] args) : this(dto.Button,  dto.Input, (InputY)args[0],(double)args[1]){}
 
         public string HUD_Name => $"Lens: " + actualLens;
 
@@ -47,12 +47,7 @@ namespace Daxs
             view.Redraw();
         }
 
-
         //https://chatgpt.com/g/g-p-67e9bd1beeac8191a0f9ff9d384c27a1-xboxcontroller/c/68d57c92-667c-8329-bbbc-d3d9893e2b25
-
-        public override object[] GetArgs()
-        {
-            return new object[] { mode, strength };
-        }
+        public override object[] GetArgs()=>new object[] { mode, strength };
     }
 }

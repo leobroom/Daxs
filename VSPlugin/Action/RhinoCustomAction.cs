@@ -13,11 +13,9 @@ namespace Daxs
             this.switchToMenuControll = switchToMenuControll;
         }
 
-        public RhinoCustomAction(GButton Button, InputX Input, object[] args) : this( Button,  Input, (string)args[0], (bool)args[1]) { }
+        public RhinoCustomAction(ActionBindingDto dto, object[] args) : this(dto.Button, dto.Input, (string)args[0], (bool)args[1]) { }
 
         public string HUD_Name => commandName;
-
-        public AProperty Name => AProperty.Custom;
 
         public void Execute()
         {
