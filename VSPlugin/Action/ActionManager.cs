@@ -12,6 +12,16 @@ namespace Daxs
 
         public ActionManager()
         {
+            ApplyDefaultBindings();
+        }
+
+
+        public void ApplyDefaultBindings()
+        {
+            // Clear current tables
+            actionTable.Clear();
+            stateTable.Clear();
+
             //ActionManager Default
             RegisterAction(new RhinoCustomAction(GButton.Start, InputX.IsDown, "_Daxs_Settings", true));
             RegisterAction(new RhinoCustomAction(GButton.B, InputX.IsDown, "_ViewCaptureToFile", true));
@@ -32,6 +42,8 @@ namespace Daxs
             RegisterState(new State(GButton.L1, InputX.IsDown, AProperty.TeleportDown, "Teleport Down", 1.00));
             RegisterState(new State(GButton.R1, InputX.IsDown, AProperty.TeleportUp, "Teleport Up", 1.00));
         }
+
+
 
         private readonly Dictionary<GButton, IAction> actionTable = new();
         private readonly Dictionary<AProperty, IState> stateTable = new();
@@ -61,7 +73,7 @@ namespace Daxs
 
         internal void SetStates(Dictionary<AProperty, IState> newStates)
         {
-            newStates.Clear();
+            stateTable.Clear();
 
             foreach (var key in newStates.Keys)
                 stateTable[key]= newStates[key];

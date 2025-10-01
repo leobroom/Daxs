@@ -43,18 +43,6 @@ namespace Daxs
 
             //Input
 
-            ////SpeedMulti
-            //Add(GButton.L3, AProperty.Speedmulti);
-            //Add(GButton.R3, AProperty.RotSpeedMulti);
-
-            ////Elevator
-            //Add(GButton.L2, AProperty.ElevateDown);
-            //Add(GButton.R2, AProperty.ElevateUp);
-
-            ////Teleport
-            //Add(GButton.L1, AProperty.TeleportDown);
-            //Add(GButton.R1, AProperty.TeleportUp);
-
             SaveSettings(); //For debug purposes
 
             LoadSettings();
@@ -65,9 +53,6 @@ namespace Daxs
 
         private void Add(string name, bool defaultValue)
         { boolValues[name] = new BooleanValue(defaultValue, name); }
-
-        //private void Add(GButton button,  AProperty actionName, params object[] args)
-        //{ actionValues[button] = new ActionValue(button, actionName, args); }
 
         public IValue this[string name]
         {
@@ -81,7 +66,6 @@ namespace Daxs
                 throw new KeyNotFoundException($"No setting with the name '{name}' was found.");
             }
         }
-
 
         public IEnumerable<NumericValue> AllNumValues => numValues.Values;
 
@@ -126,7 +110,7 @@ namespace Daxs
             var json = JsonSerializer.Serialize(bindingDtos, jsonOpts);
             settings.SetString(settingsName, json);
         }
-   
+ 
         public void LoadSettings()
         {
             Guid id = PlugIn.IdFromName("Daxs");
@@ -158,7 +142,7 @@ namespace Daxs
             }
 
             //states
-            if (settings.TryGetString("ActionBindingDtos", out var jsonS) && !string.IsNullOrWhiteSpace(jsonS))
+            if (settings.TryGetString("StateBindingDtos", out var jsonS) && !string.IsNullOrWhiteSpace(jsonS))
             {
                 Dictionary<AProperty, IState> states = new();
 
@@ -177,7 +161,6 @@ namespace Daxs
 
             RhinoApp.WriteLine($"settings loaded.");
         }
-
 
         //Serialisation
         private static ActionBindingDto ToDto(GButton button, AProperty property, InputX input, object [] args)
