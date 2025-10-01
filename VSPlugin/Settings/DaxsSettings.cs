@@ -162,23 +162,6 @@ namespace Daxs
 
             rows.Add(new LabelSeparator { Text = "Input Layout" });
 
-
-            var inputOptions = new (string Key, string Text)[]
-             {
-                ("none", "None"),
-                ("lensPlus", "Lens +"),
-                ("lensMinus", "Lens -"),
-                ("lensDefault", "Lens Default"),
-                ("viewCaptureToFile", "ViewCaptureToFile"),
-                ("swichMode", "Switch Gamepad Mode"),
-                ("daxsSettings", "Daxs Settings"),
-                ("teleportUp", "Teleport Up"),
-                ("teleportDown", "Teleport Down"),
-                ("custom", "Custom…") // selecting this should enable the textbox
-             };
-
-
-
             var inputLayout = new TableLayout
             {
                 Padding = new Padding(10, 0, 0, 0),
@@ -188,22 +171,22 @@ namespace Daxs
             // Example call (initially selects "Preset B")
 
             TableRow[] gpButtons =
-      {
-    CreateDropdown("A",  GButton.A,      ActionOptions, "custom",  GetInitialKey(GButton.A)),
-    CreateDropdown("B",  GButton.B,      ActionOptions, "custom",  GetInitialKey(GButton.B)),
-    CreateDropdown("X",  GButton.X,      ActionOptions, "custom",  GetInitialKey(GButton.X)),
-    CreateDropdown("Y",  GButton.Y,      ActionOptions, "custom",  GetInitialKey(GButton.Y)),
-    CreateDropdown("Start", GButton.Start, ActionOptions, "custom", GetInitialKey(GButton.Start)),
-    CreateDropdown("Back",  GButton.Back,  ActionOptions, "custom", GetInitialKey(GButton.Back)),
-    CreateDropdown("L1",  GButton.L1,    ActionOptions, "custom",  GetInitialKey(GButton.L1)),
-    CreateDropdown("L3",  GButton.L3,    ActionOptions, "custom",  GetInitialKey(GButton.L3)),
-    CreateDropdown("R1",  GButton.R1,    ActionOptions, "custom",  GetInitialKey(GButton.R1)),
-    CreateDropdown("R3",  GButton.R3,    ActionOptions, "custom",  GetInitialKey(GButton.R3)),
-    CreateDropdown("DPad Up",    GButton.DPadUp,    ActionOptions, "custom", GetInitialKey(GButton.DPadUp)),
-    CreateDropdown("DPad Down",  GButton.DPadDown,  ActionOptions, "custom", GetInitialKey(GButton.DPadDown)),
-    CreateDropdown("DPad Left",  GButton.DPadLeft,  ActionOptions, "custom", GetInitialKey(GButton.DPadLeft)),
-    CreateDropdown("DPad Right", GButton.DPadRight, ActionOptions, "custom", GetInitialKey(GButton.DPadRight)),
-};
+            {
+                CreateDropdown("A",  GButton.A,      ActionOptions, "custom",  GetInitialKey(GButton.A)),
+                CreateDropdown("B",  GButton.B,      ActionOptions, "custom",  GetInitialKey(GButton.B)),
+                CreateDropdown("X",  GButton.X,      ActionOptions, "custom",  GetInitialKey(GButton.X)),
+                CreateDropdown("Y",  GButton.Y,      ActionOptions, "custom",  GetInitialKey(GButton.Y)),
+                CreateDropdown("Start", GButton.Start, ActionOptions, "custom", GetInitialKey(GButton.Start)),
+                CreateDropdown("Back",  GButton.Back,  ActionOptions, "custom", GetInitialKey(GButton.Back)),
+                CreateDropdown("L1",  GButton.L1,    ActionOptions, "custom",  GetInitialKey(GButton.L1)),
+                CreateDropdown("L3",  GButton.L3,    ActionOptions, "custom",  GetInitialKey(GButton.L3)),
+                CreateDropdown("R1",  GButton.R1,    ActionOptions, "custom",  GetInitialKey(GButton.R1)),
+                CreateDropdown("R3",  GButton.R3,    ActionOptions, "custom",  GetInitialKey(GButton.R3)),
+                CreateDropdown("DPad Up",    GButton.DPadUp,    ActionOptions, "custom", GetInitialKey(GButton.DPadUp)),
+                CreateDropdown("DPad Down",  GButton.DPadDown,  ActionOptions, "custom", GetInitialKey(GButton.DPadDown)),
+                CreateDropdown("DPad Left",  GButton.DPadLeft,  ActionOptions, "custom", GetInitialKey(GButton.DPadLeft)),
+                CreateDropdown("DPad Right", GButton.DPadRight, ActionOptions, "custom", GetInitialKey(GButton.DPadRight)),
+            };
 
 
             foreach (TableRow b in gpButtons)
@@ -246,7 +229,6 @@ namespace Daxs
                 switch (key)
                 {
                     case "none":
-                        // skip
                         break;
 
                     case "lensPlus":
@@ -439,11 +421,12 @@ namespace Daxs
             if (act != null && act.Name == AProperty.Custom)
             {
                 var args = act.GetArgs(); // (string command, bool simulateKeyboard)
-                if (args.Length >= 1 && args[0] is string cmd) tb.Text = cmd;
-                if (args.Length >= 2 && args[1] is bool sim) ck.Checked = sim;
+                if (args.Length >= 1 && args[0] is string cmd) 
+                    tb.Text = cmd;
+                if (args.Length >= 2 && args[1] is bool sim) 
+                    ck.Checked = sim;
             }
         }
-
 
         TableLayout CreateDialogButtons()
         {
