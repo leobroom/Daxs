@@ -1,5 +1,4 @@
-﻿// #! csharp
-using System;
+﻿using System;
 
 namespace Daxs
 {
