@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 using Eto.Forms;
 using Eto.Drawing;
-using Rhino.UI.Controls;
 using System.Reflection;
-using System.Linq;
-using System;
+using Rhino.UI.Controls;
+using Rhino;
 
 namespace Daxs
 {
@@ -34,6 +35,8 @@ namespace Daxs
         private readonly Settings settings = Settings.Instance;
         private readonly Dictionary<string, NumericStepper> inputNumBoxes = new();
         private readonly Dictionary<string, CheckBox> inputBoolBoxes = new();
+        readonly SortedDictionary<GButton, DropDown> inputActions = new SortedDictionary<GButton, DropDown>();
+
         private Button okButton;
 
         public DaxsSettings()
@@ -87,7 +90,7 @@ namespace Daxs
             rows.AddRange(CreateLayout("HUD", hud));
 
             string[] walk =
-{
+            {
                 "EyeHeight",
                 "MaximalJump",
             };
@@ -96,22 +99,7 @@ namespace Daxs
 
             rows.Add(new LabelSeparator { Text = "Input Layout" });
 
-            var inputLayout = new TableLayout
-            {
-                Padding = new Padding(10, 0, 0, 0),
-                Spacing = new Size(5, 5)
-            };
-
-            foreach (GButton button in Enum.GetValues<GButton>())
-            {
-                if (button == GButton.Unset)
-                    continue;
-
-                var tB = CreateActionDropdown(button);
-                inputLayout.Rows.Add(tB);
-            }
-
-            rows.Add(inputLayout);
+            rows.Add(AddButtonDropdowns());
 
             foreach (TableRow row in rows)
                 content.Rows.Add(row);
@@ -144,15 +132,32 @@ namespace Daxs
             Close();
         }
 
-
         void OnDefault()
         {
-            foreach (var nv in settings.AllNumValues)
+            foreach (NumericValue nv in settings.AllNumValues)
             {
                 nv.Reset();
                 if (inputNumBoxes.TryGetValue(nv.Name, out var box))
                     box.Value = nv.DisplayValue;
             }
+
+            foreach (BooleanValue bv in settings.AllBoolValues)
+            {
+                bv.Reset();
+                if (inputBoolBoxes.TryGetValue(bv.Name, out var box))
+                    box.Checked = bv.Value;
+            }
+
+            foreach (TextValue tv in settings.AllTextValues) 
+            {
+                tv.Reset();
+
+                string name = tv.Name.Replace("Button_", "");
+                RhinoApp.WriteLine(name);
+
+                if (Enum.TryParse(name, out GButton button)&& inputActions.TryGetValue(button, out var box))
+                    box.SelectedKey = tv.Value;
+            }  
         }
 
         private TableRow[] CreateLayout(string title, string[] names)
@@ -202,16 +207,14 @@ namespace Daxs
             return new TableRow( new TableCell(label), new TableCell(control, scaleWidth: true));
         }
 
-        SortedDictionary<GButton, DropDown> actions = new SortedDictionary<GButton, DropDown>();
-
-        SortedDictionary<ActionEnum, string> actionTable = new SortedDictionary<ActionEnum, string>()
+        readonly SortedDictionary<ActionEnum, string> actionTable = new SortedDictionary<ActionEnum, string>()
         {
             { ActionEnum.Unset, "Unset" },
-            { ActionEnum.LensPlus, "LensPlus" },
-            { ActionEnum.LensMinus, "LensMinus" },
+            { ActionEnum.LensPlus, "Lens+" },
+            { ActionEnum.LensMinus, "Lens-" },
             { ActionEnum.LensDefault, "LensDefault" },
-            { ActionEnum.TeleportPlus, "TeleportPlus" },
-            { ActionEnum.TeleportMinus, "TeleportMinus" },
+            { ActionEnum.TeleportPlus, "Teleport+" },
+            { ActionEnum.TeleportMinus, "Teleport-" },
             { ActionEnum.Speedmulti, "Speedmulti" },
             { ActionEnum.RotSpeedMulti, "RotSpeedMulti" },
             { ActionEnum.ElevatePlus, "ElevatePlus" },
@@ -225,50 +228,93 @@ namespace Daxs
             { ActionEnum.C6, "C6" }
         };
 
+        private TableLayout AddButtonDropdowns()
+        {
+            var inputLayout = new TableLayout
+            {
+                Padding = new Padding(10, 0, 0, 0),
+                Spacing = new Size(5, 5)
+            };
+
+            foreach (GButton button in Enum.GetValues<GButton>())
+            {
+                if (button == GButton.Unset)
+                    continue;
+
+                var tB = CreateActionDropdown(button);
+                inputLayout.Rows.Add(tB);
+            }
+
+            SyncActionDropDowns();
+
+            return inputLayout;
+        }
+
         void SyncActionDropDowns()
         {
-            SortedDictionary<ActionEnum, string> options = new SortedDictionary<ActionEnum, string>(actionTable);
-
-            //Removes doubles
-            foreach (var action in actions) 
-            {
-                DropDown dd = action.Value;
-                ActionEnum actionKey = Enum.Parse<ActionEnum>(dd.SelectedKey);
-                if (actionKey == ActionEnum.Unset)
-                    continue;
-
-                options.Remove(actionKey);
-            }
-
-            //Set Options
-            foreach (var action in actions)
-            {
-                DropDown dd = action.Value;
-                dd.Items.Clear();
-
-                foreach (var key in options.Keys)
-                    dd.Items.Add(new ListItem { Key = key.ToString(), Text = options[key] });
-            }
-        }
-
-        private void RemoveDoubleDropDownValues(DropDown dd)
-        {
-            string key = dd.SelectedKey;
-            string unset = ActionEnum.Unset.ToString();
-            if (key == unset)
+            if (_syncDropwon)
                 return;
 
-            foreach (var action in actions)
+            _syncDropwon = true;
+
+            // Master order to respect (SortedDictionary already provides a stable order)
+            var masterOrder = actionTable.Keys.ToList();
+
+            // For fast lookups
+            var actionToText = actionTable;
+
+            // Collect taken actions per other dropdowns
+            var takenByDropdown = new Dictionary<DropDown, HashSet<ActionEnum>>();
+            foreach (var kvA in inputActions)
             {
-                DropDown ddCompare = action.Value;
+                DropDown dropdownA = kvA.Value;
+                HashSet<ActionEnum> set = new();
+                foreach (var kvB in inputActions)
+                {
+                    var dropdownB = kvB.Value;
+                    if (dropdownB == dropdownA) // exclude self
+                        continue; 
 
-                if (dd.Equals(ddCompare))
-                    continue;
-
-                if(dd.SelectedKey == ddCompare.SelectedKey)
-                    ddCompare.SelectedKey= unset;
+                    if (Enum.TryParse<ActionEnum>(dropdownB.SelectedKey, out var a2) && a2 != ActionEnum.Unset)
+                        set.Add(a2);
+                }
+                takenByDropdown[dropdownA] = set;
             }
+
+            // Rebuild each dropdown in the same order
+            foreach (var kv in inputActions)
+            {
+                GButton button = kv.Key;
+                DropDown dropdown = kv.Value;
+                ActionEnum originalKey = Enum.TryParse(dropdown.SelectedKey, out ActionEnum myAction) ? myAction : ActionEnum.Unset;
+
+                dropdown.DataStore = null;
+                dropdown.Items.Clear();
+
+                foreach (var action in masterOrder)
+                {
+                    if (action == ActionEnum.Unset)
+                    {
+                        dropdown.Items.Add(new ListItem { Key = action.ToString(), Text = actionToText[action] });
+                        continue;
+                    }
+
+                    if (takenByDropdown[dropdown].Contains(action) && action != myAction) 
+                        continue;
+
+                    dropdown.Items.Add(new ListItem { Key = action.ToString(), Text = actionToText[action] });
+                }
+
+                dropdown.SelectedKey = myAction.ToString();
+
+                if (settings["Button_" + button] is TextValue tVal)
+                    tVal.Value = dropdown.SelectedKey;
+            }
+
+            _syncDropwon = false;
         }
+
+        bool _syncDropwon = false;
 
         TableRow CreateActionDropdown(GButton button)
         {
@@ -277,33 +323,36 @@ namespace Daxs
 
             string buttonName = button.ToString();
 
-            TextValue tVal = (TextValue)settings["B_" + buttonName];
+            TextValue tVal = (TextValue)settings["Button_" + buttonName];
 
-            string selectedValue = tVal.Value;
+            string selectedKey = tVal.Value;
 
-            if (!Enum.TryParse<ActionEnum>(selectedValue, out var selectedAction))
-                throw new Exception("Faulty ActionEnum: " + selectedValue);
+            if (!Enum.TryParse<ActionEnum>(selectedKey, out var selectedAction))
+                throw new Exception("Faulty ActionEnum: " + selectedKey);
 
-            // LABEL
             Label label = new() { Text = buttonName, Width = 80 };
+            DropDown dropdown = new() { };
 
-            // DROPDOWN
-            DropDown dropdown = new() {SelectedKey = selectedValue};
+            foreach (var key in actionTable.Keys)
+            {
+                string text = actionTable[key];
+                dropdown.Items.Add(text, key.ToString());
+            }
 
-            dropdown.SelectedKeyChanged += (_, __) => 
-            { 
-                tVal.Value = dropdown.SelectedKey;
-                RemoveDoubleDropDownValues(dropdown);
-                SyncActionDropDowns();
-            };
+            dropdown.SelectedKey = selectedKey;
+            dropdown.SelectedKeyChanged += (sender, args) =>
+             {
+                 if (_syncDropwon)
+                     return;
 
-            actions.Add(button, dropdown);
+                 SyncActionDropDowns();
+             };
 
-            // Done
+            inputActions.Add(button, dropdown);
+
             return new TableRow(label, dropdown);
         }
 
- 
 
         TableLayout CreateDialogButtons()
         {

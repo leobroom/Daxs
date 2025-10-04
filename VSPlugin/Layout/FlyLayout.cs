@@ -37,8 +37,7 @@ namespace Daxs
             pitchSensitivity = pS.Value;
             elevateSpeed = eS.Value;
 
-            hud.Enabled = true;
-            
+            hud.Enabled = true;        
         }
 
         // fields

@@ -130,6 +130,10 @@ namespace Daxs
 
         public IEnumerable<NumericValue> AllNumValues => numValues.Values;
 
+        public IEnumerable<BooleanValue> AllBoolValues => boolValues.Values;
+
+        public IEnumerable<TextValue> AllTextValues => textValues.Values;
+
         public void SaveSettings()
         {
             Guid id = PlugIn.IdFromName("Daxs");

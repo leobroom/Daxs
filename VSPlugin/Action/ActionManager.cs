@@ -15,12 +15,14 @@ namespace Daxs
             ApplyDefaultBindings();
         }
 
-
         public void ApplyDefaultBindings()
         {
             // Clear current tables
             actionTable.Clear();
             stateTable.Clear();
+
+
+
 
             //ActionManager Default
             RegisterAction(new RhinoCustomAction(GButton.Start, InputX.IsDown, "_Daxs_Settings", true));
