@@ -40,27 +40,27 @@ namespace Daxs
             Add("LensDefault", 35, 1);
 
             //Gamepad
-            Add("Button_A", "unset");
-            Add("Button_B", "C1");
-            Add("Button_X", "unset");
-            Add("Button_Y", "unset");
+            Add("Button_A",ActionEnum.Unset);
+            Add("Button_B", ActionEnum.C1);
+            Add("Button_X", ActionEnum.Unset);
+            Add("Button_Y", ActionEnum.Unset);
 
-            Add("Button_Start", "C2");
-            Add("Button_Back", "unset");
+            Add("Button_Start", ActionEnum.C2);
+            Add("Button_Back", ActionEnum.Unset);
 
-            Add("Button_L1", "TeleportDown");
-            Add("Button_R1", "TeleportUp");
+            Add("Button_L1", ActionEnum.TeleportPlus);
+            Add("Button_R1", ActionEnum.TeleportMinus);
 
-            Add("Button_L2", "ElevateDown");
-            Add("Button_R2", "ElevateUp");
+            Add("Button_L2", ActionEnum.ElevatePlus);
+            Add("Button_R2", ActionEnum.ElevateMinus);
 
-            Add("Button_L3", "Speedmulti");
-            Add("Button_R3", "RotSpeedMulti");
+            Add("Button_L3", ActionEnum.Speedmulti);
+            Add("Button_R3", ActionEnum.RotSpeedMulti);
 
-            Add("Button_DPadUp", "SwitchMode");
-            Add("Button_DPadDown", "LensDefault");
-            Add("Button_DPadLeft", "Lens-");
-            Add("Button_DPadRight", "Lens+");
+            Add("Button_DPadUp", ActionEnum.SwitchMode);
+            Add("Button_DPadDown", ActionEnum.LensDefault);
+            Add("Button_DPadLeft", ActionEnum.LensMinus);
+            Add("Button_DPadRight", ActionEnum.LensPlus);
 
             //Custom1
             Add("C1_Name", "DaxsSettings");
@@ -109,6 +109,9 @@ namespace Daxs
 
         private void Add(string name, string defaultValue) 
         {textValues[name] = new TextValue(defaultValue, name);}
+
+        private void Add(string name, ActionEnum defaultValue)
+        { textValues[name] = new TextValue(defaultValue.ToString(), name); }
 
         public IValue this[string name]
         {

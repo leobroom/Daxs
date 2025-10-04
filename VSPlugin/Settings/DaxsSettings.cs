@@ -8,6 +8,27 @@ using System;
 
 namespace Daxs
 {
+    public enum ActionEnum
+    {
+        Unset,
+        LensPlus,
+        LensMinus,
+        LensDefault,
+        TeleportPlus,
+        TeleportMinus,
+        Speedmulti,
+        RotSpeedMulti,
+        ElevatePlus, 
+        ElevateMinus,
+        SwitchMode,
+        C1,
+        C2,
+        C3,
+        C4,
+        C5,
+        C6
+    }
+
     public class DaxsSettings : Dialog<bool>
     {
         private readonly Settings settings = Settings.Instance;
@@ -33,93 +54,6 @@ namespace Daxs
                 }
             };             
         }
-
-
-        private string GetInitialKey(GButton button)
-        {
-            // Prefer actions; fall back to states
-            var allActs = ActionManager.Instance.GetActions();
-            var matchAct = allActs.FirstOrDefault(a => a.Button == button);
-
-            if (matchAct != null)
-            {
-                switch (matchAct.Name)
-                {
-                    case AProperty.Lens:
-                        var args = matchAct.GetArgs(); // (InputY dir, double step)
-                        if (args.Length > 0 && args[0] is InputY dir)
-                        {
-                            return dir switch
-                            {
-                                InputY.Up => "lensPlus",
-                                InputY.Down => "lensMinus",
-                                _ => "lensDefault"
-                            };
-                        }
-                        return "lensDefault";
-
-                    case AProperty.Switch:
-                        return "swichMode";
-
-                    case AProperty.Custom:
-                        // args: (string command, bool simulateKeyboard)
-                        var a = matchAct.GetArgs();
-                        if (a.Length >= 1 && a[0] is string cmd)
-                        {
-                            // populate custom widgets after the row exists (in CreateDropdown we sync)
-                            return "custom";
-                        }
-                        return "custom";
-
-                    case AProperty.DaxSettings:
-                        return "daxsSettings";
-
-                    default:
-                        // View capture is a custom action we recognize from defaults
-                        var ga = matchAct.GetArgs();
-                        if (ga.Length >= 1 && ga[0] is string cmd2 && cmd2.Equals("_ViewCaptureToFile", StringComparison.OrdinalIgnoreCase))
-                            return "viewCaptureToFile";
-                        break;
-                }
-            }
-
-            // Look at states (teleports etc.)
-            var allStates = ActionManager.Instance.GetStates();
-            var tpUp = allStates.FirstOrDefault(s => s.Button == button && s.Name == AProperty.TeleportUp);
-            if (tpUp != null) return "teleportUp";
-
-            var tpDown = allStates.FirstOrDefault(s => s.Button == button && s.Name == AProperty.TeleportDown);
-            if (tpDown != null) return "teleportDown";
-
-            return "none";
-        }
-
-
-        private readonly List<BindingRow> bindingRows = new();
-
-        private record BindingRow(
-            GButton Button,
-            DropDown Dropdown,
-            TextBox CustomText,
-            CheckBox SimulateCheck
-        );
-
-        // Key => (kind, detail)
-        // kind: "none", "lens", "custom", "switch", "cmd", "state"
-        private static readonly (string Key, string Text)[] ActionOptions =
-        {
-            ("none", "None"),
-            ("lensPlus", "Lens +"),
-            ("lensMinus", "Lens -"),
-            ("lensDefault", "Lens Default"),
-            ("viewCaptureToFile", "ViewCaptureToFile"),
-            ("swichMode", "Switch Gamepad Mode"),
-            ("daxsSettings", "Daxs Settings"),
-            ("teleportUp", "Teleport Up"),
-            ("teleportDown", "Teleport Down"),
-            ("custom", "Custom…")
-        };
-
 
         void CreateUi()
         {
@@ -170,6 +104,14 @@ namespace Daxs
 
             // Example call (initially selects "Preset B")
 
+            foreach (GButton button in Enum.GetValues<GButton>())
+            {
+                if (button == GButton.Unset)
+                    continue;
+
+                CreateActionDropdown(button);
+            }
+
             //TableRow[] gpButtons =
             //{
             //    CreateDropdown("A",  GButton.A,      ActionOptions, "custom",  GetInitialKey(GButton.A)),
@@ -218,66 +160,6 @@ namespace Daxs
 
         void OnOk()
         {
-            // Build fresh maps based on UI
-            var newActions = new Dictionary<GButton, IAction>();
-            var newStates = new Dictionary<AProperty, IState>();
-
-            foreach (var row in bindingRows)
-            {
-                var key = row.Dropdown.SelectedKey;
-
-                switch (key)
-                {
-                    case "none":
-                        break;
-
-                    case "lensPlus":
-                        newActions[row.Button] = new LensAction(row.Button, InputX.IsDown, InputY.Up, 1);
-                        break;
-
-                    case "lensMinus":
-                        newActions[row.Button] = new LensAction(row.Button, InputX.IsDown, InputY.Down, 1);
-                        break;
-
-                    case "lensDefault":
-                        newActions[row.Button] = new LensAction(row.Button, InputX.IsDown, InputY.Default, 35);
-                        break;
-
-                    case "viewCaptureToFile":
-                        newActions[row.Button] = new RhinoCustomAction(row.Button, InputX.IsDown, "_ViewCaptureToFile", true);
-                        break;
-
-                    case "swichMode":
-                        newActions[row.Button] = new SwitchAction(row.Button, InputX.IsDown);
-                        break;
-
-                    case "daxsSettings":
-                        newActions[row.Button] = new RhinoCustomAction(row.Button, InputX.IsDown, "_Daxs_Settings", true);
-                        break;
-
-                    case "teleportUp":
-                        newStates[AProperty.TeleportUp] = new State(row.Button, InputX.IsDown, AProperty.TeleportUp, "Teleport Up", 1.00);
-                        break;
-
-                    case "teleportDown":
-                        newStates[AProperty.TeleportDown] = new State(row.Button, InputX.IsDown, AProperty.TeleportDown, "Teleport Down", 1.00);
-                        break;
-
-                    case "custom":
-                        {
-                            var cmd = row.CustomText.Text?.Trim();
-                            var sim = row.SimulateCheck.Checked == true;
-                            if (!string.IsNullOrWhiteSpace(cmd))
-                                newActions[row.Button] = new RhinoCustomAction(row.Button, InputX.IsDown, cmd, sim);
-                        }
-                        break;
-                }
-            }
-
-            // Apply to ActionManager
-            ActionManager.Instance.SetActions(newActions);
-            ActionManager.Instance.SetStates(newStates);
-
             // Persist
             settings.SaveSettings();
 
@@ -285,31 +167,6 @@ namespace Daxs
             Close();
         }
 
-        void OnApplyDefaultInputLayout()
-        {
-            // 1) Rebuild defaults in ActionManager
-            ActionManager.Instance.ApplyDefaultBindings();
-
-            // 2) Persist to Rhino settings
-            settings.SaveSettings();
-
-            // 3) Refresh all dropdowns + custom fields so the UI reflects the active defaults
-            foreach (var row in bindingRows)
-            {
-                // Recompute which option should be selected for this button
-                var key = GetInitialKey(row.Button);
-
-                // Set dropdown and re-prefill the custom widgets if needed
-                if (!string.IsNullOrEmpty(key))
-                    row.Dropdown.SelectedKey = key;
-
-                // Ensure visibility state is synced when switching to/from "custom"
-                // (re-run the visibility logic that you already have in CreateDropdown)
-                //row.Dropdown.SelectedIndexChanged(EventArgs.Empty);
-
-                PrefillCustom(row.Button, row.Dropdown, row.CustomText, row.SimulateCheck);
-            }
-        }
 
         void OnDefault()
         {
@@ -319,8 +176,6 @@ namespace Daxs
                 if (inputNumBoxes.TryGetValue(nv.Name, out var box))
                     box.Value = nv.DisplayValue;
             }
-
-            OnApplyDefaultInputLayout();
         }
 
         private TableRow[] CreateLayout(string title, string[] names)
@@ -370,63 +225,108 @@ namespace Daxs
             return new TableRow( new TableCell(label), new TableCell(control, scaleWidth: true));
         }
 
-        TableRow CreateDropdown(string labelText, GButton button, (string Key, string Text)[] options, string activateKey = "custom", string? initialKey = null)
+        SortedDictionary<GButton, DropDown> actions = new SortedDictionary<GButton, DropDown>();
+
+        SortedDictionary<ActionEnum, string> actionTable = new SortedDictionary<ActionEnum, string>()
         {
+            { ActionEnum.Unset, "Unset" },
+            { ActionEnum.LensPlus, "LensPlus" },
+            { ActionEnum.LensMinus, "LensMinus" },
+            { ActionEnum.LensDefault, "LensDefault" },
+            { ActionEnum.TeleportPlus, "TeleportPlus" },
+            { ActionEnum.TeleportMinus, "TeleportMinus" },
+            { ActionEnum.Speedmulti, "Speedmulti" },
+            { ActionEnum.RotSpeedMulti, "RotSpeedMulti" },
+            { ActionEnum.ElevatePlus, "ElevatePlus" },
+            { ActionEnum.ElevateMinus, "ElevateMinus" },
+            { ActionEnum.SwitchMode, "SwitchMode" },
+            { ActionEnum.C1, "C1" },
+            { ActionEnum.C2, "C2" },
+            { ActionEnum.C3, "C3" },
+            { ActionEnum.C4, "C4" },
+            { ActionEnum.C5, "C5" },
+            { ActionEnum.C6, "C6" }
+        };
+
+        void SyncActionDropDowns()
+        {
+            SortedDictionary<ActionEnum, string> options = new SortedDictionary<ActionEnum, string>(actionTable);
+
+            //Removes doubles
+            foreach (var action in actions) 
+            {
+                DropDown dd = action.Value;
+                ActionEnum actionKey = Enum.Parse<ActionEnum>(dd.SelectedKey);
+                if (actionKey == ActionEnum.Unset)
+                    continue;
+
+                options.Remove(actionKey);
+            }
+
+            //Set Options
+            foreach (var action in actions)
+            {
+                DropDown dd = action.Value;
+                dd.Items.Clear();
+
+                foreach (var key in options.Keys)
+                    dd.Items.Add(new ListItem { Key = key.ToString(), Text = options[key] });
+            }
+        }
+
+        private void RemoveDoubleDropDownValues(DropDown dd)
+        {
+            string key = dd.SelectedKey;
+            string unset = ActionEnum.Unset.ToString();
+            if (key == unset)
+                return;
+
+            foreach (var action in actions)
+            {
+                DropDown ddCompare = action.Value;
+
+                if (dd.Equals(ddCompare))
+                    continue;
+
+                if(dd.SelectedKey == ddCompare.SelectedKey)
+                    ddCompare.SelectedKey= unset;
+            }
+        }
+
+        TableRow CreateActionDropdown(GButton button)
+        {
+            if (button == GButton.Unset)
+                throw new Exception("Create DropDown failed! Button can't be unset");
+
+            string buttonName = button.ToString();
+
+            TextValue tVal = (TextValue)settings["B_" + buttonName];
+
+            string selectedValue = tVal.Value;
+
+            if (!Enum.TryParse<ActionEnum>(selectedValue, out var selectedAction))
+                throw new Exception("Faulty ActionEnum: " + selectedValue);
+
             // LABEL
-            Label label = new() { Text = labelText, Width = 80 };
+            Label label = new() { Text = buttonName, Width = 80 };
 
             // DROPDOWN
-            var dropdown = new DropDown();
-            foreach (var (key, text) in options)
-                dropdown.Items.Add(new ListItem { Key = key, Text = text });
+            DropDown dropdown = new() {SelectedKey = selectedValue};
 
-            // Select initial item
-            if (!string.IsNullOrEmpty(initialKey) && options.Any(o => o.Key == initialKey))
-                dropdown.SelectedKey = initialKey;
-            else if (dropdown.Items.Count > 0)
-                dropdown.SelectedIndex = 0;
+            dropdown.SelectedKeyChanged += (_, __) => 
+            { 
+                tVal.Value = dropdown.SelectedKey;
+                RemoveDoubleDropDownValues(dropdown);
+                SyncActionDropDowns();
+            };
 
-            // WIDGETS for "custom"
-            var customText = new TextBox { PlaceholderText = "Custom…", Width = 120 };
-            var cbox = new CheckBox { Checked = true, ToolTip = "Simulate Keyboard" };
-
-            // Sync visibility
-            void Sync()
-            {
-                bool isActive = dropdown.SelectedKey == activateKey;
-                customText.Enabled = isActive;
-                customText.Visible = isActive;
-                cbox.Enabled = isActive;
-                cbox.Visible = isActive;
-            }
-            dropdown.SelectedIndexChanged += (_, __) => Sync();
-            Sync();
-
-            // If current binding is custom or recognizable commands, prefill
-            PrefillCustom(button, dropdown, customText, cbox);
-
-            // Remember row for saving
-            bindingRows.Add(new BindingRow(button, dropdown, customText, cbox));
+            actions.Add(button, dropdown);
 
             // Done
-            return new TableRow(label, dropdown, customText, cbox);
-
+            return new TableRow(label, dropdown);
         }
 
-        private void PrefillCustom(GButton button, DropDown dd, TextBox tb, CheckBox ck)
-        {
-            if (dd.SelectedKey != "custom") return;
-
-            var act = ActionManager.Instance.GetActions().FirstOrDefault(a => a.Button == button);
-            if (act != null && act.Name == AProperty.Custom)
-            {
-                var args = act.GetArgs(); // (string command, bool simulateKeyboard)
-                if (args.Length >= 1 && args[0] is string cmd) 
-                    tb.Text = cmd;
-                if (args.Length >= 2 && args[1] is bool sim) 
-                    ck.Checked = sim;
-            }
-        }
+ 
 
         TableLayout CreateDialogButtons()
         {
