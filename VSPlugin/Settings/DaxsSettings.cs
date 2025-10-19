@@ -5,37 +5,36 @@ using Eto.Forms;
 using Eto.Drawing;
 using System.Reflection;
 using Rhino.UI.Controls;
-using Rhino;
 
 namespace Daxs
 {
-    public enum ActionEnum
-    {
-        Unset,
-        LensPlus,
-        LensMinus,
-        LensDefault,
-        TeleportPlus,
-        TeleportMinus,
-        Speedmulti,
-        RotSpeedMulti,
-        ElevatePlus, 
-        ElevateMinus,
-        SwitchMode,
-        C1,
-        C2,
-        C3,
-        C4,
-        C5,
-        C6
-    }
-
     public class DaxsSettings : Dialog<bool>
     {
         private readonly Settings settings = Settings.Instance;
-        private readonly Dictionary<string, NumericStepper> inputNumBoxes = new();
-        private readonly Dictionary<string, CheckBox> inputBoolBoxes = new();
-        readonly SortedDictionary<GButton, DropDown> inputActions = new SortedDictionary<GButton, DropDown>();
+
+        private readonly Dictionary<string, Control> controlBoxes = new();
+
+        private readonly SortedDictionary<GButton, DropDown> inputActions = new SortedDictionary<GButton, DropDown>();
+        private readonly SortedDictionary<GAction, string> actionTable = new SortedDictionary<GAction, string>()
+        {
+            { GAction.Unset, "Unset" },
+            { GAction.LensPlus, "Lens+" },
+            { GAction.LensMinus, "Lens-" },
+            { GAction.LensDefault, "LensDefault" },
+            { GAction.TeleportPlus, "Teleport+" },
+            { GAction.TeleportMinus, "Teleport-" },
+            { GAction.Speedmulti, "Speedmulti" },
+            { GAction.RotSpeedMulti, "RotSpeedMulti" },
+            { GAction.ElevatePlus, "ElevatePlus" },
+            { GAction.ElevateMinus, "ElevateMinus" },
+            { GAction.SwitchMode, "SwitchMode" },
+            { GAction.C1, "C1" },
+            { GAction.C2, "C2" },
+            { GAction.C3, "C3" },
+            { GAction.C4, "C4" },
+            { GAction.C5, "C5" },
+            { GAction.C6, "C6" }
+        };
 
         private Button okButton;
 
@@ -101,9 +100,13 @@ namespace Daxs
 
             rows.Add(AddButtonDropdowns());
 
+            rows.AddRange(CreateCustom());
+
             foreach (TableRow row in rows)
                 content.Rows.Add(row);
 
+     
+            //Scroll
             var scroll = new Scrollable{ Content = content, ExpandContentWidth = true, ExpandContentHeight = false };
 
             var page = new TableLayout
@@ -114,9 +117,7 @@ namespace Daxs
 
             // scrollable region grows, shows vertical scrollbar when needed
             page.Rows.Add(new TableRow(scroll) { ScaleHeight = true });
-
-            // footer stays visible
-            page.Rows.Add(new TableRow(CreateDialogButtons()));
+            page.Rows.Add(CreateDialogButtons());
 
             Content = page;
 
@@ -134,51 +135,42 @@ namespace Daxs
 
         void OnDefault()
         {
-            foreach (NumericValue nv in settings.AllNumValues)
+            foreach (IValue iv in settings)
             {
-                nv.Reset();
-                if (inputNumBoxes.TryGetValue(nv.Name, out var box))
-                    box.Value = nv.DisplayValue;
+                iv.Reset();
+                string name = iv.Name;
+
+                controlBoxes.TryGetValue(name, out Control box);
+
+                if (iv is NumericValue nv && box is NumericStepper stepper)
+                    stepper.Value = nv.DisplayValue;
+                else if (iv is BooleanValue bv && box is CheckBox checkB)
+                    checkB.Checked = bv.Value;
+                else if (iv is TextValue tv)
+                {
+                    if (Enum.TryParse(name, out GButton button) && inputActions.TryGetValue(button, out var abox))
+                        abox.SelectedKey = tv.Value;
+                    else if (box is TextBox textBox)
+                        textBox.Text = tv.Value;
+                }
             }
-
-            foreach (BooleanValue bv in settings.AllBoolValues)
-            {
-                bv.Reset();
-                if (inputBoolBoxes.TryGetValue(bv.Name, out var box))
-                    box.Checked = bv.Value;
-            }
-
-            foreach (TextValue tv in settings.AllTextValues) 
-            {
-                tv.Reset();
-
-                string name = tv.Name.Replace("Button_", "");
-                RhinoApp.WriteLine(name);
-
-                if (Enum.TryParse(name, out GButton button)&& inputActions.TryGetValue(button, out var box))
-                    box.SelectedKey = tv.Value;
-            }  
         }
 
         private TableRow[] CreateLayout(string title, string[] names)
         {
-            var inputLayout = new TableLayout
-            {
-                Padding = new Padding(10, 0, 0, 0),
-                Spacing = new Size(5, 5)
-            };
+            TableLayout layout = EtoFactory.CreateLayout();
 
             foreach (var name in names)
-                inputLayout.Rows.Add(GenerateUIControl(name));
+                layout.Rows.Add(CreateControl(name));
 
             LabelSeparator seperator = new() { Text = title };
 
-            TableRow[] result = { seperator, inputLayout };
+            TableRow[] result = { seperator, layout };
 
             return result;
         }
 
-        TableRow GenerateUIControl(string settingsName)
+        TableRow CreateControl(string settingsName, string labelName ="")
         {
             IValue val = settings[settingsName];
             Control control = null;
@@ -187,179 +179,34 @@ namespace Daxs
             {
                 var box = new NumericStepper { Value = nv.DisplayValue };
                 box.ValueChanged += (s, e) => nv.DisplayValue = box.Value;
-                inputNumBoxes[nv.Name] = box;
+                controlBoxes[nv.Name] = box;
                 control = box;
             }
             else if (val is BooleanValue bv)
             {
                 var box = new CheckBox { Checked = bv.Value };
                 box.CheckedChanged += (s, e) => bv.Value = (bool)box.Checked;
-                inputBoolBoxes[bv.Name] = box;
+                controlBoxes[bv.Name] = box;
+                control = box;
+            }
+            else if (val is TextValue tv)
+            {
+                var box = new TextBox { Text = tv.Value, PlaceholderText = "Enter Text..." };
+                box.TextChanged += (s, e) => tv.Value = box.Text;
+                controlBoxes[tv.Name] = box;
                 control = box;
             }
 
-            Label label = new() 
-            { 
-                Text = settingsName,
-                Width =80
-            };
+            labelName = labelName == "" ? settingsName : labelName;
 
-            return new TableRow( new TableCell(label), new TableCell(control, scaleWidth: true));
+            return EtoFactory.CreateControlRow(labelName, control);
         }
 
-        readonly SortedDictionary<ActionEnum, string> actionTable = new SortedDictionary<ActionEnum, string>()
+        TableRow CreateDialogButtons()
         {
-            { ActionEnum.Unset, "Unset" },
-            { ActionEnum.LensPlus, "Lens+" },
-            { ActionEnum.LensMinus, "Lens-" },
-            { ActionEnum.LensDefault, "LensDefault" },
-            { ActionEnum.TeleportPlus, "Teleport+" },
-            { ActionEnum.TeleportMinus, "Teleport-" },
-            { ActionEnum.Speedmulti, "Speedmulti" },
-            { ActionEnum.RotSpeedMulti, "RotSpeedMulti" },
-            { ActionEnum.ElevatePlus, "ElevatePlus" },
-            { ActionEnum.ElevateMinus, "ElevateMinus" },
-            { ActionEnum.SwitchMode, "SwitchMode" },
-            { ActionEnum.C1, "C1" },
-            { ActionEnum.C2, "C2" },
-            { ActionEnum.C3, "C3" },
-            { ActionEnum.C4, "C4" },
-            { ActionEnum.C5, "C5" },
-            { ActionEnum.C6, "C6" }
-        };
-
-        private TableLayout AddButtonDropdowns()
-        {
-            var inputLayout = new TableLayout
-            {
-                Padding = new Padding(10, 0, 0, 0),
-                Spacing = new Size(5, 5)
-            };
-
-            foreach (GButton button in Enum.GetValues<GButton>())
-            {
-                if (button == GButton.Unset)
-                    continue;
-
-                var tB = CreateActionDropdown(button);
-                inputLayout.Rows.Add(tB);
-            }
-
-            SyncActionDropDowns();
-
-            return inputLayout;
-        }
-
-        void SyncActionDropDowns()
-        {
-            if (_syncDropwon)
-                return;
-
-            _syncDropwon = true;
-
-            // Master order to respect (SortedDictionary already provides a stable order)
-            var masterOrder = actionTable.Keys.ToList();
-
-            // For fast lookups
-            var actionToText = actionTable;
-
-            // Collect taken actions per other dropdowns
-            var takenByDropdown = new Dictionary<DropDown, HashSet<ActionEnum>>();
-            foreach (var kvA in inputActions)
-            {
-                DropDown dropdownA = kvA.Value;
-                HashSet<ActionEnum> set = new();
-                foreach (var kvB in inputActions)
-                {
-                    var dropdownB = kvB.Value;
-                    if (dropdownB == dropdownA) // exclude self
-                        continue; 
-
-                    if (Enum.TryParse<ActionEnum>(dropdownB.SelectedKey, out var a2) && a2 != ActionEnum.Unset)
-                        set.Add(a2);
-                }
-                takenByDropdown[dropdownA] = set;
-            }
-
-            // Rebuild each dropdown in the same order
-            foreach (var kv in inputActions)
-            {
-                GButton button = kv.Key;
-                DropDown dropdown = kv.Value;
-                ActionEnum originalKey = Enum.TryParse(dropdown.SelectedKey, out ActionEnum myAction) ? myAction : ActionEnum.Unset;
-
-                dropdown.DataStore = null;
-                dropdown.Items.Clear();
-
-                foreach (var action in masterOrder)
-                {
-                    if (action == ActionEnum.Unset)
-                    {
-                        dropdown.Items.Add(new ListItem { Key = action.ToString(), Text = actionToText[action] });
-                        continue;
-                    }
-
-                    if (takenByDropdown[dropdown].Contains(action) && action != myAction) 
-                        continue;
-
-                    dropdown.Items.Add(new ListItem { Key = action.ToString(), Text = actionToText[action] });
-                }
-
-                dropdown.SelectedKey = myAction.ToString();
-
-                if (settings["Button_" + button] is TextValue tVal)
-                    tVal.Value = dropdown.SelectedKey;
-            }
-
-            _syncDropwon = false;
-        }
-
-        bool _syncDropwon = false;
-
-        TableRow CreateActionDropdown(GButton button)
-        {
-            if (button == GButton.Unset)
-                throw new Exception("Create DropDown failed! Button can't be unset");
-
-            string buttonName = button.ToString();
-
-            TextValue tVal = (TextValue)settings["Button_" + buttonName];
-
-            string selectedKey = tVal.Value;
-
-            if (!Enum.TryParse<ActionEnum>(selectedKey, out var selectedAction))
-                throw new Exception("Faulty ActionEnum: " + selectedKey);
-
-            Label label = new() { Text = buttonName, Width = 80 };
-            DropDown dropdown = new() { };
-
-            foreach (var key in actionTable.Keys)
-            {
-                string text = actionTable[key];
-                dropdown.Items.Add(text, key.ToString());
-            }
-
-            dropdown.SelectedKey = selectedKey;
-            dropdown.SelectedKeyChanged += (sender, args) =>
-             {
-                 if (_syncDropwon)
-                     return;
-
-                 SyncActionDropDowns();
-             };
-
-            inputActions.Add(button, dropdown);
-
-            return new TableRow(label, dropdown);
-        }
-
-
-        TableLayout CreateDialogButtons()
-        {
-
             okButton = new Button { Text = "CLOSE", Command = new Command((s, e) => OnOk()) };
 
-            return new TableLayout
+            var layout = new TableLayout
             {
                 Padding = 10,
                 Spacing = new Size(5, 5),
@@ -374,6 +221,8 @@ namespace Daxs
                     )
                 }
             };
+
+            return new TableRow(layout);
         }
 
         static ImageView CreateControllerImage(int targetWidth)
@@ -395,5 +244,154 @@ namespace Daxs
                 Size = new Size(w, h) // ImageView scales image to control size
             };
         }
+
+        TableRow[] CreateCustom()
+        {
+
+
+
+            var layout = new DynamicLayout 
+            {
+                Padding = new Padding(0, 0, 0, 0),
+                Spacing = new Size(5, 5) 
+            };
+
+            layout.Add(CreateControl("C1_Name", "Name"));
+            layout.Add(CreateControl("C1_Function", "RhinoScript"));
+            layout.Add(CreateControl("C1_SimulateKeys", "Simulate keys"));
+
+
+            var expander = new Expander
+            {
+                Header = new Label { Text = "Custom 1" },
+                Content = layout,
+                Expanded = true,
+                Padding = new Padding(0, 0, 0, 0),
+            };
+
+            var row = new TableRow(expander);
+            return new[] { row };
+        }
+
+        #region Dropdown
+
+        private TableLayout AddButtonDropdowns()
+        {
+            var inputLayout = EtoFactory.CreateLayout();
+
+            foreach (GButton button in Enum.GetValues<GButton>())
+            {
+                if (button == GButton.Unset)
+                    continue;
+
+                var tB = CreateActionDropdown(button);
+                inputLayout.Rows.Add(tB);
+            }
+
+            SyncActionDropDowns();
+
+            return inputLayout;
+        }
+        void SyncActionDropDowns()
+        {
+            if (_syncDropwon)
+                return;
+
+            _syncDropwon = true;
+
+            // Master order to respect (SortedDictionary already provides a stable order)
+            var masterOrder = actionTable.Keys.ToList();
+            var actionToText = actionTable;
+
+            // Collect taken actions per other dropdowns
+            var takenByDropdown = new Dictionary<DropDown, HashSet<GAction>>();
+            foreach (var kvA in inputActions)
+            {
+                DropDown dropdownA = kvA.Value;
+                HashSet<GAction> set = new();
+                foreach (var kvB in inputActions)
+                {
+                    var dropdownB = kvB.Value;
+                    if (dropdownB == dropdownA) // exclude self
+                        continue;
+
+                    if (Enum.TryParse<GAction>(dropdownB.SelectedKey, out var a2) && a2 != GAction.Unset)
+                        set.Add(a2);
+                }
+                takenByDropdown[dropdownA] = set;
+            }
+
+            // Rebuild each dropdown in the same order
+            foreach (var kv in inputActions)
+            {
+                GButton button = kv.Key;
+                DropDown dropdown = kv.Value;
+                GAction originalKey = Enum.TryParse(dropdown.SelectedKey, out GAction myAction) ? myAction : GAction.Unset;
+
+                dropdown.DataStore = null;
+                dropdown.Items.Clear();
+
+                foreach (var action in masterOrder)
+                {
+                    if (action == GAction.Unset)
+                    {
+                        dropdown.Items.Add(new ListItem { Key = action.ToString(), Text = actionToText[action] });
+                        continue;
+                    }
+
+                    if (takenByDropdown[dropdown].Contains(action) && action != myAction)
+                        continue;
+
+                    dropdown.Items.Add(new ListItem { Key = action.ToString(), Text = actionToText[action] });
+                }
+
+                dropdown.SelectedKey = myAction.ToString();
+
+                if (settings[button.ToString()] is TextValue tVal)
+                    tVal.Value = dropdown.SelectedKey;
+            }
+
+            _syncDropwon = false;
+        }
+
+        bool _syncDropwon = false;
+
+        TableRow CreateActionDropdown(GButton button)
+        {
+            if (button == GButton.Unset)
+                throw new Exception("Create DropDown failed! Button can't be unset");
+
+            string buttonName = button.ToString();
+
+            TextValue tVal = (TextValue)settings[buttonName];
+
+            string selectedKey = tVal.Value;
+
+            if (!Enum.TryParse<GAction>(selectedKey, out var selectedAction))
+                throw new Exception("Faulty ActionEnum: " + selectedKey);
+
+            DropDown dropdown = new() { };
+
+            foreach (var key in actionTable.Keys)
+            {
+                string text = actionTable[key];
+                dropdown.Items.Add(text, key.ToString());
+            }
+
+            dropdown.SelectedKey = selectedKey;
+            dropdown.SelectedKeyChanged += (sender, args) =>
+            {
+                if (_syncDropwon)
+                    return;
+
+                SyncActionDropDowns();
+            };
+
+            inputActions.Add(button, dropdown);
+
+            return EtoFactory.CreateControlRow(buttonName, dropdown);
+        }
+
+        #endregion
     }
 }

@@ -19,23 +19,11 @@ namespace Daxs
         {
             settings = Settings.Instance;
 
-            var mV = (NumericValue)settings["MoveSpeed"];
-            var dZ = (NumericValue)settings["Deadzone"];
-            var yS = (NumericValue)settings["YawSensitivity"];
-            var pS = (NumericValue)settings["PitchSensitivity"];
-            var eS = (NumericValue)settings["ElevateSpeed"];
-
-            mV.ValueChanged += (s, val) => moveSpeed = val;
-            dZ.ValueChanged += (s, val) => deadzone = val;
-            yS.ValueChanged += (s, val) => yawSensitivity = val;
-            pS.ValueChanged += (s, val) => pitchSensitivity = val;
-            eS.ValueChanged += (s, val) => elevateSpeed = val;
-
-            moveSpeed = mV.Value;
-            deadzone = dZ.Value;
-            yawSensitivity = yS.Value;
-            pitchSensitivity = pS.Value;
-            elevateSpeed = eS.Value;
+            moveSpeed = settings.BindNumeric("MoveSpeed", v => moveSpeed = v);
+            deadzone = settings.BindNumeric("Deadzone", v => deadzone = v);
+            yawSensitivity = settings.BindNumeric("YawSensitivity", v => yawSensitivity = v);
+            pitchSensitivity = settings.BindNumeric("PitchSensitivity", v => pitchSensitivity = v);
+            elevateSpeed = settings.BindNumeric("ElevateSpeed", v => elevateSpeed = v);
 
             hud.Enabled = true;        
         }

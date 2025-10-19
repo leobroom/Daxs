@@ -2,13 +2,11 @@
 {
     internal class SwitchAction : BaseState, IAction
     {
-        public SwitchAction( GButton Button, InputX Input) : base(AProperty.Switch,  Button,  Input) {}
+        public SwitchAction(InputX Input) : base(  Input) {}
 
-        public SwitchAction(ActionBindingDto dto) : this(dto.Button, dto.Input) { }
+        public override string HUD_Name => LayoutManager.Instance.CurrentLayout.Name.ToString();
 
-        public string HUD_Name => LayoutManager.Instance.CurrentLayout.Name.ToString();
-
-        public void Execute() 
+        public override void Execute() 
         {
             var current = LayoutManager.Instance.CurrentLayout;
 
@@ -20,7 +18,5 @@
 
             LayoutManager.Instance.Set(name);
         }
-
-        public override object[] GetArgs()=> System.Array.Empty<object>();
     }
 }

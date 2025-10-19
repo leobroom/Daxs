@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using Rhino.PlugIns;
 using Rhino;
+using System.Collections;
 
 namespace Daxs
 {
-    public class Settings
+    public partial class Settings : IEnumerable<IValue>
     {
         private static Settings instance = null;
         public static Settings Instance => instance ??= new Settings();
 
-        private readonly Dictionary<string, NumericValue> numValues = new();
-        private readonly Dictionary<string, BooleanValue> boolValues = new();
-        private readonly Dictionary<string, TextValue> textValues = new();
+        private readonly Dictionary<string, IValue> iValues = new();
 
         private Settings()
         {
@@ -24,8 +23,8 @@ namespace Daxs
             Add("ElevateSpeed", 140.6, 0.1);
 
             //Multiplicator
-            Add("SpeedMultiplicator", 3, 1);
-            Add("RotationMultiplicator", 3, 1);
+            Add(GAction.Speedmulti, 3, 1);
+            Add(GAction.RotSpeedMulti, 3, 1);
 
             //Text
             Add("TextTime", 2000, 1);
@@ -40,99 +39,99 @@ namespace Daxs
             Add("LensDefault", 35, 1);
 
             //Gamepad
-            Add("Button_A",ActionEnum.Unset);
-            Add("Button_B", ActionEnum.C1);
-            Add("Button_X", ActionEnum.Unset);
-            Add("Button_Y", ActionEnum.Unset);
+            Add(GButton.A,GAction.Unset);
+            Add(GButton.B, GAction.C1);
+            Add(GButton.X, GAction.Unset);
+            Add(GButton.Y, GAction.Unset);
 
-            Add("Button_Start", ActionEnum.C2);
-            Add("Button_Back", ActionEnum.Unset);
+            Add(GButton.Start, GAction.C2);
+            Add(GButton.Back, GAction.Unset);
 
-            Add("Button_L1", ActionEnum.TeleportPlus);
-            Add("Button_R1", ActionEnum.TeleportMinus);
+            Add(GButton.L1, GAction.TeleportPlus);
+            Add(GButton.R1, GAction.TeleportMinus);
 
-            Add("Button_L2", ActionEnum.ElevatePlus);
-            Add("Button_R2", ActionEnum.ElevateMinus);
+            Add(GButton.L2, GAction.ElevatePlus);
+            Add(GButton.R2, GAction.ElevateMinus);
 
-            Add("Button_L3", ActionEnum.Speedmulti);
-            Add("Button_R3", ActionEnum.RotSpeedMulti);
+            Add(GButton.L3, GAction.Speedmulti);
+            Add(GButton.R3, GAction.RotSpeedMulti);
 
-            Add("Button_DPadUp", ActionEnum.SwitchMode);
-            Add("Button_DPadDown", ActionEnum.LensDefault);
-            Add("Button_DPadLeft", ActionEnum.LensMinus);
-            Add("Button_DPadRight", ActionEnum.LensPlus);
+            Add(GButton.DPadUp, GAction.SwitchMode);
+            Add(GButton.DPadDown, GAction.LensDefault);
+            Add(GButton.DPadLeft, GAction.LensMinus);
+            Add(GButton.DPadRight, GAction.LensPlus);
 
             //Custom1
             Add("C1_Name", "DaxsSettings");
             Add("C1_Function", "_Daxs_Settings");
             Add("C1_SimulateKeys", true);
-            Add("C1_Enabled", true);
+            //Add("C1_Enabled", true);
 
             //Custom2
-            Add("C2_Name", "unset");
-            Add("C2_Function", "");
+            Add("C2_Name", "ViewCaptureToFile");
+            Add("C2_Function", "_ViewCaptureToFile");
             Add("C2_SimulateKeys", true);
-            Add("C2_Enabled", true);
+           // Add("C2_Enabled", true);
 
-            //Custom3
-            Add("C3_Name", "unset");
-            Add("C3_Function", "");
-            Add("C3_SimulateKeys", true);
-            Add("C3_Enabled", false);
+            foreach (GAction c in Enum.GetValues<GAction>())
+            {
+                if (c < GAction.C3 || c > GAction.C6)
+                    continue;
 
-            //Custom4
-            Add("C4_Name", "unset");
-            Add("C4_Function", "");
-            Add("C4_SimulateKeys", true);
-            Add("C4_Enabled", false);
-
-            //Custom5
-            Add("C5_Name", "unset");
-            Add("C5_Function", "");
-            Add("C5_SimulateKeys", true);
-            Add("C5_Enabled", false);
-
-            //Custom6
-            Add("C6_Name", "unset");
-            Add("C6_Function", "");
-            Add("C6_SimulateKeys", true);
-            Add("C6_Enabled", false);
+                Add($"{c}_Name", "unset");
+                Add($"{c}_Function", "");
+                Add($"{c}_SimulateKeys", true);
+                //Add($"{c}_Enabled", false);
+            }
 
             LoadSettings();
         }
 
-        private void Add(string name, double defaultValue, double displayFactor)
-        { numValues[name] = new NumericValue(defaultValue, displayFactor, name); }
+        private void Add(GAction rnum, double defaultValue, double displayFactor) => Add(rnum.ToString(), defaultValue, displayFactor);
+        private void Add(string name, double defaultValue, double displayFactor) => iValues[name] = new NumericValue(defaultValue, displayFactor, name); 
+        private void Add(string name, bool defaultValue)=> iValues[name] = new BooleanValue(defaultValue, name); 
+        private void Add(string name, string defaultValue) =>iValues[name] = new TextValue(defaultValue, name);
+        private void Add(string name, GAction defaultValue)=>  iValues[name] = new TextValue(defaultValue.ToString(), name); 
+        private void Add(GButton button, GAction defaultValue) => Add(button.ToString(), defaultValue);
 
-        private void Add(string name, bool defaultValue)
-        { boolValues[name] = new BooleanValue(defaultValue, name); }
+        public IValue this[string name] => iValues.TryGetValue(name, out var v)  ? v  : throw new KeyNotFoundException($"No setting with the name '{name}' was found.");
 
-        private void Add(string name, string defaultValue) 
-        {textValues[name] = new TextValue(defaultValue, name);}
+        public IEnumerator<IValue> GetEnumerator() => iValues.Values.GetEnumerator();
 
-        private void Add(string name, ActionEnum defaultValue)
-        { textValues[name] = new TextValue(defaultValue.ToString(), name); }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+ 
 
-        public IValue this[string name]
+        #region Bindings
+
+        public double BindNumeric(GAction key, Action<double> assign) => BindNumeric(key.ToString(), assign);
+
+        public double BindNumeric(string key, Action<double> assign)
         {
-            get
-            {
-                if (numValues.TryGetValue(name, out var num))
-                    return num;
-                if (boolValues.TryGetValue(name, out var b))
-                    return b;
-                if (textValues.TryGetValue(name, out var s))
-                    return s;
-
-                throw new KeyNotFoundException($"No setting with the name '{name}' was found.");
-            }
+            var nv = iValues[key] as NumericValue;
+            nv.ValueChanged += (s, val) => assign(val);
+            assign(nv.Value);
+            return nv.Value;
         }
 
-        public IEnumerable<NumericValue> AllNumValues => numValues.Values;
+        public bool BindBoolean(string key, Action<bool> assign)
+        {
+            var bv = iValues[key] as BooleanValue;
+            bv.ValueChanged += (s, val) => assign((bool)val);
+            assign(bv.Value);
+            return bv.Value;
+        }
 
-        public IEnumerable<BooleanValue> AllBoolValues => boolValues.Values;
+        public string BindText(string key, Action<string> assign)
+        {
+            var tv = iValues[key] as TextValue;
+            tv.ValueChanged += (s, val) => assign(val);
+            assign(tv.Value);
+            return tv.Value;
+        }
 
-        public IEnumerable<TextValue> AllTextValues => textValues.Values;
+        public GAction BindAction(GButton key, Action<string> assign)=> Enum.Parse<GAction>(BindText(key.ToString(), assign));
+
+        #endregion
 
         public void SaveSettings()
         {
@@ -140,14 +139,15 @@ namespace Daxs
 
             PersistentSettings settings = PlugIn.GetPluginSettings(id, true);
 
-            foreach (NumericValue nV in numValues.Values)
-                settings.SetDouble(nV.Name, nV.Value);
-
-            foreach (BooleanValue bV in boolValues.Values) 
-                settings.SetBool(bV.Name, bV.Value);
-
-            foreach (TextValue nV in textValues.Values)
-                settings.SetString(nV.Name, nV.Value);
+            foreach (IValue iVal in iValues.Values)
+            {
+                if(iVal is NumericValue nV)
+                    settings.SetDouble(nV.Name, nV.Value);
+                else if(iVal is BooleanValue bV)
+                    settings.SetBool(bV.Name, bV.Value);
+                else if (iVal is TextValue tV)
+                    settings.SetString(tV.Name, tV.Value);
+            }
 
             PlugIn.SavePluginSettings(id);
             RhinoApp.WriteLine($"settings saved.");
@@ -159,14 +159,15 @@ namespace Daxs
 
             PersistentSettings settings = PlugIn.GetPluginSettings(id, true);
 
-            foreach (NumericValue nV in numValues.Values)
-                nV.Value = settings.GetDouble(nV.Name, nV.Value);
-
-            foreach (BooleanValue bV in boolValues.Values)
-                bV.Value = settings.GetBool(bV.Name, bV.Value);
-
-            foreach (TextValue sV in textValues.Values)
-                sV.Value = settings.GetString(sV.Name, sV.Value);
+            foreach (IValue iVal in iValues.Values)
+            {
+                if (iVal is NumericValue nV)
+                    nV.Value = settings.GetDouble(nV.Name, nV.Value);
+                else if (iVal is BooleanValue bV)
+                    bV.Value = settings.GetBool(bV.Name, bV.Value);
+                else if (iVal is TextValue sV)
+                    sV.Value = settings.GetString(sV.Name, sV.Value);
+            }
 
             RhinoApp.WriteLine($"settings loaded.");
         }

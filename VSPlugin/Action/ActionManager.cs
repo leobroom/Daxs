@@ -1,92 +1,73 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using System;
 using System.Linq;
+using System.Collections.Generic;
+using Rhino;
 
 namespace Daxs
 {
     internal class ActionManager
     {
         private static readonly Lazy<ActionManager> _instance = new(() => new ActionManager());
-
         public static ActionManager Instance => _instance.Value;
-
+        private readonly Settings settings = Settings.Instance;
         public ActionManager()
         {
-            ApplyDefaultBindings();
+            Speedmulti = settings.BindNumeric(GAction.Speedmulti, v => Speedmulti = v);
+            RotSpeedmulti = settings.BindNumeric(GAction.RotSpeedMulti, v => RotSpeedmulti = v);
+
+            foreach (GButton button in Enum.GetValues<GButton>())
+            {
+                if (button == GButton.Unset)
+                    continue;
+
+                actionBindingTable[button] = settings.BindAction(button, v =>
+                {
+                    GAction aEnum = Enum.Parse<GAction>(v);
+                    actionBindingTable[button] = aEnum;
+                    ResetButtonBinding(aEnum, button);
+                });
+            }
+
         }
 
-        public void ApplyDefaultBindings()
+        readonly Dictionary<GButton, GAction> actionBindingTable = new ();
+        readonly Dictionary<GAction, GButton> buttonBindingTable = new ();
+        readonly Dictionary<GAction, IAction> actionTable = new ()
         {
-            // Clear current tables
-            actionTable.Clear();
-            stateTable.Clear();
+            { GAction.C1,        new RhinoCustomAction(InputX.IsDown,GAction.C1)},
+            { GAction.C2,        new RhinoCustomAction(InputX.IsDown,GAction.C2)},
+            { GAction.C3,        new RhinoCustomAction(InputX.IsDown,GAction.C3) },
+            { GAction.C4,        new RhinoCustomAction(InputX.IsDown,GAction.C4) },
+            { GAction.C5,        new RhinoCustomAction(InputX.IsDown,GAction.C5) },
+            { GAction.C6,        new RhinoCustomAction(InputX.IsDown,GAction.C6) },
+            { GAction.LensPlus,  new LensAction(InputX.IsDown,InputY.Up ) },
+            { GAction.LensMinus, new LensAction( InputX.IsDown,InputY.Down) },
+            { GAction.LensDefault,new LensAction(InputX.IsDown,InputY.Default ) },
+            { GAction.SwitchMode, new SwitchAction(InputX.IsDown) },
+        };
 
+        private void ResetButtonBinding(GAction action, GButton button) 
+        {
+            foreach (var key in buttonBindingTable.Where(kv => kv.Value.Equals(button)).Select(kv => kv.Key).ToList()) 
+                buttonBindingTable.Remove(key);
 
-
-
-            //ActionManager Default
-            RegisterAction(new RhinoCustomAction(GButton.Start, InputX.IsDown, "_Daxs_Settings", true));
-            RegisterAction(new RhinoCustomAction(GButton.B, InputX.IsDown, "_ViewCaptureToFile", true));
-            RegisterAction(new SwitchAction(GButton.DPadUp, InputX.IsDown));
-            RegisterAction(new LensAction(GButton.DPadRight, InputX.IsDown, InputY.Up, 1));
-            RegisterAction(new LensAction(GButton.DPadLeft, InputX.IsDown, InputY.Down, 1));
-            RegisterAction(new LensAction(GButton.DPadDown, InputX.IsDown, InputY.Default, 35));
-
-            //SpeedMulti
-            RegisterState(new State(GButton.L3, InputX.IsDown, AProperty.Speedmulti, "Speedmulti", 3.00));
-            RegisterState(new State(GButton.R3, InputX.IsDown, AProperty.RotSpeedMulti, "RotSpeedMulti", 3.00));
-
-            //Elevator
-            RegisterState(new State(GButton.L2, InputX.IsDown, AProperty.ElevateDown, "Elevate Down", 1.00));
-            RegisterState(new State(GButton.R2, InputX.IsDown, AProperty.ElevateUp, "Elevate Up", 1.00));
-
-            //Teleport
-            RegisterState(new State(GButton.L1, InputX.IsDown, AProperty.TeleportDown, "Teleport Down", 1.00));
-            RegisterState(new State(GButton.R1, InputX.IsDown, AProperty.TeleportUp, "Teleport Up", 1.00));
+            buttonBindingTable[action]  =button;
         }
-
-
-
-        private readonly Dictionary<GButton, IAction> actionTable = new();
-        private readonly Dictionary<AProperty, IState> stateTable = new();
-
-
 
         private GamepadState state = new();
 
         private readonly HUD hud = HUD.Instance;
 
-        public void RegisterAction(IAction dAction) => actionTable[dAction.Button] = dAction;
-
-        public void RegisterState(State state) => stateTable[state.Name] = state;
-
-        internal List<IBase> GetActions() => actionTable.Values.Select(a => (IBase)a).ToList();
-
-        internal void SetActions(Dictionary<GButton,  IAction> newActions)
-        {
-            actionTable.Clear();
-
-            foreach (var kv in newActions)
-                actionTable[kv.Key] = kv.Value;
-        }
-
-        internal List<IBase> GetStates() => stateTable.Values.Select(a => (IBase)a).ToList();
-
-
-        internal void SetStates(Dictionary<AProperty, IState> newStates)
-        {
-            stateTable.Clear();
-
-            foreach (var key in newStates.Keys)
-                stateTable[key]= newStates[key];
-        }
-
-        internal bool HasActionsOnMainThread() => actionTable.Any(pair => GetButtonState(pair.Key) == pair.Value.Input);
+        internal bool HasActionsOnMainThread() => actionBindingTable.Any(pair => GetButtonState(pair.Key) == actionTable[pair.Value].Input);
+        
         internal void ExecuteActionsOnMainThread()
         {
-            foreach (var (button, action) in actionTable)
+            foreach (var (button, actionEnum) in actionBindingTable)
             {
-                if (GetButtonState(button) == action.Input)
+                IAction action = actionTable[actionEnum];
+
+                if (GetButtonState(button) == actionTable[actionEnum].Input)
                 {
                     hud.SetText(action.HUD_Name, 2000);
                     action.Execute();
@@ -128,13 +109,12 @@ namespace Daxs
 
         internal void Update(GamepadState state) => this.state = state;
 
-        public double Speedmulti => stateTable.TryGetValue(AProperty.Speedmulti, out var state) && GetButtonState(state.Button) == state.Input ? (double)state.Value : 1;
+        public double Speedmulti { get; private set; }
+        public double RotSpeedmulti { get; private set; }
 
-        public double RotSpeedmulti => stateTable.TryGetValue(AProperty.RotSpeedMulti, out var state) && GetButtonState(state.Button) == state.Input ? (double)state.Value : 1;
+        public float ElevateUp => buttonBindingTable.TryGetValue(GAction.ElevatePlus, out var button) ? GetValueState(button) : 0;
 
-        public float ElevateUp => stateTable.TryGetValue(AProperty.ElevateUp, out var state) ? GetValueState(state.Button) : 0;
-
-        public float ElevateDown => stateTable.TryGetValue(AProperty.ElevateDown, out var state) ? GetValueState(state.Button) : 0;
+        public float ElevateDown => buttonBindingTable.TryGetValue(GAction.ElevateMinus, out var button) ? GetValueState(button) : 0;
 
         public InputY Teleport
         {
@@ -142,28 +122,13 @@ namespace Daxs
             {
                 InputY jDir = InputY.Default;
 
-                if (stateTable.TryGetValue(AProperty.TeleportUp, out var buttonR) && GetButtonState(buttonR.Button) == buttonR.Input)
+                if (buttonBindingTable.TryGetValue(GAction.TeleportPlus, out var buttonR) && GetButtonState(buttonR) == actionTable[GAction.TeleportPlus].Input)
                     jDir = InputY.Up;
-                else if (stateTable.TryGetValue(AProperty.TeleportDown, out var buttonL) && GetButtonState(buttonL.Button) == buttonR.Input)
+                else if (buttonBindingTable.TryGetValue(GAction.TeleportMinus, out var buttonL) && GetButtonState(buttonL) == actionTable[GAction.TeleportMinus].Input)
                     jDir = InputY.Down;
                 return jDir;
 
             }
         }
-    }
-
-    public enum AProperty
-    {
-        Unset,
-        Speedmulti,
-        RotSpeedMulti,
-        ElevateUp,
-        ElevateDown,
-        TeleportUp,
-        TeleportDown,
-        DaxSettings,
-        Custom,
-        Switch,
-        Lens
     }
 }
