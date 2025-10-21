@@ -78,7 +78,7 @@ namespace Daxs
                 if (c < GAction.C3 || c > GAction.C6)
                     continue;
 
-                Add($"{c}_Name", "unset");
+                Add($"{c}_Name", "");
                 Add($"{c}_Function", "");
                 Add($"{c}_SimulateKeys", true);
                 //Add($"{c}_Enabled", false);

@@ -17,9 +17,9 @@ namespace Daxs
             return new TableCell(label);
         }
 
-        internal static TableLayout CreateLayout() 
+        internal static DynamicLayout CreateLayout() 
         {
-            return new TableLayout
+            return new DynamicLayout
             {
                 Padding = new Padding(10, 0, 0, 0),
                 Spacing = new Size(5, 5)

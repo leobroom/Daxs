@@ -78,7 +78,7 @@ namespace Daxs
                 "ElevateSpeed"
             };
 
-            rows.AddRange(CreateLayout("Input Response", input));
+            rows.Add(CreateLayout("Input Response", input));
 
             string[] hud =
             {
@@ -86,7 +86,7 @@ namespace Daxs
                 "TextVisible",
             };
 
-            rows.AddRange(CreateLayout("HUD", hud));
+            rows.Add(CreateLayout("HUD", hud));
 
             string[] walk =
             {
@@ -94,13 +94,17 @@ namespace Daxs
                 "MaximalJump",
             };
 
-            rows.AddRange(CreateLayout("WalkMode", walk));
+            rows.Add(CreateLayout("WalkMode", walk));
 
-            rows.Add(new LabelSeparator { Text = "Input Layout" });
+            var inputLayoutExpander = new Expander
+            {
+                Header = new Label { Text = "Input Layout" },
+                Content = AddButtonDropdowns(),
+                Expanded = false
+            };
+            rows.Add(new TableRow(inputLayoutExpander));
 
-            rows.Add(AddButtonDropdowns());
-
-            rows.AddRange(CreateCustom());
+            rows.Add(CreateCustom());
 
             foreach (TableRow row in rows)
                 content.Rows.Add(row);
@@ -156,19 +160,25 @@ namespace Daxs
             }
         }
 
-        private TableRow[] CreateLayout(string title, string[] names)
+        private TableRow CreateLayout(string title, string[] names)
         {
-            TableLayout layout = EtoFactory.CreateLayout();
+            var layout = EtoFactory.CreateLayout();
 
             foreach (var name in names)
-                layout.Rows.Add(CreateControl(name));
+                layout.Add(CreateControl(name));
 
-            LabelSeparator seperator = new() { Text = title };
+            var expander = new Expander
+            {
+                Header = new Label { Text = title },
+                Content = layout,
+                Expanded = false, // collapsed by default
+                Padding = new Padding(0, 0, 0, 0)
+            };
 
-            TableRow[] result = { seperator, layout };
-
-            return result;
+            return new TableRow(expander);
         }
+
+
 
         TableRow CreateControl(string settingsName, string labelName ="")
         {
@@ -245,37 +255,65 @@ namespace Daxs
             };
         }
 
-        TableRow[] CreateCustom()
+
+        TableRow CreateCustom()
         {
-
-
-
-            var layout = new DynamicLayout 
+            int cCount = 6;
+            var innerLayout = new DynamicLayout
             {
-                Padding = new Padding(0, 0, 0, 0),
-                Spacing = new Size(5, 5) 
+                Padding = new Padding(10, 0, 0, 0),
+                Spacing = new Size(5, 5)
             };
 
-            layout.Add(CreateControl("C1_Name", "Name"));
-            layout.Add(CreateControl("C1_Function", "RhinoScript"));
-            layout.Add(CreateControl("C1_SimulateKeys", "Simulate keys"));
-
-
-            var expander = new Expander
+            for (int i = 1; i <= cCount; i++)
             {
-                Header = new Label { Text = "Custom 1" },
-                Content = layout,
-                Expanded = true,
+                var layout = new DynamicLayout
+                {
+                    Padding = new Padding(10, 0, 0, 0),
+                    Spacing = new Size(5, 5)
+                };
+
+                TableRow nRow = CreateControl($"C{i}_Name", "Name");
+                layout.Add(nRow);
+                layout.Add(CreateControl($"C{i}_Function", "RhinoScript"));
+                layout.Add(CreateControl($"C{i}_SimulateKeys", "Simulate keys"));
+
+                var tBox = (TextBox)nRow.Cells[1].Control;
+
+                string CreateTxt() => $"Custom {i}{(string.IsNullOrEmpty(tBox.Text) ? "" : " - ")}{tBox.Text}";
+                var headerLabel = new Label { Text = CreateTxt() };
+
+                var subExpander = new Expander
+                {
+                    Header = headerLabel,
+                    Content = layout,
+                    Expanded = false,
+                    Padding = new Padding(0, 0, 0, 0),
+                };
+
+                tBox.TextChanged += (sender, e) => headerLabel.Text = CreateTxt();
+
+                innerLayout.Add(subExpander);
+            }
+
+            var mainExpander = new Expander
+            {
+                Header = new Label
+                {
+                    Text = "Custom Commands",
+                    Font = SystemFonts.Bold(SystemFonts.Default().Size + 1)
+                },
+                Content = innerLayout,
+                Expanded = false,
                 Padding = new Padding(0, 0, 0, 0),
             };
 
-            var row = new TableRow(expander);
-            return new[] { row };
+            return new TableRow(mainExpander);
         }
 
         #region Dropdown
 
-        private TableLayout AddButtonDropdowns()
+        private DynamicLayout AddButtonDropdowns()
         {
             var inputLayout = EtoFactory.CreateLayout();
 
@@ -285,7 +323,7 @@ namespace Daxs
                     continue;
 
                 var tB = CreateActionDropdown(button);
-                inputLayout.Rows.Add(tB);
+                inputLayout.Add(tB);
             }
 
             SyncActionDropDowns();
