@@ -96,8 +96,6 @@ namespace Daxs
             rows.Add(EtoFactory.CreateContentExpander("Input Layout", AddButtonDropdowns(), true));
             rows.Add(CreateCustom());
 
-
-
             foreach (TableRow row in rows)
                 content.Rows.Add(row);
             //Github
@@ -125,7 +123,6 @@ namespace Daxs
             // Add a spacer + link row to the scroll content
             content.Rows.Add(new TableRow { ScaleHeight = true }); // pushes the link to the bottom
             content.Rows.Add(new TableRow(githubLink));
-            
 
             var scroll = new Scrollable
             { 
