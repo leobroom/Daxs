@@ -112,7 +112,6 @@ namespace Daxs
             assign(nv.Value);
             return nv.Value;
         }
-
         public bool BindBoolean(string key, Action<bool> assign)
         {
             var bv = iValues[key] as BooleanValue;

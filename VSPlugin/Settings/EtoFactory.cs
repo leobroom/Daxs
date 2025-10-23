@@ -27,7 +27,6 @@ namespace Daxs
             };
         }
 
-
         internal static TableRow CreateControlRow(string labelName, Control control) 
         {
             var label = CreateLabel(labelName);
@@ -37,8 +36,6 @@ namespace Daxs
         internal static Expander CreateExpander(string title, Control content, bool expanded = false)
         {
             var label = new Label { Text = title };
-            //if (bold)
-            //    label.Font = SystemFonts.Bold(SystemFonts.Default().Size + 1);
 
             return new Expander
             {
@@ -75,26 +72,12 @@ namespace Daxs
             return new TableRow(layout);
         }
 
-        internal static Expander CreateCustomExpander(string header, DynamicLayout content, TextBox boundTextBox)
-        {
-            var label = new Label { Text = header };
-            string MakeHeader() => $"{header}{(string.IsNullOrEmpty(boundTextBox.Text) ? "" : " - ")}{boundTextBox.Text}";
-            boundTextBox.TextChanged += (_, _) => label.Text = MakeHeader();
 
-            return new Expander
-            {
-                Header = label,
-                Content = content,
-                Expanded = false,
-                Padding = new Padding(0, 0, 0, 0)
-            };
-        }
 
         internal static TableRow CreateContentExpander(string title, Control content, bool expanded = false)
         {
             var expander = CreateExpander(title, content, expanded);
             return new TableRow(expander);
         }
-
     }
 }

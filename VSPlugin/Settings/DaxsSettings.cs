@@ -94,8 +94,9 @@ namespace Daxs
             rows.Add(EtoFactory.CreateGroupExpander("HUD", hud, name => CreateControl(name), true));
             rows.Add(EtoFactory.CreateGroupExpander("WalkMode", walk, name => CreateControl(name), true));
             rows.Add(EtoFactory.CreateContentExpander("Input Layout", AddButtonDropdowns(), true));
-
             rows.Add(CreateCustom());
+
+
 
             foreach (TableRow row in rows)
                 content.Rows.Add(row);
@@ -256,15 +257,51 @@ namespace Daxs
                 layout.Add(CreateControl($"C{i}_SimulateKeys", "Simulate keys"));
 
                 var textBox = (TextBox)nameRow.Cells[1].Control;
-                var subExpander = EtoFactory.CreateCustomExpander($"Custom {i}", layout, textBox);
+                var subExpander = CreateCustomExpander($"Custom {i}", $"C{i}" , layout, textBox);
 
                 innerLayout.Add(subExpander);
             }
 
             var mainExpander = EtoFactory.CreateExpander("Custom Commands", innerLayout, expanded: false);
+
             return new TableRow(mainExpander);
         }
 
+        internal Expander CreateCustomExpander(string header, string tag, DynamicLayout content, TextBox boundTextBox)
+        {
+            Label label = new();
+            string MakeHeader() => $"{header}{(string.IsNullOrEmpty(boundTextBox.Text) ? "" : " - ")}{boundTextBox.Text}";
+
+            label.Text = MakeHeader();
+            label.Tag = tag;
+            SyncCustomNames();
+
+
+            void SyncCustomNames()
+            {
+                string tag = (string)label.Tag;
+                GAction action = Enum.Parse<GAction>(tag);
+                actionTable[action] = label.Text;
+
+                SyncActionDropDowns();
+            }
+            ;
+
+            boundTextBox.TextChanged += (_, _) =>
+                {
+
+                    label.Text = MakeHeader();
+                    SyncCustomNames();
+                };
+
+            return new Expander
+            {
+                Header = label,
+                Content = content,
+                Expanded = false,
+                Padding = new Padding(0, 0, 0, 0)
+            };
+        }
 
         #region Dropdown
 
