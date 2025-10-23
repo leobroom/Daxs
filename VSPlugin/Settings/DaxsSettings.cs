@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Eto.Forms;
 using Eto.Drawing;
 using System.Reflection;
-using Rhino.UI.Controls;
+
 
 namespace Daxs
 {
@@ -41,7 +41,7 @@ namespace Daxs
         public DaxsSettings()
         {
             Title = "Daxs Gamepad Settings";
-            ClientSize = new Size(500, 800);
+            ClientSize = new Size(500, 700);
             Resizable = false;
 
             CreateUi();
@@ -62,7 +62,7 @@ namespace Daxs
             var content = new TableLayout
             {
                 Padding = new Padding(10, 10, 0, 10),
-                Spacing = new Size(5, 10),
+                Spacing = new Size(5, 10),    
             };
 
             List<TableRow> rows = new();
@@ -78,15 +78,11 @@ namespace Daxs
                 "ElevateSpeed"
             };
 
-            rows.Add(CreateLayout("Input Response", input));
-
             string[] hud =
             {
                 "TextTime",
                 "TextVisible",
             };
-
-            rows.Add(CreateLayout("HUD", hud));
 
             string[] walk =
             {
@@ -94,32 +90,55 @@ namespace Daxs
                 "MaximalJump",
             };
 
-            rows.Add(CreateLayout("WalkMode", walk));
-
-            var inputLayoutExpander = new Expander
-            {
-                Header = new Label { Text = "Input Layout" },
-                Content = AddButtonDropdowns(),
-                Expanded = false
-            };
-            rows.Add(new TableRow(inputLayoutExpander));
+            rows.Add(EtoFactory.CreateGroupExpander("Input Response", input, name => CreateControl(name),true));
+            rows.Add(EtoFactory.CreateGroupExpander("HUD", hud, name => CreateControl(name), true));
+            rows.Add(EtoFactory.CreateGroupExpander("WalkMode", walk, name => CreateControl(name), true));
+            rows.Add(EtoFactory.CreateContentExpander("Input Layout", AddButtonDropdowns(), true));
 
             rows.Add(CreateCustom());
 
             foreach (TableRow row in rows)
                 content.Rows.Add(row);
+            //Github
+            var githubLink = new Label
+            {
+                Text = "© 2025 Leon Brohmann - Licensed under the MIT License - View on GitHub",
+                Cursor = Cursors.Pointer,
+        
+                VerticalAlignment = VerticalAlignment.Bottom,
+                TextAlignment = TextAlignment.Center,
+            };
+            githubLink.MouseDown += (s, e) =>
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "https://github.com/leobroom/Daxs",
+                        UseShellExecute = true
+                    });
+                }
+                catch { }
+            };
 
-     
-            //Scroll
-            var scroll = new Scrollable{ Content = content, ExpandContentWidth = true, ExpandContentHeight = false };
+            // Add a spacer + link row to the scroll content
+            content.Rows.Add(new TableRow { ScaleHeight = true }); // pushes the link to the bottom
+            content.Rows.Add(new TableRow(githubLink));
+            
+
+            var scroll = new Scrollable
+            { 
+                Content = content, 
+                ExpandContentWidth = true, 
+                ExpandContentHeight = false,
+            };
 
             var page = new TableLayout
             {
                 Padding = 10,
-                Spacing = new Size(5, 10)
+                Spacing = new Size(5, 10),
             };
 
-            // scrollable region grows, shows vertical scrollbar when needed
             page.Rows.Add(new TableRow(scroll) { ScaleHeight = true });
             page.Rows.Add(CreateDialogButtons());
 
@@ -160,26 +179,6 @@ namespace Daxs
             }
         }
 
-        private TableRow CreateLayout(string title, string[] names)
-        {
-            var layout = EtoFactory.CreateLayout();
-
-            foreach (var name in names)
-                layout.Add(CreateControl(name));
-
-            var expander = new Expander
-            {
-                Header = new Label { Text = title },
-                Content = layout,
-                Expanded = false, // collapsed by default
-                Padding = new Padding(0, 0, 0, 0)
-            };
-
-            return new TableRow(expander);
-        }
-
-
-
         TableRow CreateControl(string settingsName, string labelName ="")
         {
             IValue val = settings[settingsName];
@@ -214,25 +213,12 @@ namespace Daxs
 
         TableRow CreateDialogButtons()
         {
-            okButton = new Button { Text = "CLOSE", Command = new Command((s, e) => OnOk()) };
-
-            var layout = new TableLayout
+            okButton = new Button { Text = "CLOSE", Command = new Command((_, _) => OnOk()) };
+            return EtoFactory.CreateButtonRow(new[]
             {
-                Padding = 10,
-                Spacing = new Size(5, 5),
-                Rows =
-                {
-                    null,
-                    new TableRow
-                    (
-                        null,
-                        new TableCell(new Button { Text = "DEFAULT", Command = new Command((s, e) => OnDefault()) }, false),
-                        new TableCell(okButton, false)
-                    )
-                }
-            };
-
-            return new TableRow(layout);
+                ("DEFAULT", (Action)OnDefault),
+                ("CLOSE", (Action)OnOk)
+            });
         }
 
         static ImageView CreateControllerImage(int targetWidth)
@@ -255,61 +241,30 @@ namespace Daxs
             };
         }
 
-
         TableRow CreateCustom()
         {
             int cCount = 6;
-            var innerLayout = new DynamicLayout
-            {
-                Padding = new Padding(10, 0, 0, 0),
-                Spacing = new Size(5, 5)
-            };
+            var innerLayout = EtoFactory.CreateLayout();
 
             for (int i = 1; i <= cCount; i++)
             {
-                var layout = new DynamicLayout
-                {
-                    Padding = new Padding(10, 0, 0, 0),
-                    Spacing = new Size(5, 5)
-                };
+                var layout = EtoFactory.CreateLayout();
 
-                TableRow nRow = CreateControl($"C{i}_Name", "Name");
-                layout.Add(nRow);
+                TableRow nameRow = CreateControl($"C{i}_Name", "Name");
+                layout.Add(nameRow);
                 layout.Add(CreateControl($"C{i}_Function", "RhinoScript"));
                 layout.Add(CreateControl($"C{i}_SimulateKeys", "Simulate keys"));
 
-                var tBox = (TextBox)nRow.Cells[1].Control;
-
-                string CreateTxt() => $"Custom {i}{(string.IsNullOrEmpty(tBox.Text) ? "" : " - ")}{tBox.Text}";
-                var headerLabel = new Label { Text = CreateTxt() };
-
-                var subExpander = new Expander
-                {
-                    Header = headerLabel,
-                    Content = layout,
-                    Expanded = false,
-                    Padding = new Padding(0, 0, 0, 0),
-                };
-
-                tBox.TextChanged += (sender, e) => headerLabel.Text = CreateTxt();
+                var textBox = (TextBox)nameRow.Cells[1].Control;
+                var subExpander = EtoFactory.CreateCustomExpander($"Custom {i}", layout, textBox);
 
                 innerLayout.Add(subExpander);
             }
 
-            var mainExpander = new Expander
-            {
-                Header = new Label
-                {
-                    Text = "Custom Commands",
-                    Font = SystemFonts.Bold(SystemFonts.Default().Size + 1)
-                },
-                Content = innerLayout,
-                Expanded = false,
-                Padding = new Padding(0, 0, 0, 0),
-            };
-
+            var mainExpander = EtoFactory.CreateExpander("Custom Commands", innerLayout, expanded: false);
             return new TableRow(mainExpander);
         }
+
 
         #region Dropdown
 
