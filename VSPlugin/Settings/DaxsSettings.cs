@@ -5,7 +5,6 @@ using Eto.Forms;
 using Eto.Drawing;
 using System.Reflection;
 
-
 namespace Daxs
 {
     public class DaxsSettings : Dialog<bool>

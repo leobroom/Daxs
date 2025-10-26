@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 
 using Rhino;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using SDL3;
 
 namespace Daxs
 {
@@ -13,6 +15,24 @@ namespace Daxs
         private ControllerManager()
         {
             RhinoApp.Closing += (sender, e) => { settings.SaveSettings(); };
+
+
+            //TEST SDL3
+
+            string sdl3pth = Utils.GetSharedFile("SDL3.dll");
+
+            RhinoApp.WriteLine(sdl3pth);
+
+
+            NativeLibrary.Load(sdl3pth);
+
+            if (!SDL.Init(SDL.InitFlags.Gamepad))
+            {
+                RhinoApp.WriteLine($"SDL init failed: {SDL.GetError()}");
+                return;
+            }else
+                RhinoApp.WriteLine($"SDL init success! {SDL.GetVersion()}");
+
         }
 
         private readonly ActionManager actions = ActionManager.Instance;
