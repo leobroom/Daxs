@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Rhino.PlugIns;
 using Rhino;
 using System.Collections;
+using static SDL3.SDL;
 
 namespace Daxs
 {
@@ -128,7 +129,7 @@ namespace Daxs
             return tv.Value;
         }
 
-        public GAction BindAction(GButton key, Action<string> assign)=> Enum.Parse<GAction>(BindText(key.ToString(), assign));
+        public GAction BindAction(GamepadButton key, Action<string> assign)=> Enum.Parse<GAction>(BindText(key.ToString(), assign));
 
         #endregion
 

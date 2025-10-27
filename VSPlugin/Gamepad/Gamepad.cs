@@ -1,39 +1,41 @@
-﻿namespace Daxs
-{
-    public abstract class Gamepad : IGamepad
-    {
-        public abstract bool IsConnected { get; }
+﻿using System;
 
-        protected GamepadState current;
-        protected GamepadState previous = new();
+//namespace Daxs
+//{
+//    public abstract class Gamepad : IGamepad
+//    {
+//        public abstract bool IsConnected { get; }
 
-        public abstract GamepadState GetState();
+//        protected GamepadState current;
+//        protected GamepadState previous = new(IntPtr.Zero);
 
-        protected static InputX GetInputState(bool input, InputX previous)
-        {
-            if (input && (previous == InputX.IsUnset || previous == InputX.IsReleased))
-                return InputX.IsDown;
-            else if (input && (previous == InputX.IsDown || previous == InputX.IsHold))
-                return InputX.IsHold;
-            else if (!input && (previous == InputX.IsDown || previous == InputX.IsHold))
-                return InputX.IsReleased;
-            else
-                return InputX.IsUnset;
-        }
+//        public abstract GamepadState GetState();
 
-        internal static IGamepad TryGetGamepad()
-        {
-            var xbox = new XboxGamepad();
-            if (xbox.IsConnected)
-                return xbox;
-            else
-            {
-                var ps4 = new PS4Gamepad();
-                if (ps4.IsConnected)
-                    return ps4;
-            }
+//        protected static InputX GetInputState(bool input, InputX previous)
+//        {
+//            if (input && (previous == InputX.IsUnset || previous == InputX.IsReleased))
+//                return InputX.IsDown;
+//            else if (input && (previous == InputX.IsDown || previous == InputX.IsHold))
+//                return InputX.IsHold;
+//            else if (!input && (previous == InputX.IsDown || previous == InputX.IsHold))
+//                return InputX.IsReleased;
+//            else
+//                return InputX.IsUnset;
+//        }
 
-            return null;
-        }
-    }
-}
+//        //internal static IGamepad TryGetGamepad()
+//        //{
+//        //    var xbox = new XboxGamepad();
+//        //    if (xbox.IsConnected)
+//        //        return xbox;
+//        //    else
+//        //    {
+//        //        var ps4 = new PS4Gamepad();
+//        //        if (ps4.IsConnected)
+//        //            return ps4;
+//        //    }
+
+//        //    return null;
+//        //}
+//    }
+//}

@@ -1,6 +1,7 @@
 ﻿using Rhino;
 using System;
 using System.Runtime.InteropServices;
+using static SDL3.SDL;
 
 namespace Daxs
 {
@@ -18,29 +19,29 @@ namespace Daxs
             RhinoApp.InvokeOnUiThread((Action)(() =>
             {
                 //Enter
-                if (state.A == InputX.IsDown)
+                if (state.GetButtonState(GamepadButton.South) == InputX.IsDown)
                 {
                     hud.SetText("Enter", 2000);
                     SimulateKey(KEY_ENTER);
                 }
 
                 //Escape
-                if (state.B == InputX.IsDown || state.Start == InputX.IsDown)
+                if (state.GetButtonState(GamepadButton.East) == InputX.IsDown || state.GetButtonState(GamepadButton.Start) == InputX.IsDown)
                 {
                     hud.SetText("Escape", 2000);
                     SimulateKey(KEY_ESCAPE);
                 }
 
-                if (state.DPadRight == InputX.IsDown)
+                if (state.GetButtonState(GamepadButton.DPadRight) == InputX.IsDown)
                     SimulateKey(KEY_UP);
 
-                if (state.DPadLeft == InputX.IsDown)
+                if (state.GetButtonState(GamepadButton.DPadLeft) == InputX.IsDown)
                     SimulateKey(KEY_DOWN);
 
-                if (state.DPadUp == InputX.IsDown)
+                if (state.GetButtonState(GamepadButton.DPadUp) == InputX.IsDown)
                     SimulateCombinedKey(KEY_SHIFT, KEY_TAB);
 
-                if (state.DPadDown == InputX.IsDown)
+                if (state.GetButtonState(GamepadButton.DPadDown) == InputX.IsDown)
                     SimulateKey(KEY_TAB);
             }));
         }

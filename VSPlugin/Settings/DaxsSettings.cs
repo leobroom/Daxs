@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Eto.Forms;
 using Eto.Drawing;
 using System.Reflection;
+using static SDL3.SDL;
 
 namespace Daxs
 {
@@ -13,7 +14,7 @@ namespace Daxs
 
         private readonly Dictionary<string, Control> controlBoxes = new();
 
-        private readonly SortedDictionary<GButton, DropDown> inputActions = new SortedDictionary<GButton, DropDown>();
+        private readonly SortedDictionary<GamepadButton, DropDown> inputActions = new SortedDictionary<GamepadButton, DropDown>();
         private readonly SortedDictionary<GAction, string> actionTable = new SortedDictionary<GAction, string>()
         {
             { GAction.Unset, "Unset" },

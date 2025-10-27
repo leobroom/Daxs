@@ -2,6 +2,7 @@
 using Rhino;
 using Rhino.Geometry;
 using Rhino.Display;
+using static SDL3.SDL;
 
 namespace Daxs
 {
@@ -57,8 +58,15 @@ namespace Daxs
 
             double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
 
-            var (yaw, pitch) = NormalizeStick(state.RightThumbX, state.RightThumbY);
-            var (strafe, forward) = NormalizeStick(state.LeftThumbX, state.LeftThumbY);
+
+            //var (yaw, pitch) = NormalizeStick(state.RightThumbX, state.RightThumbY);
+            var yaw = state.GetAxisValue(GamepadAxis.RightX);
+            var pitch = state.GetAxisValue(GamepadAxis.RightY);
+
+            //var (strafe, forward) = NormalizeStick(state.LeftThumbX, state.LeftThumbY);
+
+            var strafe = state.GetAxisValue(GamepadAxis.LeftX);
+            var forward = state.GetAxisValue(GamepadAxis.LeftY);
 
             InputY teleport = actionManager.Teleport;
 
