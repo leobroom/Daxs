@@ -158,6 +158,8 @@ namespace Daxs
                     // Update the camera on the UI thread.                    
                     layout.CurrentLayout.HandleInput(gamepad, delta);
 
+            
+
                     //bool startBtn = SDL.GetGamepadButton(gamepadID, GamepadButton.Start);
                     //bool aBtn = SDL.GetGamepadButton(gamepadID, GamepadButton.South);
 

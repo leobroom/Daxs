@@ -64,6 +64,12 @@ namespace Daxs
             var (yaw, pitch) = NormalizeStick(state.GetAxisValue(GamepadAxis.RightX), state.GetAxisValue(GamepadAxis.RightY));
             var (strafe, forward) = NormalizeStick(state.GetAxisValue(GamepadAxis.LeftX), state.GetAxisValue(GamepadAxis.LeftY));
 
+
+            RhinoApp.InvokeOnUiThread((Action)(() =>
+            {
+                InputY teleport = actionManager.Teleport;
+            }));
+
             //InputY teleport = actionManager.Teleport;
 
             //bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
@@ -126,7 +132,7 @@ namespace Daxs
             //        }
             //        else 
             //            ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
-        
+
             //        view.Redraw();
 
             //        _uiUpdatePending = false;
