@@ -64,50 +64,49 @@ namespace Daxs
             var (yaw, pitch) = NormalizeStick(state.GetAxisValue(GamepadAxis.RightX), state.GetAxisValue(GamepadAxis.RightY));
             var (strafe, forward) = NormalizeStick(state.GetAxisValue(GamepadAxis.LeftX), state.GetAxisValue(GamepadAxis.LeftY));
 
+            InputY teleport = actionManager.Teleport;
+
+            bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
+
+            if (!hasMoved && !_uiUpdatePending) //GetActual Campos
+            {
+                var vp = doc.Views.ActiveView.ActiveViewport;
+
+                Vector3d camDir = vp.CameraDirection; // Read current viewport camera
+                Vector3d right = Vector3d.CrossProduct(zAxis, camDir); // Turntable basis (use world up to remove roll)
+
+                if (!right.Unitize())
+                    right = Vector3d.XAxis; // guard near poles
+
+                camPlane = new Plane(vp.CameraLocation, camDir, right);
+
+                // Rebase angle accumulators to match viewport direction
+                double newYaw = Math.Atan2(camDir.Y, camDir.X);
+                double newPitch = Math.Asin(camDir.Z);
+
+                pitchAcc = GetPitch(newPitch);
+                yawAcc = newYaw;
+            }
+
+            if (hasMoved)
+            {
+                yawAcc += yaw * yawSensitivity * delta * rotSpeedMulti;
+                pitchAcc += pitch * pitchSensitivity * delta * rotSpeedMulti;
+                pitchAcc = GetPitch(pitchAcc);
+
+                // Rebuild basis from yaw/pitch (turntable, world-up = +Z)
+                double cy = Math.Cos(yawAcc);
+                double sy = Math.Sin(yawAcc);
+                double cp = Math.Cos(pitchAcc);
+                double sp = Math.Sin(pitchAcc);
+
+                camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti * moveSpeed, delta, teleport);
+            }
 
             RhinoApp.InvokeOnUiThread((Action)(() =>
             {
-                InputY teleport = actionManager.Teleport;
+                bool hasAction = actionManager.HasActionsOnMainThread();
             }));
-
-            //InputY teleport = actionManager.Teleport;
-
-            //bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
-
-            //if (!hasMoved && !_uiUpdatePending) //GetActual Campos
-            //{
-            //    var vp = doc.Views.ActiveView.ActiveViewport;
-
-            //    Vector3d camDir = vp.CameraDirection; // Read current viewport camera
-            //    Vector3d right = Vector3d.CrossProduct(zAxis, camDir); // Turntable basis (use world up to remove roll)
-
-            //    if (!right.Unitize())
-            //        right = Vector3d.XAxis; // guard near poles
-
-            //    camPlane = new Plane(vp.CameraLocation, camDir, right);
-
-            //    // Rebase angle accumulators to match viewport direction
-            //    double newYaw = Math.Atan2(camDir.Y, camDir.X);
-            //    double newPitch = Math.Asin(camDir.Z);
-
-            //    pitchAcc = GetPitch(newPitch);
-            //    yawAcc = newYaw;
-            //}
-
-            //if (hasMoved)
-            //{
-            //    yawAcc += yaw * yawSensitivity * delta * rotSpeedMulti;
-            //    pitchAcc += pitch * pitchSensitivity * delta * rotSpeedMulti;
-            //    pitchAcc = GetPitch(pitchAcc);
-
-            //    // Rebuild basis from yaw/pitch (turntable, world-up = +Z)
-            //    double cy = Math.Cos(yawAcc);
-            //    double sy = Math.Sin(yawAcc);
-            //    double cp = Math.Cos(pitchAcc);
-            //    double sp = Math.Sin(pitchAcc);
-
-            //    camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti * moveSpeed, delta, teleport);
-            //}
 
             //bool hasAction = actionManager.HasActionsOnMainThread();
             //if (hasAction)
@@ -115,7 +114,7 @@ namespace Daxs
             //    RhinoApp.InvokeOnUiThread((Action)(() => { actionManager.ExecuteActionsOnMainThread(); }));
             //}
 
-            //if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending )
+            //if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending)
             //{
             //    _uiUpdatePending = true;
 
@@ -126,11 +125,11 @@ namespace Daxs
 
             //        if (!vp.IsPlanView)
             //        {
-            //            RhinoApp.WriteLine("" + vp +" | " + forward + " | " + strafe + " | " + vertical + " | " + pitch + " | " + moveSpeed + " | " + delta);
+            //            RhinoApp.WriteLine("" + vp + " | " + forward + " | " + strafe + " | " + vertical + " | " + pitch + " | " + moveSpeed + " | " + delta);
             //            vp.SetCameraLocation(camPlane.Origin, true);
             //            vp.SetCameraDirection(camPlane.XAxis, true);
             //        }
-            //        else 
+            //        else
             //            ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
 
             //        view.Redraw();

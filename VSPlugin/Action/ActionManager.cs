@@ -32,7 +32,7 @@ namespace Daxs
 
             foreach (GamepadAxis axis in Enum.GetValues<GamepadAxis>())
             {
-                if (axis == GamepadAxis.Invalid)
+                if (axis == GamepadAxis.Invalid || axis == GamepadAxis.Count)
                     continue;
 
                 actionToAxisTable[axis] = settings.BindAction(axis, v =>
@@ -129,9 +129,9 @@ namespace Daxs
             {
                 InputY jDir = InputY.Default;
 
-                if (buttonBindingTable.TryGetValue(GAction.TeleportPlus, out var buttonR) && gamepad.GetButtonState(buttonR) == actionTable[GAction.TeleportPlus].Input)
+                if (buttonBindingTable.TryGetValue(GAction.TeleportPlus, out var buttonR) && gamepad.GetButtonState(buttonR) == InputX.IsDown)
                     jDir = InputY.Up;
-                else if (buttonBindingTable.TryGetValue(GAction.TeleportMinus, out var buttonL) && gamepad.GetButtonState(buttonL) == actionTable[GAction.TeleportMinus].Input)
+                else if (buttonBindingTable.TryGetValue(GAction.TeleportMinus, out var buttonL) && gamepad.GetButtonState(buttonL) == InputX.IsDown)
                     jDir = InputY.Down;
                 return jDir;
 
