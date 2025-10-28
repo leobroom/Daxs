@@ -39,28 +39,31 @@ namespace Daxs
             Add("LensStep", 1, 1);
             Add("LensDefault", 35, 1);
 
+            foreach (GamepadAxis a in Enum.GetValues<GamepadAxis>())
+                Add(a, GAction.Unset);
+
             //Gamepad
-            Add(GButton.A,GAction.Unset);
-            Add(GButton.B, GAction.C1);
-            Add(GButton.X, GAction.Unset);
-            Add(GButton.Y, GAction.Unset);
 
-            Add(GButton.Start, GAction.C2);
-            Add(GButton.Back, GAction.Unset);
+            foreach (GamepadButton b in Enum.GetValues<GamepadButton>())
+                Add(b, GAction.Unset);
 
-            Add(GButton.L1, GAction.TeleportPlus);
-            Add(GButton.R1, GAction.TeleportMinus);
+            Add(GamepadButton.East, GAction.C1);
+            Add(GamepadButton.Start, GAction.C2);
 
-            Add(GButton.L2, GAction.ElevatePlus);
-            Add(GButton.R2, GAction.ElevateMinus);
+           
+            Add(GamepadButton.LeftShoulder, GAction.TeleportPlus);
+            Add(GamepadButton.RightShoulder, GAction.TeleportMinus);
 
-            Add(GButton.L3, GAction.Speedmulti);
-            Add(GButton.R3, GAction.RotSpeedMulti);
+            Add(GamepadAxis.LeftTrigger, GAction.ElevatePlus);
+            Add(GamepadAxis.RightTrigger, GAction.ElevateMinus);
 
-            Add(GButton.DPadUp, GAction.SwitchMode);
-            Add(GButton.DPadDown, GAction.LensDefault);
-            Add(GButton.DPadLeft, GAction.LensMinus);
-            Add(GButton.DPadRight, GAction.LensPlus);
+            Add(GamepadButton.LeftStick, GAction.Speedmulti);
+            Add(GamepadButton.RightStick, GAction.RotSpeedMulti);
+
+            Add(GamepadButton.DPadUp, GAction.SwitchMode);
+            Add(GamepadButton.DPadDown, GAction.LensDefault);
+            Add(GamepadButton.DPadLeft, GAction.LensMinus);
+            Add(GamepadButton.DPadRight, GAction.LensPlus);
 
             //Custom1
             Add("C1_Name", "DaxsSettings");
@@ -93,7 +96,9 @@ namespace Daxs
         private void Add(string name, bool defaultValue)=> iValues[name] = new BooleanValue(defaultValue, name); 
         private void Add(string name, string defaultValue) =>iValues[name] = new TextValue(defaultValue, name);
         private void Add(string name, GAction defaultValue)=>  iValues[name] = new TextValue(defaultValue.ToString(), name); 
-        private void Add(GButton button, GAction defaultValue) => Add(button.ToString(), defaultValue);
+        private void Add(GamepadButton button, GAction defaultValue) => Add(button.ToString(), defaultValue);
+
+        private void Add(GamepadAxis axis, GAction defaultValue) => Add(axis.ToString(), defaultValue);
 
         public IValue this[string name] => iValues.TryGetValue(name, out var v)  ? v  : throw new KeyNotFoundException($"No setting with the name '{name}' was found.");
 
@@ -130,6 +135,9 @@ namespace Daxs
         }
 
         public GAction BindAction(GamepadButton key, Action<string> assign)=> Enum.Parse<GAction>(BindText(key.ToString(), assign));
+
+        public GAction BindAction(GamepadAxis key, Action<string> assign) => Enum.Parse<GAction>(BindText(key.ToString(), assign));
+
 
         #endregion
 

@@ -169,7 +169,7 @@ namespace Daxs
                     checkB.Checked = bv.Value;
                 else if (iv is TextValue tv)
                 {
-                    if (Enum.TryParse(name, out GButton button) && inputActions.TryGetValue(button, out var abox))
+                    if (Enum.TryParse(name, out GamepadButton button) && inputActions.TryGetValue(button, out var abox))
                         abox.SelectedKey = tv.Value;
                     else if (box is TextBox textBox)
                         textBox.Text = tv.Value;
@@ -306,9 +306,9 @@ namespace Daxs
         {
             var inputLayout = EtoFactory.CreateLayout();
 
-            foreach (GButton button in Enum.GetValues<GButton>())
+            foreach (GamepadButton button in Enum.GetValues<GamepadButton>())
             {
-                if (button == GButton.Unset)
+                if (button == GamepadButton.Invalid || button == GamepadButton.Count)
                     continue;
 
                 var tB = CreateActionDropdown(button);
@@ -351,7 +351,7 @@ namespace Daxs
             // Rebuild each dropdown in the same order
             foreach (var kv in inputActions)
             {
-                GButton button = kv.Key;
+                GamepadButton button = kv.Key;
                 DropDown dropdown = kv.Value;
                 GAction originalKey = Enum.TryParse(dropdown.SelectedKey, out GAction myAction) ? myAction : GAction.Unset;
 
@@ -383,12 +383,14 @@ namespace Daxs
 
         bool _syncDropwon = false;
 
-        TableRow CreateActionDropdown(GButton button)
+        TableRow CreateActionDropdown(GamepadButton button)
         {
-            if (button == GButton.Unset)
+            if (button == GamepadButton.Invalid || button == GamepadButton.Count)
                 throw new Exception("Create DropDown failed! Button can't be unset");
 
             string buttonName = button.ToString();
+
+        
 
             TextValue tVal = (TextValue)settings[buttonName];
 

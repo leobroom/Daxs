@@ -56,85 +56,82 @@ namespace Daxs
             if (rotSpeedMulti > 1.00)
                 hud.SetText("Rotation X " + rotSpeedMulti, 2000);
 
+            RhinoApp.WriteLine("TICK / HandleInput");
+
             double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
 
 
-            //var (yaw, pitch) = NormalizeStick(state.RightThumbX, state.RightThumbY);
-            var yaw = state.GetAxisValue(GamepadAxis.RightX);
-            var pitch = state.GetAxisValue(GamepadAxis.RightY);
+            var (yaw, pitch) = NormalizeStick(state.GetAxisValue(GamepadAxis.RightX), state.GetAxisValue(GamepadAxis.RightY));
+            var (strafe, forward) = NormalizeStick(state.GetAxisValue(GamepadAxis.LeftX), state.GetAxisValue(GamepadAxis.LeftY));
 
-            //var (strafe, forward) = NormalizeStick(state.LeftThumbX, state.LeftThumbY);
+            //InputY teleport = actionManager.Teleport;
 
-            var strafe = state.GetAxisValue(GamepadAxis.LeftX);
-            var forward = state.GetAxisValue(GamepadAxis.LeftY);
+            //bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
 
-            InputY teleport = actionManager.Teleport;
+            //if (!hasMoved && !_uiUpdatePending) //GetActual Campos
+            //{
+            //    var vp = doc.Views.ActiveView.ActiveViewport;
 
-            bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
+            //    Vector3d camDir = vp.CameraDirection; // Read current viewport camera
+            //    Vector3d right = Vector3d.CrossProduct(zAxis, camDir); // Turntable basis (use world up to remove roll)
 
-            if (!hasMoved && !_uiUpdatePending) //GetActual Campos
-            {
-                var vp = doc.Views.ActiveView.ActiveViewport;
+            //    if (!right.Unitize())
+            //        right = Vector3d.XAxis; // guard near poles
 
-                Vector3d camDir = vp.CameraDirection; // Read current viewport camera
-                Vector3d right = Vector3d.CrossProduct(zAxis, camDir); // Turntable basis (use world up to remove roll)
+            //    camPlane = new Plane(vp.CameraLocation, camDir, right);
 
-                if (!right.Unitize())
-                    right = Vector3d.XAxis; // guard near poles
+            //    // Rebase angle accumulators to match viewport direction
+            //    double newYaw = Math.Atan2(camDir.Y, camDir.X);
+            //    double newPitch = Math.Asin(camDir.Z);
 
-                camPlane = new Plane(vp.CameraLocation, camDir, right);
+            //    pitchAcc = GetPitch(newPitch);
+            //    yawAcc = newYaw;
+            //}
 
-                // Rebase angle accumulators to match viewport direction
-                double newYaw = Math.Atan2(camDir.Y, camDir.X);
-                double newPitch = Math.Asin(camDir.Z);
+            //if (hasMoved)
+            //{
+            //    yawAcc += yaw * yawSensitivity * delta * rotSpeedMulti;
+            //    pitchAcc += pitch * pitchSensitivity * delta * rotSpeedMulti;
+            //    pitchAcc = GetPitch(pitchAcc);
 
-                pitchAcc = GetPitch(newPitch);
-                yawAcc = newYaw;
-            }
+            //    // Rebuild basis from yaw/pitch (turntable, world-up = +Z)
+            //    double cy = Math.Cos(yawAcc);
+            //    double sy = Math.Sin(yawAcc);
+            //    double cp = Math.Cos(pitchAcc);
+            //    double sp = Math.Sin(pitchAcc);
 
-            if (hasMoved)
-            {
-                yawAcc += yaw * yawSensitivity * delta * rotSpeedMulti;
-                pitchAcc += pitch * pitchSensitivity * delta * rotSpeedMulti;
-                pitchAcc = GetPitch(pitchAcc);
+            //    camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti * moveSpeed, delta, teleport);
+            //}
 
-                // Rebuild basis from yaw/pitch (turntable, world-up = +Z)
-                double cy = Math.Cos(yawAcc);
-                double sy = Math.Sin(yawAcc);
-                double cp = Math.Cos(pitchAcc);
-                double sp = Math.Sin(pitchAcc);
+            //bool hasAction = actionManager.HasActionsOnMainThread();
+            //if (hasAction)
+            //{
+            //    RhinoApp.InvokeOnUiThread((Action)(() => { actionManager.ExecuteActionsOnMainThread(); }));
+            //}
 
-                camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti * moveSpeed, delta, teleport);
-            }
+            //if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending )
+            //{
+            //    _uiUpdatePending = true;
 
-            bool hasAction = actionManager.HasActionsOnMainThread();
-            if (hasAction)
-            {
-                RhinoApp.InvokeOnUiThread((Action)(() => { actionManager.ExecuteActionsOnMainThread(); }));
-            }
+            //    RhinoApp.InvokeOnUiThread((Action)(() =>
+            //    {
+            //        var view = doc.Views.ActiveView;
+            //        var vp = view.ActiveViewport;
 
-            if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending )
-            {
-                _uiUpdatePending = true;
-
-                RhinoApp.InvokeOnUiThread((Action)(() =>
-                {
-                    var view = doc.Views.ActiveView;
-                    var vp = view.ActiveViewport;
-
-                    if (!vp.IsPlanView)
-                    {
-                        vp.SetCameraLocation(camPlane.Origin, true);
-                        vp.SetCameraDirection(camPlane.XAxis, true);
-                    }
-                    else 
-                        ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
+            //        if (!vp.IsPlanView)
+            //        {
+            //            RhinoApp.WriteLine("" + vp +" | " + forward + " | " + strafe + " | " + vertical + " | " + pitch + " | " + moveSpeed + " | " + delta);
+            //            vp.SetCameraLocation(camPlane.Origin, true);
+            //            vp.SetCameraDirection(camPlane.XAxis, true);
+            //        }
+            //        else 
+            //            ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
         
-                    view.Redraw();
+            //        view.Redraw();
 
-                    _uiUpdatePending = false;
-                }));
-            }
+            //        _uiUpdatePending = false;
+            //    }));
+            //}
         }
 
         protected virtual Plane CalculateCamPlane(double cp , double cy, double sy, double sp, double forward, double strafe, double vertical, double speedMulti, double delta, InputY teleport ) 

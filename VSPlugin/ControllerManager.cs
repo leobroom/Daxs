@@ -148,17 +148,25 @@ namespace Daxs
 
                 hud.Tick();
 
+                RhinoApp.WriteLine("TICK");
+
                 if (SDL.GamepadConnected(gamepadID))
                 {
-                    bool startBtn = SDL.GetGamepadButton(gamepadID, GamepadButton.Start);
-                    bool aBtn = SDL.GetGamepadButton(gamepadID, GamepadButton.South);
+                    gamepad.Update();
+                    actions.Update(gamepad);
 
-                    float lx = SDL.GetGamepadAxis(gamepadID, GamepadAxis.LeftX) / 32767f;
-                    float ly = SDL.GetGamepadAxis(gamepadID, GamepadAxis.LeftY) / 32767f;
+                    // Update the camera on the UI thread.                    
+                    layout.CurrentLayout.HandleInput(gamepad, delta);
 
-      
+                    //bool startBtn = SDL.GetGamepadButton(gamepadID, GamepadButton.Start);
+                    //bool aBtn = SDL.GetGamepadButton(gamepadID, GamepadButton.South);
 
-                    RhinoApp.WriteLine($"🎮 Gamepad: A={aBtn}  L({lx:0.00},{ly:0.00})");
+                    //float lx = SDL.GetGamepadAxis(gamepadID, GamepadAxis.LeftX) / 32767f;
+                    //float ly = SDL.GetGamepadAxis(gamepadID, GamepadAxis.LeftY) / 32767f;
+
+
+
+                    RhinoApp.WriteLine($"🎮 Gamepad: L({gamepad.GetAxisValue(GamepadAxis.LeftX):0.00},{gamepad.GetAxisValue(GamepadAxis.LeftY):0.00})");
                 }
                 else
                 {
@@ -170,11 +178,10 @@ namespace Daxs
 
 
 
-                gamepad.Update();
-                actions.Update(gamepad); //https://chatgpt.com/g/g-p-67e9bd1beeac8191a0f9ff9d384c27a1-xboxcontroller/c/68bdc840-3b1c-8321-93cc-6ff4bbe5a5c6
+                //gamepad.Update();
+                //actions.Update(gamepad); //https://chatgpt.com/g/g-p-67e9bd1beeac8191a0f9ff9d384c27a1-xboxcontroller/c/68bdc840-3b1c-8321-93cc-6ff4bbe5a5c6
 
-                // Update the camera on the UI thread.                    
-                //layout.CurrentLayout.HandleInput(state,delta);
+            
 
                 await Task.Delay(1, token);
             }
