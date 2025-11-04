@@ -148,7 +148,7 @@ namespace Daxs
 
                 hud.Tick();
 
-                RhinoApp.WriteLine("TICK");
+                //RhinoApp.WriteLine("TICK");
 
                 if (SDL.GamepadConnected(gamepadID))
                 {
@@ -168,7 +168,7 @@ namespace Daxs
 
 
 
-                    RhinoApp.WriteLine($"🎮 Gamepad: L({gamepad.GetAxisValue(GamepadAxis.LeftX):0.00},{gamepad.GetAxisValue(GamepadAxis.LeftY):0.00})");
+                    //RhinoApp.WriteLine($"🎮 Gamepad: L({gamepad.GetAxisValue(GamepadAxis.LeftX):0.00},{gamepad.GetAxisValue(GamepadAxis.LeftY):0.00})");
                 }
                 else
                 {

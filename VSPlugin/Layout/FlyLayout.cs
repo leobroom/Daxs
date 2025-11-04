@@ -56,7 +56,7 @@ namespace Daxs
             if (rotSpeedMulti > 1.00)
                 hud.SetText("Rotation X " + rotSpeedMulti, 2000);
 
-            RhinoApp.WriteLine("TICK / HandleInput");
+            //RhinoApp.WriteLine("TICK / HandleInput");
 
             double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
 
@@ -103,40 +103,35 @@ namespace Daxs
                 camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti * moveSpeed, delta, teleport);
             }
 
-            RhinoApp.InvokeOnUiThread((Action)(() =>
+            bool hasAction = actionManager.HasActionsOnMainThread();
+            if (hasAction)
             {
-                bool hasAction = actionManager.HasActionsOnMainThread();
-            }));
+                RhinoApp.InvokeOnUiThread((Action)(() => { actionManager.ExecuteActionsOnMainThread(); }));
+            }
 
-            //bool hasAction = actionManager.HasActionsOnMainThread();
-            //if (hasAction)
-            //{
-            //    RhinoApp.InvokeOnUiThread((Action)(() => { actionManager.ExecuteActionsOnMainThread(); }));
-            //}
+            if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending)
+            {
+                _uiUpdatePending = true;
 
-            //if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending)
-            //{
-            //    _uiUpdatePending = true;
+                RhinoApp.InvokeOnUiThread((Action)(() =>
+                {
+                    var view = doc.Views.ActiveView;
+                    var vp = view.ActiveViewport;
 
-            //    RhinoApp.InvokeOnUiThread((Action)(() =>
-            //    {
-            //        var view = doc.Views.ActiveView;
-            //        var vp = view.ActiveViewport;
+                    if (!vp.IsPlanView)
+                    {
+                        //RhinoApp.WriteLine("" + vp + " | " + forward + " | " + strafe + " | " + vertical + " | " + pitch + " | " + moveSpeed + " | " + delta);
+                        vp.SetCameraLocation(camPlane.Origin, true);
+                        vp.SetCameraDirection(camPlane.XAxis, true);
+                    }
+                    else
+                        ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
 
-            //        if (!vp.IsPlanView)
-            //        {
-            //            RhinoApp.WriteLine("" + vp + " | " + forward + " | " + strafe + " | " + vertical + " | " + pitch + " | " + moveSpeed + " | " + delta);
-            //            vp.SetCameraLocation(camPlane.Origin, true);
-            //            vp.SetCameraDirection(camPlane.XAxis, true);
-            //        }
-            //        else
-            //            ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
+                    view.Redraw();
 
-            //        view.Redraw();
-
-            //        _uiUpdatePending = false;
-            //    }));
-            //}
+                    _uiUpdatePending = false;
+                }));
+            }
         }
 
         protected virtual Plane CalculateCamPlane(double cp , double cy, double sy, double sp, double forward, double strafe, double vertical, double speedMulti, double delta, InputY teleport ) 
