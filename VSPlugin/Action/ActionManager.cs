@@ -19,15 +19,18 @@ namespace Daxs
 
             foreach (GamepadButton button in Enum.GetValues<GamepadButton>())
             {
-                if (button == GamepadButton.Invalid)
+                if (button == GamepadButton.Invalid || button == GamepadButton.Count)
                     continue;
 
-                actionToButtonTable[button] = settings.BindAction(button, v =>
+                GAction gAction = settings.BindAction(button, v =>
                 {
                     GAction aEnum = Enum.Parse<GAction>(v);
-                    actionToButtonTable[button] = aEnum;
+ 
+                    AddToButtonTable(button, aEnum);
                     ResetButtonBinding(aEnum, button);
                 });
+
+                AddToButtonTable(button,  gAction);
             }
 
             foreach (GamepadAxis axis in Enum.GetValues<GamepadAxis>())
@@ -35,13 +38,31 @@ namespace Daxs
                 if (axis == GamepadAxis.Invalid || axis == GamepadAxis.Count)
                     continue;
 
-                actionToAxisTable[axis] = settings.BindAction(axis, v =>
+                GAction gAction = settings.BindAction(axis, v =>
                 {
                     GAction aEnum = Enum.Parse<GAction>(v);
-                    actionToAxisTable[axis] = aEnum;
+                    AddToAxisTable(axis, aEnum);
                     ResetAxisBinding(aEnum, axis);
                 });
+
+                AddToAxisTable(axis,  gAction);
             }
+        }
+
+        private void AddToButtonTable(GamepadButton button, GAction gAction) 
+        {
+            if (gAction == GAction.Unset)
+                actionToButtonTable.Remove(button);
+            else
+                actionToButtonTable[button] = gAction;
+        }
+
+        private void AddToAxisTable(GamepadAxis axis, GAction gAction)
+        {
+            if (gAction == GAction.Unset)
+                actionToAxisTable.Remove(axis);
+            else
+                actionToAxisTable[axis] = gAction;
         }
 
         readonly Dictionary<GamepadButton, GAction> actionToButtonTable = new ();
@@ -84,35 +105,71 @@ namespace Daxs
 
         private readonly HUD hud = HUD.Instance;
 
-        internal bool HasActionsOnMainThread() 
+        internal bool HasActionsOnMainThread()
         {
-          return  actionToButtonTable.Any(pair => gamepad.GetButtonState(pair.Key) == actionTable[pair.Value].Input) || 
-          actionToAxisTable.Any(pair => gamepad.GetAxisState(pair.Key) == actionTable[pair.Value].Input);
-        } 
-        
+            bool buttonTriggered = actionToButtonTable.Any(pair =>
+            {
+                if (!actionTable.TryGetValue(pair.Value, out var action))
+                    return gamepad.GetButtonState(pair.Key) == InputX.IsDown; // fallback
+                return gamepad.GetButtonState(pair.Key) == action.Input;
+            });
+
+            if (buttonTriggered) return true;
+
+            bool axisTriggered = actionToAxisTable.Any(pair =>
+            {
+                if (!actionTable.TryGetValue(pair.Value, out var action))
+                    return gamepad.GetAxisState(pair.Key) == InputX.IsDown; // fallback
+                return gamepad.GetAxisState(pair.Key) == action.Input;
+            });
+
+            return axisTriggered;
+        }
+
+
         internal void ExecuteActionsOnMainThread()
         {
             foreach (var (button, actionEnum) in actionToButtonTable)
             {
-                IAction action = actionTable[actionEnum];
+                if (!actionTable.TryGetValue(actionEnum, out var action))
+                {
+                    // Fallback to default InputX.IsDown behavior
+                    if (gamepad.GetButtonState(button) == InputX.IsDown)
+                    {
+                        hud.SetText(actionEnum.ToString(), 2000);
+                        // Optionally: Execute a default or placeholder action here if needed
+                    }
+                    continue;
+                }
 
-                if (gamepad.GetButtonState(button) == actionTable[actionEnum].Input)
+                if (gamepad.GetButtonState(button) == action.Input)
                 {
                     hud.SetText(action.HUD_Name, 2000);
                     action.Execute();
                 }
             }
+
             foreach (var (axis, actionEnum) in actionToAxisTable)
             {
-                IAction action = actionTable[actionEnum];
+                if (!actionTable.TryGetValue(actionEnum, out var action))
+                {
+                    // Fallback to default InputX.IsDown behavior
+                    if (gamepad.GetAxisState(axis) == InputX.IsDown)
+                    {
+                        hud.SetText(actionEnum.ToString(), 2000);
+                        // Optionally: Execute a default or placeholder action here if needed
+                    }
+                    continue;
+                }
 
-                if (gamepad.GetAxisState(axis) == actionTable[actionEnum].Input)
+                if (gamepad.GetAxisState(axis) == action.Input)
                 {
                     hud.SetText(action.HUD_Name, 2000);
                     action.Execute();
                 }
             }
         }
+
 
         internal void Update(GamepadState gamepad) => this.gamepad = gamepad;
 
