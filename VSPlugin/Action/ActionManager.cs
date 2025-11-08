@@ -1,138 +1,183 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
+using System;
 using System.Linq;
+using System.Collections.Generic;
+using Rhino;
+using static SDL3.SDL;
 
 namespace Daxs
 {
     internal class ActionManager
     {
         private static readonly Lazy<ActionManager> _instance = new(() => new ActionManager());
-
         public static ActionManager Instance => _instance.Value;
-
+        private readonly Settings settings = Settings.Instance;
         public ActionManager()
         {
-            ApplyDefaultBindings();
+            speedMulti = settings.BindNumeric(GAction.Speedmulti, v => speedMulti = v);
+            rotSpeedmulti = settings.BindNumeric(GAction.RotSpeedMulti, v => rotSpeedmulti = v);
+   
+
+            foreach (GamepadButton button in Enum.GetValues<GamepadButton>())
+            {
+                if (button == GamepadButton.Invalid || button == GamepadButton.Count)
+                    continue;
+
+                GAction gAction = settings.BindAction(button, v =>
+                {
+                    GAction aEnum = Enum.Parse<GAction>(v);
+ 
+                    AddToButtonTable(button, aEnum);
+                    ResetButtonBinding(aEnum, button);
+                });
+
+                AddToButtonTable(button,  gAction);
+            }
+
+            foreach (GamepadAxis axis in Enum.GetValues<GamepadAxis>())
+            {
+                if (axis == GamepadAxis.Invalid || axis == GamepadAxis.Count)
+                    continue;
+
+                GAction gAction = settings.BindAction(axis, v =>
+                {
+                    GAction aEnum = Enum.Parse<GAction>(v);
+                    AddToAxisTable(axis, aEnum);
+                    ResetAxisBinding(aEnum, axis);
+                });
+
+                AddToAxisTable(axis,  gAction);
+            }
         }
 
-
-        public void ApplyDefaultBindings()
+        private void AddToButtonTable(GamepadButton button, GAction gAction) 
         {
-            // Clear current tables
-            actionTable.Clear();
-            stateTable.Clear();
-
-            //ActionManager Default
-            RegisterAction(new RhinoCustomAction(GButton.Start, InputX.IsDown, "_Daxs_Settings", true));
-            RegisterAction(new RhinoCustomAction(GButton.B, InputX.IsDown, "_ViewCaptureToFile", true));
-            RegisterAction(new SwitchAction(GButton.DPadUp, InputX.IsDown));
-            RegisterAction(new LensAction(GButton.DPadRight, InputX.IsDown, InputY.Up, 1));
-            RegisterAction(new LensAction(GButton.DPadLeft, InputX.IsDown, InputY.Down, 1));
-            RegisterAction(new LensAction(GButton.DPadDown, InputX.IsDown, InputY.Default, 35));
-
-            //SpeedMulti
-            RegisterState(new State(GButton.L3, InputX.IsDown, AProperty.Speedmulti, "Speedmulti", 3.00));
-            RegisterState(new State(GButton.R3, InputX.IsDown, AProperty.RotSpeedMulti, "RotSpeedMulti", 3.00));
-
-            //Elevator
-            RegisterState(new State(GButton.L2, InputX.IsDown, AProperty.ElevateDown, "Elevate Down", 1.00));
-            RegisterState(new State(GButton.R2, InputX.IsDown, AProperty.ElevateUp, "Elevate Up", 1.00));
-
-            //Teleport
-            RegisterState(new State(GButton.L1, InputX.IsDown, AProperty.TeleportDown, "Teleport Down", 1.00));
-            RegisterState(new State(GButton.R1, InputX.IsDown, AProperty.TeleportUp, "Teleport Up", 1.00));
+            if (gAction == GAction.Unset)
+                actionToButtonTable.Remove(button);
+            else
+                actionToButtonTable[button] = gAction;
         }
 
+        private void AddToAxisTable(GamepadAxis axis, GAction gAction)
+        {
+            if (gAction == GAction.Unset)
+                actionToAxisTable.Remove(axis);
+            else
+                actionToAxisTable[axis] = gAction;
+        }
+
+        readonly Dictionary<GamepadButton, GAction> actionToButtonTable = new ();
+        readonly Dictionary<GamepadAxis, GAction> actionToAxisTable = new();
+        readonly Dictionary<GAction, GamepadButton> buttonBindingTable = new ();
+        readonly Dictionary<GAction, GamepadAxis> axisBindingTable = new();
 
 
-        private readonly Dictionary<GButton, IAction> actionTable = new();
-        private readonly Dictionary<AProperty, IState> stateTable = new();
+        readonly Dictionary<GAction, IAction> actionTable = new ()
+        {
+            { GAction.C1,        new RhinoCustomAction(InputX.IsDown,GAction.C1)},
+            { GAction.C2,        new RhinoCustomAction(InputX.IsDown,GAction.C2)},
+            { GAction.C3,        new RhinoCustomAction(InputX.IsDown,GAction.C3) },
+            { GAction.C4,        new RhinoCustomAction(InputX.IsDown,GAction.C4) },
+            { GAction.C5,        new RhinoCustomAction(InputX.IsDown,GAction.C5) },
+            { GAction.C6,        new RhinoCustomAction(InputX.IsDown,GAction.C6) },
+            { GAction.LensPlus,  new LensAction(InputX.IsDown,InputY.Up ) },
+            { GAction.LensMinus, new LensAction( InputX.IsDown,InputY.Down) },
+            { GAction.LensDefault,new LensAction(InputX.IsDown,InputY.Default ) },
+            { GAction.SwitchMode, new SwitchAction(InputX.IsDown) },
+        };
 
+        private void ResetButtonBinding(GAction action, GamepadButton button) 
+        {
+            foreach (var key in buttonBindingTable.Where(kv => kv.Value.Equals(button)).Select(kv => kv.Key).ToList()) 
+                buttonBindingTable.Remove(key);
 
+            buttonBindingTable[action]  =button;
+        }
 
-        private GamepadState state = new();
+        private void ResetAxisBinding(GAction action, GamepadAxis axis)
+        {
+            foreach (var key in axisBindingTable.Where(kv => kv.Value.Equals(axis)).Select(kv => kv.Key).ToList())
+                axisBindingTable.Remove(key);
+
+            axisBindingTable[action] = axis;
+        }
+
+        private GamepadState gamepad = null;
 
         private readonly HUD hud = HUD.Instance;
 
-        public void RegisterAction(IAction dAction) => actionTable[dAction.Button] = dAction;
-
-        public void RegisterState(State state) => stateTable[state.Name] = state;
-
-        internal List<IBase> GetActions() => actionTable.Values.Select(a => (IBase)a).ToList();
-
-        internal void SetActions(Dictionary<GButton,  IAction> newActions)
+        internal bool HasActionsOnMainThread()
         {
-            actionTable.Clear();
+            bool buttonTriggered = actionToButtonTable.Any(pair =>
+            {
+                if (!actionTable.TryGetValue(pair.Value, out var action))
+                    return gamepad.GetButtonState(pair.Key) == InputX.IsDown; // fallback
+                return gamepad.GetButtonState(pair.Key) == action.Input;
+            });
 
-            foreach (var kv in newActions)
-                actionTable[kv.Key] = kv.Value;
+            if (buttonTriggered) 
+                return true;
+
+            bool axisTriggered = actionToAxisTable.Any(pair =>
+            {
+                if (!actionTable.TryGetValue(pair.Value, out var action))
+                    return gamepad.GetAxisState(pair.Key) == InputX.IsDown; // fallback
+                return gamepad.GetAxisState(pair.Key) == action.Input;
+            });
+
+            return axisTriggered;
         }
 
-        internal List<IBase> GetStates() => stateTable.Values.Select(a => (IBase)a).ToList();
 
-
-        internal void SetStates(Dictionary<AProperty, IState> newStates)
-        {
-            stateTable.Clear();
-
-            foreach (var key in newStates.Keys)
-                stateTable[key]= newStates[key];
-        }
-
-        internal bool HasActionsOnMainThread() => actionTable.Any(pair => GetButtonState(pair.Key) == pair.Value.Input);
         internal void ExecuteActionsOnMainThread()
         {
-            foreach (var (button, action) in actionTable)
+            foreach (var (button, actionEnum) in actionToButtonTable)
             {
-                if (GetButtonState(button) == action.Input)
+                if (!actionTable.TryGetValue(actionEnum, out var action))
                 {
+                    continue;
+                }
+
+                if (gamepad.GetButtonState(button) == action.Input)
+                {
+                    RhinoApp.WriteLine($"ActionManager: Executing action for button {button} mapped to {actionEnum}");
+                    hud.SetText(action.HUD_Name, 2000);
+                    action.Execute();
+                }
+            }
+
+            foreach (var (axis, actionEnum) in actionToAxisTable)
+            {
+                if (!actionTable.TryGetValue(actionEnum, out var action))
+                {
+                    continue;
+                }
+
+                if (gamepad.GetAxisState(axis) == action.Input)
+                {
+                    RhinoApp.WriteLine($"ActionManager: Executing action for axis {axis} mapped to {actionEnum}");
                     hud.SetText(action.HUD_Name, 2000);
                     action.Execute();
                 }
             }
         }
 
-        private InputX GetButtonState(GButton button)
-        {
-            return button switch
-            {
-                GButton.A => state.A,
-                GButton.B => state.B,
-                GButton.X => state.X,
-                GButton.Y => state.Y,
-                GButton.Start => state.Start,
-                GButton.Back => state.Back,
-                GButton.DPadUp => state.DPadUp,
-                GButton.DPadDown => state.DPadDown,
-                GButton.DPadLeft => state.DPadLeft,
-                GButton.DPadRight => state.DPadRight,
-                GButton.L1 => state.L1,
-                GButton.R1 => state.R1,
-                GButton.L3 => state.L3,
-                GButton.R3 => state.R3,
-                _ => throw new NotImplementedException(),
-            };
-        }
 
-        private float GetValueState(GButton button)
-        {
-            return button switch
-            {
-                GButton.L2 => state.L2,
-                GButton.R2 => state.R2,
-                _ => throw new NotImplementedException(),
-            };
-        }
+        internal void Update(GamepadState gamepad) => this.gamepad = gamepad;
 
-        internal void Update(GamepadState state) => this.state = state;
 
-        public double Speedmulti => stateTable.TryGetValue(AProperty.Speedmulti, out var state) && GetButtonState(state.Button) == state.Input ? (double)state.Value : 1;
+        public double Speedmulti=> (buttonBindingTable.TryGetValue(GAction.Speedmulti, out var button) && gamepad.GetButtonState(button) == InputX.IsHold)  ? speedMulti : 1;
+        double speedMulti = 0;
 
-        public double RotSpeedmulti => stateTable.TryGetValue(AProperty.RotSpeedMulti, out var state) && GetButtonState(state.Button) == state.Input ? (double)state.Value : 1;
+        public double RotSpeedmulti=> (buttonBindingTable.TryGetValue(GAction.RotSpeedMulti, out var button) && gamepad.GetButtonState(button) == InputX.IsHold) ? rotSpeedmulti : 1;
 
-        public float ElevateUp => stateTable.TryGetValue(AProperty.ElevateUp, out var state) ? GetValueState(state.Button) : 0;
+        double rotSpeedmulti = 0;
 
-        public float ElevateDown => stateTable.TryGetValue(AProperty.ElevateDown, out var state) ? GetValueState(state.Button) : 0;
+        public double ElevateUp => axisBindingTable.TryGetValue(GAction.ElevatePlus, out var axis) ? gamepad.GetAxisValue(axis)  : 0;
+
+        double elevateSpeed = 0;
+
+        public double ElevateDown => axisBindingTable.TryGetValue(GAction.ElevateMinus, out var axis) ? gamepad.GetAxisValue(axis)  : 0;
 
         public InputY Teleport
         {
@@ -140,28 +185,13 @@ namespace Daxs
             {
                 InputY jDir = InputY.Default;
 
-                if (stateTable.TryGetValue(AProperty.TeleportUp, out var buttonR) && GetButtonState(buttonR.Button) == buttonR.Input)
+                if (buttonBindingTable.TryGetValue(GAction.TeleportPlus, out var buttonR) && gamepad.GetButtonState(buttonR) == InputX.IsDown)
                     jDir = InputY.Up;
-                else if (stateTable.TryGetValue(AProperty.TeleportDown, out var buttonL) && GetButtonState(buttonL.Button) == buttonR.Input)
+                else if (buttonBindingTable.TryGetValue(GAction.TeleportMinus, out var buttonL) && gamepad.GetButtonState(buttonL) == InputX.IsDown)
                     jDir = InputY.Down;
                 return jDir;
 
             }
         }
-    }
-
-    public enum AProperty
-    {
-        Unset,
-        Speedmulti,
-        RotSpeedMulti,
-        ElevateUp,
-        ElevateDown,
-        TeleportUp,
-        TeleportDown,
-        DaxSettings,
-        Custom,
-        Switch,
-        Lens
     }
 }

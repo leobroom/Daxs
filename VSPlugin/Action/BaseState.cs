@@ -1,20 +1,15 @@
 ﻿namespace Daxs
 {
-    internal abstract class BaseState : IBase
+    internal abstract class BaseState : IAction
     {
-        public BaseState(AProperty Name, GButton Button, InputX Input)
+        public BaseState(InputX Input)
         {
-            this.Name = Name;
-            this.Button = Button;
             this.Input = Input;
         }
 
-        public AProperty Name { get; }
-
-        public GButton Button { get; }
-
         public InputX Input { get; }
+        public abstract string HUD_Name { get; }
 
-        public abstract object[] GetArgs();
+        public abstract void Execute();
     }
 }

@@ -33,5 +33,11 @@ namespace Daxs
             string folder = GetPackageFolderPath();
             return Path.Combine(folder, fileName);
         }
+
+        public static string GetSharedFile(string fileName)
+        {
+            string folder = GetPackageFolderPath();
+            return Path.Combine(folder,"Shared", fileName);
+        }
     }
 }

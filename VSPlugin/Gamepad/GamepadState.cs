@@ -1,33 +1,107 @@
-﻿namespace Daxs
-{
-    public readonly struct GamepadState
-    {
-        public readonly InputX A, B, X, Y, Start, Back, L1, L3, R1, R3, DPadUp, DPadDown, DPadLeft, DPadRight;
-        public readonly float L2, R2;
-        public readonly float LeftThumbX, LeftThumbY, RightThumbX, RightThumbY;
+﻿using SDL3;
+using System;
+using static SDL3.SDL;
 
-        public GamepadState(InputX A, InputX B, InputX X, InputX Y, InputX Start, InputX Back, InputX L1, float L2,
-        InputX L3, InputX R1, float R2, InputX R3, InputX DPadUp, InputX DPadDown, InputX DPadLeft, InputX DPadRight,
-        float LeftThumbX, float LeftThumbY, float RightThumbX, float RightThumbY)
+namespace Daxs
+{
+    public class GamepadState
+    {
+        private readonly GamepadButton[] _buttons;
+        private readonly bool[] _prevButtons;
+        private readonly bool[] _currButtons;
+        public readonly InputX[] ButtonStates;
+
+        private readonly GamepadAxis[] _axes;
+        private readonly short[] _prevAxes;
+        private readonly short[] _currAxes;
+        public readonly InputX[] AxisStates;
+
+        private readonly IntPtr _handle;
+
+        private const float AXIS_THRESHOLD = 0.05f;
+
+        public GamepadState(IntPtr handle)
         {
-            this.A = A; this.B = B; this.X = X; this.Y = Y;
-            this.Start = Start; this.Back = Back;
-            this.L1 = L1; this.L2 = L2; this.L3 = L3;
-            this.R1 = R1; this.R2 = R2; this.R3 = R3;
-            this.DPadUp = DPadUp; this.DPadDown = DPadDown;
-            this.DPadLeft = DPadLeft; this.DPadRight = DPadRight;
-            this.LeftThumbX = LeftThumbX; this.LeftThumbY = LeftThumbY;
-            this.RightThumbX = RightThumbX; this.RightThumbY = RightThumbY;
+            _handle = handle;
+
+            // 🔹 Buttons
+            _buttons = (GamepadButton[])Enum.GetValues(typeof(GamepadButton));
+            _prevButtons = new bool[_buttons.Length];
+            _currButtons = new bool[_buttons.Length];
+            ButtonStates = new InputX[_buttons.Length];
+
+            // 🔹 Axes
+            _axes = (GamepadAxis[])Enum.GetValues(typeof(GamepadAxis));
+            _prevAxes = new short[_axes.Length];
+            _currAxes = new short[_axes.Length];
+            AxisStates = new InputX[_axes.Length];
         }
 
-        public override string ToString()
+        public void Update()
         {
-            return $"Buttons: A={A}, B={B}, X={X}, Y={Y}, Start={Start}, Back={Back}\n" +
-                $"L1={L1}, L3={L3}, R1={R1}, R3={R3}\n" +
-                $"DPad: Up={DPadUp}, Down={DPadDown}, Left={DPadLeft}, Right={DPadRight}\n" +
-                $"L2={L2:0.00}, R2={R2:0.00}\n" +
-                $"Left Thumb: X={LeftThumbX:0.00}, Y={LeftThumbY:0.00}\n" +
-                $"Right Thumb: X={RightThumbX:0.00}, Y={RightThumbY:0.00}";
+            if (_handle == IntPtr.Zero || !SDL.GamepadConnected(_handle))
+                return;
+
+            // --- BUTTONS ---
+            Array.Copy(_currButtons, _prevButtons, _currButtons.Length);
+            for (int i = 0; i < _buttons.Length; i++)
+                _currButtons[i] = SDL.GetGamepadButton(_handle, _buttons[i]);
+
+            for (int i = 0; i < _buttons.Length; i++)
+            {
+                bool was = _prevButtons[i];
+                bool now = _currButtons[i];
+
+                if (!was && now)
+                    ButtonStates[i] = InputX.IsDown;
+                else if (was && now)
+                    ButtonStates[i] = InputX.IsHold;
+                else if (was && !now)
+                    ButtonStates[i] = InputX.IsReleased;
+                else
+                    ButtonStates[i] = InputX.IsUnset;
+            }
+
+            // --- AXES ---
+            Array.Copy(_currAxes, _prevAxes, _currAxes.Length);
+
+            for (int i = 0; i < _axes.Length; i++)
+                _currAxes[i] = SDL.GetGamepadAxis(_handle, _axes[i]);
+
+            for (int i = 0; i < _axes.Length; i++)
+            {
+                short prev = _prevAxes[i];
+                short curr = _currAxes[i];
+                bool wasActive = Math.Abs((int)prev) > AXIS_THRESHOLD;
+                bool isActive = Math.Abs((int)curr) > AXIS_THRESHOLD;
+
+                if (!wasActive && isActive)
+                    AxisStates[i] = InputX.IsDown;
+                else if (wasActive && isActive)
+                    AxisStates[i] = InputX.IsHold;
+                else if (wasActive && !isActive)
+                    AxisStates[i] = InputX.IsReleased;
+                else
+                    AxisStates[i] = InputX.IsUnset;
+            }
+        }
+
+        public InputX GetButtonState(GamepadButton b)
+        {
+            int idx = Array.IndexOf(_buttons, b);
+            return ButtonStates[idx];
+        }
+
+        public InputX GetAxisState(GamepadAxis a)
+        {
+            int idx = Array.IndexOf(_axes, a);
+            return AxisStates[idx];
+        }
+
+        public short GetAxisValue(GamepadAxis a)
+        {
+            int idx = Array.IndexOf(_axes, a);
+            return _currAxes[idx];
         }
     }
 }

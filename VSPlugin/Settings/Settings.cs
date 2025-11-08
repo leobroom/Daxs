@@ -2,27 +2,17 @@
 using System.Collections.Generic;
 using Rhino.PlugIns;
 using Rhino;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Reflection.Metadata.Ecma335;
+using System.Collections;
+using static SDL3.SDL;
 
 namespace Daxs
 {
-    public class Settings
+    public partial class Settings : IEnumerable<IValue>
     {
         private static Settings instance = null;
         public static Settings Instance => instance ??= new Settings();
 
-        private readonly Dictionary<string, NumericValue> numValues = new();
-        private readonly Dictionary<string, BooleanValue> boolValues = new();
-        //private readonly Dictionary<GButton, IAction> actionValues = new();
-
-        //Serialization
-        private static readonly JsonSerializerOptions jsonOpts = new()
-        {
-            WriteIndented = false,
-            Converters = { new JsonStringEnumConverter() }
-        };
+        private readonly Dictionary<string, IValue> iValues = new();
 
         private Settings()
         {
@@ -33,6 +23,10 @@ namespace Daxs
             Add("MoveSpeed", 140.6, 0.1);
             Add("ElevateSpeed", 140.6, 0.1);
 
+            //Multiplicator
+            Add(GAction.Speedmulti, 3, 1);
+            Add(GAction.RotSpeedMulti, 3, 1);
+
             //Text
             Add("TextTime", 2000, 1);
             Add("TextVisible", true);
@@ -41,33 +35,112 @@ namespace Daxs
             Add("EyeHeight", 1.7, 1);
             Add("MaximalJump", 1.5, 1);
 
-            //Input
+            //Lens
+            Add("LensStep", 1, 1);
+            Add("LensDefault", 35, 1);
 
-            SaveSettings(); //For debug purposes
+            foreach (GamepadAxis a in Enum.GetValues<GamepadAxis>())
+                Add(a, GAction.Unset);
+
+            //Gamepad
+
+            foreach (GamepadButton b in Enum.GetValues<GamepadButton>())
+                Add(b, GAction.Unset);
+
+            Add(GamepadButton.East, GAction.C1);
+            Add(GamepadButton.Start, GAction.C2);
+
+           
+            Add(GamepadButton.LeftShoulder, GAction.TeleportPlus);
+            Add(GamepadButton.RightShoulder, GAction.TeleportMinus);
+
+            Add(GamepadAxis.LeftTrigger, GAction.ElevatePlus);
+            Add(GamepadAxis.RightTrigger, GAction.ElevateMinus);
+
+            Add(GamepadButton.LeftStick, GAction.Speedmulti);
+            Add(GamepadButton.RightStick, GAction.RotSpeedMulti);
+
+            Add(GamepadButton.DPadUp, GAction.SwitchMode);
+            Add(GamepadButton.DPadDown, GAction.LensDefault);
+            Add(GamepadButton.DPadLeft, GAction.LensMinus);
+            Add(GamepadButton.DPadRight, GAction.LensPlus);
+
+            //Custom1
+            Add("C1_Name", "DaxsSettings");
+            Add("C1_Function", "_Daxs_Settings");
+            Add("C1_SimulateKeys", true);
+            //Add("C1_Enabled", true);
+
+            //Custom2
+            Add("C2_Name", "ViewCaptureToFile");
+            Add("C2_Function", "_ViewCaptureToFile");
+            Add("C2_SimulateKeys", true);
+           // Add("C2_Enabled", true);
+
+            foreach (GAction c in Enum.GetValues<GAction>())
+            {
+                if (c < GAction.C3 || c > GAction.C6)
+                    continue;
+
+                Add($"{c}_Name", "");
+                Add($"{c}_Function", "");
+                Add($"{c}_SimulateKeys", true);
+                //Add($"{c}_Enabled", false);
+            }
 
             LoadSettings();
         }
 
-        private void Add(string name, double defaultValue, double displayFactor)
-        { numValues[name] = new NumericValue(defaultValue, displayFactor, name); }
+        private void Add(GAction rnum, double defaultValue, double displayFactor) => Add(rnum.ToString(), defaultValue, displayFactor);
+        private void Add(string name, double defaultValue, double displayFactor) => iValues[name] = new NumericValue(defaultValue, displayFactor, name); 
+        private void Add(string name, bool defaultValue)=> iValues[name] = new BooleanValue(defaultValue, name); 
+        private void Add(string name, string defaultValue) =>iValues[name] = new TextValue(defaultValue, name);
+        private void Add(string name, GAction defaultValue)=>  iValues[name] = new TextValue(defaultValue.ToString(), name); 
+        private void Add(GamepadButton button, GAction defaultValue) => Add(button.ToString(), defaultValue);
 
-        private void Add(string name, bool defaultValue)
-        { boolValues[name] = new BooleanValue(defaultValue, name); }
+        private void Add(GamepadAxis axis, GAction defaultValue) => Add(axis.ToString(), defaultValue);
 
-        public IValue this[string name]
+        public IValue this[string name] => iValues.TryGetValue(name, out var v)  ? v  : throw new KeyNotFoundException($"No setting with the name '{name}' was found.");
+
+        public IEnumerator<IValue> GetEnumerator() => iValues.Values.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+ 
+
+        #region Bindings
+
+        public double BindNumeric(GAction key, Action<double> assign) => BindNumeric(key.ToString(), assign);
+
+
+        public double BindNumeric(string key, Action<double> assign)
         {
-            get
-            {
-                if (numValues.TryGetValue(name, out var num))
-                    return num;
-                if (boolValues.TryGetValue(name, out var b))
-                    return b;
-
-                throw new KeyNotFoundException($"No setting with the name '{name}' was found.");
-            }
+            var nv = iValues[key] as NumericValue;
+            nv.ValueChanged += (s, val) => assign(val);
+            assign(nv.Value);
+            return nv.Value;
+        }
+        public bool BindBoolean(string key, Action<bool> assign)
+        {
+            var bv = iValues[key] as BooleanValue;
+            bv.ValueChanged += (s, val) => assign((bool)val);
+            assign(bv.Value);
+            return bv.Value;
         }
 
-        public IEnumerable<NumericValue> AllNumValues => numValues.Values;
+        public string BindText(string key, Action<string> assign)
+        {
+            var tv = iValues[key] as TextValue;
+            tv.ValueChanged += (s, val) => assign(val);
+            assign(tv.Value);
+            return tv.Value;
+        }
+
+        public GAction BindAction(GamepadButton key, Action<string> assign)=> Enum.Parse<GAction>(BindText(key.ToString(), assign));
+
+        public GAction BindAction(GamepadAxis key, Action<string> assign) => Enum.Parse<GAction>(BindText(key.ToString(), assign));
+
+
+        #endregion
 
         public void SaveSettings()
         {
@@ -75,180 +148,37 @@ namespace Daxs
 
             PersistentSettings settings = PlugIn.GetPluginSettings(id, true);
 
-            foreach (NumericValue nV in numValues.Values)
-                settings.SetDouble(nV.Name, nV.Value);
-
-            foreach (BooleanValue bV in boolValues.Values) 
-                settings.SetBool(bV.Name, bV.Value);
-
-            List<IBase> baseActions = ActionManager.Instance.GetActions();
-            SaveAllBindings(baseActions,  settings, "ActionBindingDtos");
-
-            List<IBase> baseStates = ActionManager.Instance.GetStates();
-            SaveAllBindings(baseStates,  settings, "StateBindingDtos");
+            foreach (IValue iVal in iValues.Values)
+            {
+                if(iVal is NumericValue nV)
+                    settings.SetDouble(nV.Name, nV.Value);
+                else if(iVal is BooleanValue bV)
+                    settings.SetBool(bV.Name, bV.Value);
+                else if (iVal is TextValue tV)
+                    settings.SetString(tV.Name, tV.Value);
+            }
 
             PlugIn.SavePluginSettings(id);
             RhinoApp.WriteLine($"settings saved.");
         }
 
-        void SaveAllBindings(List<IBase> lst, PersistentSettings settings, string settingsName) 
-        {
-            List<ActionBindingDto> bindingDtos = new();
-
-            foreach (var ibase in lst)
-            {
-                GButton button = ibase.Button;
-                InputX input = ibase.Input;
-                AProperty prop = ibase.Name;
-
-                object[] args = ibase.GetArgs();
-
-                ActionBindingDto dto = ToDto(button, prop, input, args);
-                bindingDtos.Add(dto);
-            }
-
-            var json = JsonSerializer.Serialize(bindingDtos, jsonOpts);
-            settings.SetString(settingsName, json);
-        }
- 
         public void LoadSettings()
         {
             Guid id = PlugIn.IdFromName("Daxs");
 
             PersistentSettings settings = PlugIn.GetPluginSettings(id, true);
 
-            foreach (NumericValue nV in numValues.Values)
-                nV.Value = settings.GetDouble(nV.Name, nV.Value);
-
-            foreach (BooleanValue bV in boolValues.Values)
-                bV.Value = settings.GetBool(bV.Name, bV.Value);
-
-            // actions
-            if (settings.TryGetString("ActionBindingDtos", out var jsonA) && !string.IsNullOrWhiteSpace(jsonA))
+            foreach (IValue iVal in iValues.Values)
             {
-                Dictionary<GButton, IAction> actions = new();
-
-                try
-                {
-                    var list = JsonSerializer.Deserialize<List<ActionBindingDto>>(jsonA, jsonOpts) ?? new();
-                    foreach (var dto in list)
-                        actions[dto.Button] = (IAction)FromDto<IAction>(dto);
-                }
-                catch (Exception ex)
-                {RhinoApp.WriteLine("Failed to parse ActionBindingDtos: " + ex.Message);}
-
-                if (actions.Count > 0)
-                    ActionManager.Instance.SetActions(actions);
-            }
-
-            //states
-            if (settings.TryGetString("StateBindingDtos", out var jsonS) && !string.IsNullOrWhiteSpace(jsonS))
-            {
-                Dictionary<AProperty, IState> states = new();
-
-                try
-                {
-                    var list = JsonSerializer.Deserialize<List<ActionBindingDto>>(jsonS, jsonOpts) ?? new();
-                    foreach (var dto in list)
-                        states[dto.Property] = (IState)FromDto<IState>(dto);
-                }
-                catch (Exception ex)
-                { RhinoApp.WriteLine("Failed to parse ActionBindingDtos: " + ex.Message); }
-
-                if (states.Count > 0)
-                    ActionManager.Instance.SetStates(states);
+                if (iVal is NumericValue nV)
+                    nV.Value = settings.GetDouble(nV.Name, nV.Value);
+                else if (iVal is BooleanValue bV)
+                    bV.Value = settings.GetBool(bV.Name, bV.Value);
+                else if (iVal is TextValue sV)
+                    sV.Value = settings.GetString(sV.Name, sV.Value);
             }
 
             RhinoApp.WriteLine($"settings loaded.");
-        }
-
-        //Serialisation
-        private static ActionBindingDto ToDto(GButton button, AProperty property, InputX input, object [] args)
-        {
-            var dto = new ActionBindingDto
-            {
-                Button = button,
-                Property = property,
-                Input = input
-            };
-
-            foreach (var obj in args)
-            {
-                dto.Args.Add(obj switch
-                {
-                    double d => new ArgDto { Kind = "double", Value = d.ToString(System.Globalization.CultureInfo.InvariantCulture) },
-                    bool b => new ArgDto { Kind = "bool", Value = b ? "true" : "false" },
-                    string s => new ArgDto { Kind = "string", Value = s },
-                    InputX x => new ArgDto { Kind = "enum:InputX", Value = x.ToString() },
-                    InputY y => new ArgDto { Kind = "enum:InputY", Value = y.ToString() },
-                    AProperty p => new ArgDto { Kind = "enum:AProperty", Value = p.ToString() },
-                    GButton gb => new ArgDto { Kind = "enum:GButton", Value = gb.ToString() },
-                    _ => new ArgDto { Kind = "string", Value = obj?.ToString() ?? "" } // fallback
-                });
-            }
-
-            return dto;
-        }
-
-        private static object ParseArg(ArgDto a)
-        {
-            switch (a.Kind)
-            {
-                case "double":
-                    if (double.TryParse(a.Value, System.Globalization.NumberStyles.Float,
-                        System.Globalization.CultureInfo.InvariantCulture, out var d))
-                        return d;
-                    return 0.0;
-
-                case "bool":
-                    return string.Equals(a.Value, "true", StringComparison.OrdinalIgnoreCase);
-
-                case "string":
-                    return a.Value;
-
-                case "enum:InputX":
-                    return Enum.TryParse(typeof(InputX), a.Value, out var ex) ? ex : InputX.IsUnset;
-
-                case "enum:InputY":
-                    return Enum.TryParse(typeof(InputY), a.Value, out var ey) ? ey : InputY.Default;
-
-                case "enum:AProperty":
-                    return Enum.TryParse(typeof(AProperty), a.Value, out var ap) ? ap : AProperty.Unset;
-
-                case "enum:GButton":
-                    return Enum.TryParse(typeof(GButton), a.Value, out var gb) ? gb : GButton.Unset;
-
-                default:
-                    // unknown kind -> keep as string
-                    return a.Value;
-            }
-        }
-
-        private static IBase FromDto<T>(ActionBindingDto dto) where T : IBase
-        {
-            var args = dto.Args.ConvertAll(ParseArg).ToArray();
-            AProperty prop = dto.Property;
-
-            switch (prop)
-            {
-                case AProperty.Speedmulti:
-                case AProperty.RotSpeedMulti:
-                case AProperty.ElevateUp:
-                case AProperty.ElevateDown:
-                case AProperty.TeleportUp:
-                case AProperty.TeleportDown:
-                case AProperty.DaxSettings:
-                    return new State(dto, args);
-                case AProperty.Custom:
-                    return new RhinoCustomAction(dto, args);
-                case AProperty.Switch:
-                    return new SwitchAction(dto);
-                case AProperty.Lens:
-                    return new LensAction(dto, args);
-                case AProperty.Unset:
-                default:
-                    throw new Exception("AProperty invalid :" + prop);
-            }
         }
     }
 }

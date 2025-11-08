@@ -1,24 +1,47 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 using Eto.Forms;
 using Eto.Drawing;
-using Rhino.UI.Controls;
 using System.Reflection;
-using System.Linq;
-using System;
+using static SDL3.SDL;
 
 namespace Daxs
 {
     public class DaxsSettings : Dialog<bool>
     {
         private readonly Settings settings = Settings.Instance;
-        private readonly Dictionary<string, NumericStepper> inputNumBoxes = new();
-        private readonly Dictionary<string, CheckBox> inputBoolBoxes = new();
+
+        private readonly Dictionary<string, Control> controlBoxes = new();
+
+        private readonly SortedDictionary<GamepadButton, DropDown> inputActions = new SortedDictionary<GamepadButton, DropDown>();
+        private readonly SortedDictionary<GAction, string> actionTable = new SortedDictionary<GAction, string>()
+        {
+            { GAction.Unset, "Unset" },
+            { GAction.LensPlus, "Lens+" },
+            { GAction.LensMinus, "Lens-" },
+            { GAction.LensDefault, "LensDefault" },
+            { GAction.TeleportPlus, "Teleport+" },
+            { GAction.TeleportMinus, "Teleport-" },
+            { GAction.Speedmulti, "Speedmulti" },
+            { GAction.RotSpeedMulti, "RotSpeedMulti" },
+            { GAction.ElevatePlus, "ElevatePlus" },
+            { GAction.ElevateMinus, "ElevateMinus" },
+            { GAction.SwitchMode, "SwitchMode" },
+            { GAction.C1, "C1" },
+            { GAction.C2, "C2" },
+            { GAction.C3, "C3" },
+            { GAction.C4, "C4" },
+            { GAction.C5, "C5" },
+            { GAction.C6, "C6" }
+        };
+
         private Button okButton;
 
         public DaxsSettings()
         {
             Title = "Daxs Gamepad Settings";
-            ClientSize = new Size(500, 800);
+            ClientSize = new Size(500, 700);
             Resizable = false;
 
             CreateUi();
@@ -34,99 +57,12 @@ namespace Daxs
             };             
         }
 
-
-        private string GetInitialKey(GButton button)
-        {
-            // Prefer actions; fall back to states
-            var allActs = ActionManager.Instance.GetActions();
-            var matchAct = allActs.FirstOrDefault(a => a.Button == button);
-
-            if (matchAct != null)
-            {
-                switch (matchAct.Name)
-                {
-                    case AProperty.Lens:
-                        var args = matchAct.GetArgs(); // (InputY dir, double step)
-                        if (args.Length > 0 && args[0] is InputY dir)
-                        {
-                            return dir switch
-                            {
-                                InputY.Up => "lensPlus",
-                                InputY.Down => "lensMinus",
-                                _ => "lensDefault"
-                            };
-                        }
-                        return "lensDefault";
-
-                    case AProperty.Switch:
-                        return "swichMode";
-
-                    case AProperty.Custom:
-                        // args: (string command, bool simulateKeyboard)
-                        var a = matchAct.GetArgs();
-                        if (a.Length >= 1 && a[0] is string cmd)
-                        {
-                            // populate custom widgets after the row exists (in CreateDropdown we sync)
-                            return "custom";
-                        }
-                        return "custom";
-
-                    case AProperty.DaxSettings:
-                        return "daxsSettings";
-
-                    default:
-                        // View capture is a custom action we recognize from defaults
-                        var ga = matchAct.GetArgs();
-                        if (ga.Length >= 1 && ga[0] is string cmd2 && cmd2.Equals("_ViewCaptureToFile", StringComparison.OrdinalIgnoreCase))
-                            return "viewCaptureToFile";
-                        break;
-                }
-            }
-
-            // Look at states (teleports etc.)
-            var allStates = ActionManager.Instance.GetStates();
-            var tpUp = allStates.FirstOrDefault(s => s.Button == button && s.Name == AProperty.TeleportUp);
-            if (tpUp != null) return "teleportUp";
-
-            var tpDown = allStates.FirstOrDefault(s => s.Button == button && s.Name == AProperty.TeleportDown);
-            if (tpDown != null) return "teleportDown";
-
-            return "none";
-        }
-
-
-        private readonly List<BindingRow> bindingRows = new();
-
-        private record BindingRow(
-            GButton Button,
-            DropDown Dropdown,
-            TextBox CustomText,
-            CheckBox SimulateCheck
-        );
-
-        // Key => (kind, detail)
-        // kind: "none", "lens", "custom", "switch", "cmd", "state"
-        private static readonly (string Key, string Text)[] ActionOptions =
-        {
-            ("none", "None"),
-            ("lensPlus", "Lens +"),
-            ("lensMinus", "Lens -"),
-            ("lensDefault", "Lens Default"),
-            ("viewCaptureToFile", "ViewCaptureToFile"),
-            ("swichMode", "Switch Gamepad Mode"),
-            ("daxsSettings", "Daxs Settings"),
-            ("teleportUp", "Teleport Up"),
-            ("teleportDown", "Teleport Down"),
-            ("custom", "Custom…")
-        };
-
-
         void CreateUi()
         {
             var content = new TableLayout
             {
                 Padding = new Padding(10, 10, 0, 10),
-                Spacing = new Size(5, 10),
+                Spacing = new Size(5, 10),    
             };
 
             List<TableRow> rows = new();
@@ -142,74 +78,67 @@ namespace Daxs
                 "ElevateSpeed"
             };
 
-            rows.AddRange(CreateLayout("Input Response", input));
-
             string[] hud =
             {
                 "TextTime",
                 "TextVisible",
             };
 
-            rows.AddRange(CreateLayout("HUD", hud));
-
             string[] walk =
-{
+            {
                 "EyeHeight",
                 "MaximalJump",
             };
 
-            rows.AddRange(CreateLayout("WalkMode", walk));
-
-            rows.Add(new LabelSeparator { Text = "Input Layout" });
-
-            var inputLayout = new TableLayout
-            {
-                Padding = new Padding(10, 0, 0, 0),
-                Spacing = new Size(5, 5)
-            };
-
-            // Example call (initially selects "Preset B")
-
-            TableRow[] gpButtons =
-            {
-                CreateDropdown("A",  GButton.A,      ActionOptions, "custom",  GetInitialKey(GButton.A)),
-                CreateDropdown("B",  GButton.B,      ActionOptions, "custom",  GetInitialKey(GButton.B)),
-                CreateDropdown("X",  GButton.X,      ActionOptions, "custom",  GetInitialKey(GButton.X)),
-                CreateDropdown("Y",  GButton.Y,      ActionOptions, "custom",  GetInitialKey(GButton.Y)),
-                CreateDropdown("Start", GButton.Start, ActionOptions, "custom", GetInitialKey(GButton.Start)),
-                CreateDropdown("Back",  GButton.Back,  ActionOptions, "custom", GetInitialKey(GButton.Back)),
-                CreateDropdown("L1",  GButton.L1,    ActionOptions, "custom",  GetInitialKey(GButton.L1)),
-                CreateDropdown("L3",  GButton.L3,    ActionOptions, "custom",  GetInitialKey(GButton.L3)),
-                CreateDropdown("R1",  GButton.R1,    ActionOptions, "custom",  GetInitialKey(GButton.R1)),
-                CreateDropdown("R3",  GButton.R3,    ActionOptions, "custom",  GetInitialKey(GButton.R3)),
-                CreateDropdown("DPad Up",    GButton.DPadUp,    ActionOptions, "custom", GetInitialKey(GButton.DPadUp)),
-                CreateDropdown("DPad Down",  GButton.DPadDown,  ActionOptions, "custom", GetInitialKey(GButton.DPadDown)),
-                CreateDropdown("DPad Left",  GButton.DPadLeft,  ActionOptions, "custom", GetInitialKey(GButton.DPadLeft)),
-                CreateDropdown("DPad Right", GButton.DPadRight, ActionOptions, "custom", GetInitialKey(GButton.DPadRight)),
-            };
-
-
-            foreach (TableRow b in gpButtons)
-                inputLayout.Rows.Add(b);
-
-            rows.Add(inputLayout);
+            rows.Add(EtoFactory.CreateGroupExpander("Input Response", input, name => CreateControl(name),true));
+            rows.Add(EtoFactory.CreateGroupExpander("HUD", hud, name => CreateControl(name), true));
+            rows.Add(EtoFactory.CreateGroupExpander("WalkMode", walk, name => CreateControl(name), true));
+            rows.Add(EtoFactory.CreateContentExpander("Input Layout", AddButtonDropdowns(), true));
+            rows.Add(CreateCustom());
 
             foreach (TableRow row in rows)
                 content.Rows.Add(row);
+            //Github
+            var githubLink = new Label
+            {
+                Text = "© 2025 Leon Brohmann - Licensed under the MIT License - View on GitHub",
+                Cursor = Cursors.Pointer,
+        
+                VerticalAlignment = VerticalAlignment.Bottom,
+                TextAlignment = TextAlignment.Center,
+            };
+            githubLink.MouseDown += (s, e) =>
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "https://github.com/leobroom/Daxs",
+                        UseShellExecute = true
+                    });
+                }
+                catch { }
+            };
 
-            var scroll = new Scrollable{ Content = content, ExpandContentWidth = true, ExpandContentHeight = false };
+            // Add a spacer + link row to the scroll content
+            content.Rows.Add(new TableRow { ScaleHeight = true }); // pushes the link to the bottom
+            content.Rows.Add(new TableRow(githubLink));
+
+            var scroll = new Scrollable
+            { 
+                Content = content, 
+                ExpandContentWidth = true, 
+                ExpandContentHeight = false,
+            };
 
             var page = new TableLayout
             {
                 Padding = 10,
-                Spacing = new Size(5, 10)
+                Spacing = new Size(5, 10),
             };
 
-            // scrollable region grows, shows vertical scrollbar when needed
             page.Rows.Add(new TableRow(scroll) { ScaleHeight = true });
-
-            // footer stays visible
-            page.Rows.Add(new TableRow(CreateDialogButtons()));
+            page.Rows.Add(CreateDialogButtons());
 
             Content = page;
 
@@ -218,66 +147,6 @@ namespace Daxs
 
         void OnOk()
         {
-            // Build fresh maps based on UI
-            var newActions = new Dictionary<GButton, IAction>();
-            var newStates = new Dictionary<AProperty, IState>();
-
-            foreach (var row in bindingRows)
-            {
-                var key = row.Dropdown.SelectedKey;
-
-                switch (key)
-                {
-                    case "none":
-                        break;
-
-                    case "lensPlus":
-                        newActions[row.Button] = new LensAction(row.Button, InputX.IsDown, InputY.Up, 1);
-                        break;
-
-                    case "lensMinus":
-                        newActions[row.Button] = new LensAction(row.Button, InputX.IsDown, InputY.Down, 1);
-                        break;
-
-                    case "lensDefault":
-                        newActions[row.Button] = new LensAction(row.Button, InputX.IsDown, InputY.Default, 35);
-                        break;
-
-                    case "viewCaptureToFile":
-                        newActions[row.Button] = new RhinoCustomAction(row.Button, InputX.IsDown, "_ViewCaptureToFile", true);
-                        break;
-
-                    case "swichMode":
-                        newActions[row.Button] = new SwitchAction(row.Button, InputX.IsDown);
-                        break;
-
-                    case "daxsSettings":
-                        newActions[row.Button] = new RhinoCustomAction(row.Button, InputX.IsDown, "_Daxs_Settings", true);
-                        break;
-
-                    case "teleportUp":
-                        newStates[AProperty.TeleportUp] = new State(row.Button, InputX.IsDown, AProperty.TeleportUp, "Teleport Up", 1.00);
-                        break;
-
-                    case "teleportDown":
-                        newStates[AProperty.TeleportDown] = new State(row.Button, InputX.IsDown, AProperty.TeleportDown, "Teleport Down", 1.00);
-                        break;
-
-                    case "custom":
-                        {
-                            var cmd = row.CustomText.Text?.Trim();
-                            var sim = row.SimulateCheck.Checked == true;
-                            if (!string.IsNullOrWhiteSpace(cmd))
-                                newActions[row.Button] = new RhinoCustomAction(row.Button, InputX.IsDown, cmd, sim);
-                        }
-                        break;
-                }
-            }
-
-            // Apply to ActionManager
-            ActionManager.Instance.SetActions(newActions);
-            ActionManager.Instance.SetStates(newStates);
-
             // Persist
             settings.SaveSettings();
 
@@ -285,63 +154,30 @@ namespace Daxs
             Close();
         }
 
-        void OnApplyDefaultInputLayout()
-        {
-            // 1) Rebuild defaults in ActionManager
-            ActionManager.Instance.ApplyDefaultBindings();
-
-            // 2) Persist to Rhino settings
-            settings.SaveSettings();
-
-            // 3) Refresh all dropdowns + custom fields so the UI reflects the active defaults
-            foreach (var row in bindingRows)
-            {
-                // Recompute which option should be selected for this button
-                var key = GetInitialKey(row.Button);
-
-                // Set dropdown and re-prefill the custom widgets if needed
-                if (!string.IsNullOrEmpty(key))
-                    row.Dropdown.SelectedKey = key;
-
-                // Ensure visibility state is synced when switching to/from "custom"
-                // (re-run the visibility logic that you already have in CreateDropdown)
-                //row.Dropdown.SelectedIndexChanged(EventArgs.Empty);
-
-                PrefillCustom(row.Button, row.Dropdown, row.CustomText, row.SimulateCheck);
-            }
-        }
-
         void OnDefault()
         {
-            foreach (var nv in settings.AllNumValues)
+            foreach (IValue iv in settings)
             {
-                nv.Reset();
-                if (inputNumBoxes.TryGetValue(nv.Name, out var box))
-                    box.Value = nv.DisplayValue;
+                iv.Reset();
+                string name = iv.Name;
+
+                controlBoxes.TryGetValue(name, out Control box);
+
+                if (iv is NumericValue nv && box is NumericStepper stepper)
+                    stepper.Value = nv.DisplayValue;
+                else if (iv is BooleanValue bv && box is CheckBox checkB)
+                    checkB.Checked = bv.Value;
+                else if (iv is TextValue tv)
+                {
+                    if (Enum.TryParse(name, out GamepadButton button) && inputActions.TryGetValue(button, out var abox))
+                        abox.SelectedKey = tv.Value;
+                    else if (box is TextBox textBox)
+                        textBox.Text = tv.Value;
+                }
             }
-
-            OnApplyDefaultInputLayout();
         }
 
-        private TableRow[] CreateLayout(string title, string[] names)
-        {
-            var inputLayout = new TableLayout
-            {
-                Padding = new Padding(10, 0, 0, 0),
-                Spacing = new Size(5, 5)
-            };
-
-            foreach (var name in names)
-                inputLayout.Rows.Add(GenerateUIControl(name));
-
-            LabelSeparator seperator = new() { Text = title };
-
-            TableRow[] result = { seperator, inputLayout };
-
-            return result;
-        }
-
-        TableRow GenerateUIControl(string settingsName)
+        TableRow CreateControl(string settingsName, string labelName ="")
         {
             IValue val = settings[settingsName];
             Control control = null;
@@ -350,104 +186,37 @@ namespace Daxs
             {
                 var box = new NumericStepper { Value = nv.DisplayValue };
                 box.ValueChanged += (s, e) => nv.DisplayValue = box.Value;
-                inputNumBoxes[nv.Name] = box;
+                controlBoxes[nv.Name] = box;
                 control = box;
             }
             else if (val is BooleanValue bv)
             {
                 var box = new CheckBox { Checked = bv.Value };
                 box.CheckedChanged += (s, e) => bv.Value = (bool)box.Checked;
-                inputBoolBoxes[bv.Name] = box;
+                controlBoxes[bv.Name] = box;
+                control = box;
+            }
+            else if (val is TextValue tv)
+            {
+                var box = new TextBox { Text = tv.Value, PlaceholderText = "Enter Text..." };
+                box.TextChanged += (s, e) => tv.Value = box.Text;
+                controlBoxes[tv.Name] = box;
                 control = box;
             }
 
-            Label label = new() 
-            { 
-                Text = settingsName,
-                Width =80
-            };
+            labelName = labelName == "" ? settingsName : labelName;
 
-            return new TableRow( new TableCell(label), new TableCell(control, scaleWidth: true));
+            return EtoFactory.CreateControlRow(labelName, control);
         }
 
-        TableRow CreateDropdown(string labelText, GButton button, (string Key, string Text)[] options, string activateKey = "custom", string? initialKey = null)
+        TableRow CreateDialogButtons()
         {
-            // LABEL
-            Label label = new() { Text = labelText, Width = 80 };
-
-            // DROPDOWN
-            var dropdown = new DropDown();
-            foreach (var (key, text) in options)
-                dropdown.Items.Add(new ListItem { Key = key, Text = text });
-
-            // Select initial item
-            if (!string.IsNullOrEmpty(initialKey) && options.Any(o => o.Key == initialKey))
-                dropdown.SelectedKey = initialKey;
-            else if (dropdown.Items.Count > 0)
-                dropdown.SelectedIndex = 0;
-
-            // WIDGETS for "custom"
-            var customText = new TextBox { PlaceholderText = "Custom…", Width = 120 };
-            var cbox = new CheckBox { Checked = true, ToolTip = "Simulate Keyboard" };
-
-            // Sync visibility
-            void Sync()
+            okButton = new Button { Text = "CLOSE", Command = new Command((_, _) => OnOk()) };
+            return EtoFactory.CreateButtonRow(new[]
             {
-                bool isActive = dropdown.SelectedKey == activateKey;
-                customText.Enabled = isActive;
-                customText.Visible = isActive;
-                cbox.Enabled = isActive;
-                cbox.Visible = isActive;
-            }
-            dropdown.SelectedIndexChanged += (_, __) => Sync();
-            Sync();
-
-            // If current binding is custom or recognizable commands, prefill
-            PrefillCustom(button, dropdown, customText, cbox);
-
-            // Remember row for saving
-            bindingRows.Add(new BindingRow(button, dropdown, customText, cbox));
-
-            // Done
-            return new TableRow(label, dropdown, customText, cbox);
-
-        }
-
-        private void PrefillCustom(GButton button, DropDown dd, TextBox tb, CheckBox ck)
-        {
-            if (dd.SelectedKey != "custom") return;
-
-            var act = ActionManager.Instance.GetActions().FirstOrDefault(a => a.Button == button);
-            if (act != null && act.Name == AProperty.Custom)
-            {
-                var args = act.GetArgs(); // (string command, bool simulateKeyboard)
-                if (args.Length >= 1 && args[0] is string cmd) 
-                    tb.Text = cmd;
-                if (args.Length >= 2 && args[1] is bool sim) 
-                    ck.Checked = sim;
-            }
-        }
-
-        TableLayout CreateDialogButtons()
-        {
-
-            okButton = new Button { Text = "CLOSE", Command = new Command((s, e) => OnOk()) };
-
-            return new TableLayout
-            {
-                Padding = 10,
-                Spacing = new Size(5, 5),
-                Rows =
-                {
-                    null,
-                    new TableRow
-                    (
-                        null,
-                        new TableCell(new Button { Text = "DEFAULT", Command = new Command((s, e) => OnDefault()) }, false),
-                        new TableCell(okButton, false)
-                    )
-                }
-            };
+                ("DEFAULT", (Action)OnDefault),
+                ("CLOSE", (Action)OnOk)
+            });
         }
 
         static ImageView CreateControllerImage(int targetWidth)
@@ -469,5 +238,189 @@ namespace Daxs
                 Size = new Size(w, h) // ImageView scales image to control size
             };
         }
+
+        TableRow CreateCustom()
+        {
+            int cCount = 6;
+            var innerLayout = EtoFactory.CreateLayout();
+
+            for (int i = 1; i <= cCount; i++)
+            {
+                var layout = EtoFactory.CreateLayout();
+
+                TableRow nameRow = CreateControl($"C{i}_Name", "Name");
+                layout.Add(nameRow);
+                layout.Add(CreateControl($"C{i}_Function", "RhinoScript"));
+                layout.Add(CreateControl($"C{i}_SimulateKeys", "Simulate keys"));
+
+                var textBox = (TextBox)nameRow.Cells[1].Control;
+                var subExpander = CreateCustomExpander($"Custom {i}", $"C{i}" , layout, textBox);
+
+                innerLayout.Add(subExpander);
+            }
+
+            var mainExpander = EtoFactory.CreateExpander("Custom Commands", innerLayout, expanded: false);
+
+            return new TableRow(mainExpander);
+        }
+
+        internal Expander CreateCustomExpander(string header, string tag, DynamicLayout content, TextBox boundTextBox)
+        {
+            Label label = new();
+            string MakeHeader() => $"{header}{(string.IsNullOrEmpty(boundTextBox.Text) ? "" : " - ")}{boundTextBox.Text}";
+
+            label.Text = MakeHeader();
+            label.Tag = tag;
+            SyncCustomNames();
+
+
+            void SyncCustomNames()
+            {
+                string tag = (string)label.Tag;
+                GAction action = Enum.Parse<GAction>(tag);
+                actionTable[action] = label.Text;
+
+                SyncActionDropDowns();
+            }
+            ;
+
+            boundTextBox.TextChanged += (_, _) =>
+                {
+
+                    label.Text = MakeHeader();
+                    SyncCustomNames();
+                };
+
+            return new Expander
+            {
+                Header = label,
+                Content = content,
+                Expanded = false,
+                Padding = new Padding(0, 0, 0, 0)
+            };
+        }
+
+        #region Dropdown
+
+        private DynamicLayout AddButtonDropdowns()
+        {
+            var inputLayout = EtoFactory.CreateLayout();
+
+            foreach (GamepadButton button in Enum.GetValues<GamepadButton>())
+            {
+                if (button == GamepadButton.Invalid || button == GamepadButton.Count)
+                    continue;
+
+                var tB = CreateActionDropdown(button);
+                inputLayout.Add(tB);
+            }
+
+            SyncActionDropDowns();
+
+            return inputLayout;
+        }
+        void SyncActionDropDowns()
+        {
+            if (_syncDropwon)
+                return;
+
+            _syncDropwon = true;
+
+            // Master order to respect (SortedDictionary already provides a stable order)
+            var masterOrder = actionTable.Keys.ToList();
+            var actionToText = actionTable;
+
+            // Collect taken actions per other dropdowns
+            var takenByDropdown = new Dictionary<DropDown, HashSet<GAction>>();
+            foreach (var kvA in inputActions)
+            {
+                DropDown dropdownA = kvA.Value;
+                HashSet<GAction> set = new();
+                foreach (var kvB in inputActions)
+                {
+                    var dropdownB = kvB.Value;
+                    if (dropdownB == dropdownA) // exclude self
+                        continue;
+
+                    if (Enum.TryParse<GAction>(dropdownB.SelectedKey, out var a2) && a2 != GAction.Unset)
+                        set.Add(a2);
+                }
+                takenByDropdown[dropdownA] = set;
+            }
+
+            // Rebuild each dropdown in the same order
+            foreach (var kv in inputActions)
+            {
+                GamepadButton button = kv.Key;
+                DropDown dropdown = kv.Value;
+                GAction originalKey = Enum.TryParse(dropdown.SelectedKey, out GAction myAction) ? myAction : GAction.Unset;
+
+                dropdown.DataStore = null;
+                dropdown.Items.Clear();
+
+                foreach (var action in masterOrder)
+                {
+                    if (action == GAction.Unset)
+                    {
+                        dropdown.Items.Add(new ListItem { Key = action.ToString(), Text = actionToText[action] });
+                        continue;
+                    }
+
+                    if (takenByDropdown[dropdown].Contains(action) && action != myAction)
+                        continue;
+
+                    dropdown.Items.Add(new ListItem { Key = action.ToString(), Text = actionToText[action] });
+                }
+
+                dropdown.SelectedKey = myAction.ToString();
+
+                if (settings[button.ToString()] is TextValue tVal)
+                    tVal.Value = dropdown.SelectedKey;
+            }
+
+            _syncDropwon = false;
+        }
+
+        bool _syncDropwon = false;
+
+        TableRow CreateActionDropdown(GamepadButton button)
+        {
+            if (button == GamepadButton.Invalid || button == GamepadButton.Count)
+                throw new Exception("Create DropDown failed! Button can't be unset");
+
+            string buttonName = button.ToString();
+
+        
+
+            TextValue tVal = (TextValue)settings[buttonName];
+
+            string selectedKey = tVal.Value;
+
+            if (!Enum.TryParse<GAction>(selectedKey, out var selectedAction))
+                throw new Exception("Faulty ActionEnum: " + selectedKey);
+
+            DropDown dropdown = new() { };
+
+            foreach (var key in actionTable.Keys)
+            {
+                string text = actionTable[key];
+                dropdown.Items.Add(text, key.ToString());
+            }
+
+            dropdown.SelectedKey = selectedKey;
+            dropdown.SelectedKeyChanged += (sender, args) =>
+            {
+                if (_syncDropwon)
+                    return;
+
+                SyncActionDropDowns();
+            };
+
+            inputActions.Add(button, dropdown);
+
+            return EtoFactory.CreateControlRow(buttonName, dropdown);
+        }
+
+        #endregion
     }
 }

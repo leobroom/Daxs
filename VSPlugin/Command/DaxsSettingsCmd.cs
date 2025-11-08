@@ -22,7 +22,7 @@ namespace Daxs
                 return Result.Cancel;
             }
 
-            foreach (var nv in Daxs.Settings.Instance.AllNumValues)
+            foreach (var nv in Daxs.Settings.Instance)
                 RhinoApp.WriteLine(nv.ToString());
 
             return Result.Success;
