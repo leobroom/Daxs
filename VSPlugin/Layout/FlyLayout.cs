@@ -57,12 +57,17 @@ namespace Daxs
                 hud.SetText("Rotation X " + rotSpeedMulti, 2000);
 
             //RhinoApp.WriteLine("TICK / HandleInput");
-
             double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
-
 
             var (yaw, pitch) = NormalizeStick(state.GetAxisValue(GamepadAxis.RightX), state.GetAxisValue(GamepadAxis.RightY));
             var (strafe, forward) = NormalizeStick(state.GetAxisValue(GamepadAxis.LeftX), state.GetAxisValue(GamepadAxis.LeftY));
+
+
+
+            //RhinoApp.InvokeOnUiThread((Action)(() => { RhinoApp.WriteLine(vertical0.ToString()); }));
+
+
+            //RhinoApp.InvokeOnUiThread((Action)(() => { RhinoApp.WriteLine($"FlyLayout: yaw={yaw}, pitch={pitch}, strafe={strafe}, forward={forward}"); }));
 
             InputY teleport = actionManager.Teleport;
 
@@ -70,7 +75,10 @@ namespace Daxs
 
             if (!hasMoved && !_uiUpdatePending) //GetActual Campos
             {
-                var vp = doc.Views.ActiveView.ActiveViewport;
+                var vp = doc?.Views?.ActiveView?.ActiveViewport;
+
+                if (vp == null)
+                    return;
 
                 Vector3d camDir = vp.CameraDirection; // Read current viewport camera
                 Vector3d right = Vector3d.CrossProduct(zAxis, camDir); // Turntable basis (use world up to remove roll)
@@ -134,6 +142,10 @@ namespace Daxs
             }
         }
 
+
+        const double MAX_SHORT_VALUE = 32767.0;
+
+
         protected virtual Plane CalculateCamPlane(double cp , double cy, double sy, double sp, double forward, double strafe, double vertical, double speedMulti, double delta, InputY teleport ) 
         {
             var fwd = new Vector3d(cp * cy, cp * sy, sp);
@@ -141,20 +153,32 @@ namespace Daxs
 
             Vector3d move = fwd * (forward * speedMulti * delta)
                         + right * (strafe * speedMulti * delta)
-                        + zAxis * (vertical * speedMulti * delta);
+                        + zAxis * (vertical * elevateSpeed * delta);
 
             return new Plane(camPlane.Origin + move, fwd, right);
         }
 
         double GetPitch(double pitchAcc) => Math.Max(-rad85, Math.Min(rad85, pitchAcc));  // Limit
 
-        static double GetNonLinearTrigger(float raw) => Math.Pow(raw, 2); // quadratic curve 
+        static double GetNonLinearTrigger(double raw) 
+        {
+            double normalized = Math.Clamp(raw / MAX_SHORT_VALUE, 0.0, 1.0);
+            return Math.Pow(normalized, 2);
+        }  
 
+        /// <summary>
+        /// Normalize Stick value and applies deadzone to it
+        /// </summary>
         protected (double x, double y) NormalizeStick(double nx, double ny)
         {
+            nx = nx / MAX_SHORT_VALUE;
+            ny = ny / MAX_SHORT_VALUE;
+
+            nx = Math.Clamp(nx, -1.0, 1.0);
+            ny = Math.Clamp(ny, -1.0, 1.0);
+
             double r2 = nx * nx + ny * ny;
-            double dz = deadzone;
-            double dz2 = dz * dz;
+            double dz2 = deadzone * deadzone;
 
             if (r2 <= dz2)
                 return (0, 0);
@@ -163,17 +187,21 @@ namespace Daxs
             double invR = 1.0 / r;
 
             // direction
-            double dirX = nx * invR;
-            double dirY = ny * invR;
+            double dirX = -nx * invR;
+            double dirY = -ny * invR;
 
             // scale from deadzone to 1
-            double scale = (r - dz) * (1.0 / Math.Max(1e-6, 1.0 - dz));
+            double scale = (r - deadzone) * (1.0 / Math.Max(1e-6, 1.0 - deadzone));
 
-            double yaw = -dirX * scale * yawSensitivity;
-            double pitch = dirY * scale * pitchSensitivity;
+            scale = Math.Pow(scale, 2);
+
+            double yaw = dirX * scale * yawSensitivity;
+            double pitch =dirY * scale * pitchSensitivity;
 
             return (yaw, pitch);
         }
+
+
 
         /// Used for panning over a plan views (example left right bottom etc)
         protected static void ApplyCameraPanControls(RhinoViewport vp, double forward, double strafe, double vertical, double pitch, double speed, double delta)

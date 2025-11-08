@@ -111,6 +111,7 @@ namespace Daxs
 
         public double BindNumeric(GAction key, Action<double> assign) => BindNumeric(key.ToString(), assign);
 
+
         public double BindNumeric(string key, Action<double> assign)
         {
             var nv = iValues[key] as NumericValue;

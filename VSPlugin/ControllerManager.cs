@@ -50,9 +50,7 @@ namespace Daxs
         private CancellationTokenSource _cts;
         private Status status = Status.NotInitialized;
 
-        //private IGamepad gamepad = null;
 
-        private uint[] gamepads = null;
 
         public enum Status
         {
@@ -155,16 +153,9 @@ namespace Daxs
                     gamepad.Update();
                     actions.Update(gamepad);
 
+
                     // Update the camera on the UI thread.                    
-                    layout.CurrentLayout.HandleInput(gamepad, delta);
-
-            
-
-                    //bool startBtn = SDL.GetGamepadButton(gamepadID, GamepadButton.Start);
-                    //bool aBtn = SDL.GetGamepadButton(gamepadID, GamepadButton.South);
-
-                    //float lx = SDL.GetGamepadAxis(gamepadID, GamepadAxis.LeftX) / 32767f;
-                    //float ly = SDL.GetGamepadAxis(gamepadID, GamepadAxis.LeftY) / 32767f;
+                    layout.CurrentLayout.HandleInput(gamepad, delta);  
 
 
 
@@ -183,10 +174,12 @@ namespace Daxs
                 //gamepad.Update();
                 //actions.Update(gamepad); //https://chatgpt.com/g/g-p-67e9bd1beeac8191a0f9ff9d384c27a1-xboxcontroller/c/68bdc840-3b1c-8321-93cc-6ff4bbe5a5c6
 
-            
+               
 
                 await Task.Delay(1, token);
             }
+
+
         }
     }
 }

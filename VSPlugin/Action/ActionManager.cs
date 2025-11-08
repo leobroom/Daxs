@@ -14,8 +14,9 @@ namespace Daxs
         private readonly Settings settings = Settings.Instance;
         public ActionManager()
         {
-            Speedmulti = settings.BindNumeric(GAction.Speedmulti, v => Speedmulti = v);
-            RotSpeedmulti = settings.BindNumeric(GAction.RotSpeedMulti, v => RotSpeedmulti = v);
+            speedMulti = settings.BindNumeric(GAction.Speedmulti, v => speedMulti = v);
+            rotSpeedmulti = settings.BindNumeric(GAction.RotSpeedMulti, v => rotSpeedmulti = v);
+   
 
             foreach (GamepadButton button in Enum.GetValues<GamepadButton>())
             {
@@ -114,7 +115,8 @@ namespace Daxs
                 return gamepad.GetButtonState(pair.Key) == action.Input;
             });
 
-            if (buttonTriggered) return true;
+            if (buttonTriggered) 
+                return true;
 
             bool axisTriggered = actionToAxisTable.Any(pair =>
             {
@@ -133,17 +135,12 @@ namespace Daxs
             {
                 if (!actionTable.TryGetValue(actionEnum, out var action))
                 {
-                    // Fallback to default InputX.IsDown behavior
-                    if (gamepad.GetButtonState(button) == InputX.IsDown)
-                    {
-                        hud.SetText(actionEnum.ToString(), 2000);
-                        // Optionally: Execute a default or placeholder action here if needed
-                    }
                     continue;
                 }
 
                 if (gamepad.GetButtonState(button) == action.Input)
                 {
+                    RhinoApp.WriteLine($"ActionManager: Executing action for button {button} mapped to {actionEnum}");
                     hud.SetText(action.HUD_Name, 2000);
                     action.Execute();
                 }
@@ -153,17 +150,12 @@ namespace Daxs
             {
                 if (!actionTable.TryGetValue(actionEnum, out var action))
                 {
-                    // Fallback to default InputX.IsDown behavior
-                    if (gamepad.GetAxisState(axis) == InputX.IsDown)
-                    {
-                        hud.SetText(actionEnum.ToString(), 2000);
-                        // Optionally: Execute a default or placeholder action here if needed
-                    }
                     continue;
                 }
 
                 if (gamepad.GetAxisState(axis) == action.Input)
                 {
+                    RhinoApp.WriteLine($"ActionManager: Executing action for axis {axis} mapped to {actionEnum}");
                     hud.SetText(action.HUD_Name, 2000);
                     action.Execute();
                 }
@@ -173,12 +165,19 @@ namespace Daxs
 
         internal void Update(GamepadState gamepad) => this.gamepad = gamepad;
 
-        public double Speedmulti { get; private set; }
-        public double RotSpeedmulti { get; private set; }
 
-        public float ElevateUp => axisBindingTable.TryGetValue(GAction.ElevatePlus, out var axis) ? gamepad.GetAxisValue(axis) : 0;
+        public double Speedmulti=> (buttonBindingTable.TryGetValue(GAction.Speedmulti, out var button) && gamepad.GetButtonState(button) == InputX.IsHold)  ? speedMulti : 1;
+        double speedMulti = 0;
 
-        public float ElevateDown => axisBindingTable.TryGetValue(GAction.ElevateMinus, out var axis) ? gamepad.GetAxisValue(axis) : 0;
+        public double RotSpeedmulti=> (buttonBindingTable.TryGetValue(GAction.RotSpeedMulti, out var button) && gamepad.GetButtonState(button) == InputX.IsHold) ? rotSpeedmulti : 1;
+
+        double rotSpeedmulti = 0;
+
+        public double ElevateUp => axisBindingTable.TryGetValue(GAction.ElevatePlus, out var axis) ? gamepad.GetAxisValue(axis)  : 0;
+
+        double elevateSpeed = 0;
+
+        public double ElevateDown => axisBindingTable.TryGetValue(GAction.ElevateMinus, out var axis) ? gamepad.GetAxisValue(axis)  : 0;
 
         public InputY Teleport
         {

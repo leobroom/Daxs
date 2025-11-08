@@ -12,8 +12,8 @@ namespace Daxs
         public readonly InputX[] ButtonStates;
 
         private readonly GamepadAxis[] _axes;
-        private readonly float[] _prevAxes;
-        private readonly float[] _currAxes;
+        private readonly short[] _prevAxes;
+        private readonly short[] _currAxes;
         public readonly InputX[] AxisStates;
 
         private readonly IntPtr _handle;
@@ -32,8 +32,8 @@ namespace Daxs
 
             // 🔹 Axes
             _axes = (GamepadAxis[])Enum.GetValues(typeof(GamepadAxis));
-            _prevAxes = new float[_axes.Length];
-            _currAxes = new float[_axes.Length];
+            _prevAxes = new short[_axes.Length];
+            _currAxes = new short[_axes.Length];
             AxisStates = new InputX[_axes.Length];
         }
 
@@ -66,22 +66,14 @@ namespace Daxs
             Array.Copy(_currAxes, _prevAxes, _currAxes.Length);
 
             for (int i = 0; i < _axes.Length; i++)
-            {
-                float raw = SDL.GetGamepadAxis(_handle, _axes[i]);
-
-                // Normalize
-                if (_axes[i] == GamepadAxis.LeftTrigger || _axes[i] == GamepadAxis.RightTrigger)
-                    _currAxes[i] = raw / 32767f; // 0..1
-                else
-                    _currAxes[i] = Math.Clamp(raw / 32767f, -1f, 1f); // -1..1
-            }
+                _currAxes[i] = SDL.GetGamepadAxis(_handle, _axes[i]);
 
             for (int i = 0; i < _axes.Length; i++)
             {
-                float prev = _prevAxes[i];
-                float curr = _currAxes[i];
-                bool wasActive = Math.Abs(prev) > AXIS_THRESHOLD;
-                bool isActive = Math.Abs(curr) > AXIS_THRESHOLD;
+                short prev = _prevAxes[i];
+                short curr = _currAxes[i];
+                bool wasActive = Math.Abs((int)prev) > AXIS_THRESHOLD;
+                bool isActive = Math.Abs((int)curr) > AXIS_THRESHOLD;
 
                 if (!wasActive && isActive)
                     AxisStates[i] = InputX.IsDown;
@@ -106,7 +98,7 @@ namespace Daxs
             return AxisStates[idx];
         }
 
-        public float GetAxisValue(GamepadAxis a)
+        public short GetAxisValue(GamepadAxis a)
         {
             int idx = Array.IndexOf(_axes, a);
             return _currAxes[idx];
