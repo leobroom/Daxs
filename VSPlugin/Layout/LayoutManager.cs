@@ -17,7 +17,7 @@ namespace Daxs
         private static readonly Lazy<LayoutManager> _instance = new(() => new LayoutManager());
         public static LayoutManager Instance => _instance.Value;
 
-        public IGamepadLayout CurrentLayout => currentLayout;
+        public IGamepadLayout Current => currentLayout;
         private IGamepadLayout currentLayout;
 
         public IGamepadLayout PreviousLayout => previousLayout;

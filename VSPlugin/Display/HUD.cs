@@ -12,16 +12,23 @@ namespace Daxs
         private static readonly Lazy<HUD> _instance = new(() => new HUD());
         public static HUD Instance => _instance.Value;
 
+        private readonly Settings settings = Settings.Instance;
+
         private readonly Stopwatch sw = new();
         private string text;
         private int durationMs;
 
-        // Tune these to taste
         private const double FontScale = 0.03;   // % of viewport height
         private const double MarginScale = 2.5;  // margin ≈ 0.6 * font size
         private const string FontFace = "Segoe UI"; // optional; omit if you want default
 
-        internal HUD() { }
+        private bool textVisible = false;
+
+
+        internal HUD() 
+        {
+            textVisible = settings.BindBoolean("TextVisible", t => textVisible = t);
+        }
 
         /// <summary>
         /// Updates stopwatch and deactivates HUD if expired.
@@ -30,10 +37,13 @@ namespace Daxs
         public void Tick()
         {
             if (Enabled && sw.ElapsedMilliseconds > durationMs)
-            {
-                text = "";
-                Enabled = false;
-            }
+                DisableText();
+        }
+
+        private void DisableText() 
+        {
+            text = "";
+            Enabled = false;
         }
 
         /// <summary>
@@ -41,6 +51,13 @@ namespace Daxs
         /// </summary>
         public void SetText(string text, int durationMs)
         {
+            if (textVisible) 
+            {
+                if (Enabled)
+                    DisableText();
+                return;
+            }
+
             this.text = text;
             this.durationMs = durationMs;
 
@@ -74,15 +91,11 @@ namespace Daxs
             base.OnEnable(enable);
 
             if (enable)
-            {
                 sw.Restart();
-                RhinoDoc.ActiveDoc.Views.Redraw(); //HACK
-            }
             else
-            {
                 sw.Stop();
-                RhinoDoc.ActiveDoc.Views.Redraw(); //HACK
-            }
+
+            RhinoDoc.ActiveDoc.Views.Redraw();
         }
     }
 }

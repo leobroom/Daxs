@@ -14,7 +14,7 @@ namespace Daxs
         private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
         private const byte KEY_UP = 0x26, KEY_DOWN = 0x28, KEY_TAB = 0x09, KEY_SHIFT = 0x10, KEY_ESCAPE = 0x1B, KEY_ENTER = 0x0D;
-        public void HandleInput(GamepadState state, double delta)
+        public void HandleInput(Gamepad state, double delta)
         {
             RhinoApp.InvokeOnUiThread((Action)(() =>
             {

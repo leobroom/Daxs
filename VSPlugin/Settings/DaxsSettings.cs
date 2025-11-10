@@ -14,7 +14,7 @@ namespace Daxs
 
         private readonly Dictionary<string, Control> controlBoxes = new();
 
-        private readonly SortedDictionary<GamepadButton, DropDown> inputActions = new SortedDictionary<GamepadButton, DropDown>();
+        private readonly SortedDictionary<GamepadButton, Tuple<Label, DropDown>> inputActions = new SortedDictionary<GamepadButton, Tuple<Label, DropDown>>();
         private readonly SortedDictionary<GAction, string> actionTable = new SortedDictionary<GAction, string>()
         {
             { GAction.Unset, "Unset" },
@@ -38,8 +38,19 @@ namespace Daxs
 
         private Button okButton;
 
+        private Label controllerInfoLabel = new ();
+
+        private Button toggleButton;
+
+        private Label statusIndicator;
+
+
         public DaxsSettings()
         {
+            Gamepad.Created += (s, e) =>{Application.Instance.AsyncInvoke(() =>SetGamepadType(e.Gamepad));};
+            Gamepad.Destroyed += (s, e) =>{Application.Instance.AsyncInvoke(() =>SetGamepadType(null));};
+
+
             Title = "Daxs Gamepad Settings";
             ClientSize = new Size(500, 700);
             Resizable = false;
@@ -57,55 +68,121 @@ namespace Daxs
             };             
         }
 
+        private static string GetToggleText()
+        {
+            switch (ControllerManager.Instance.State)
+            {
+                default:
+                    return "START Daxs";
+                case ControllerManager.Status.Started:
+                    return "STOP Daxs";
+            }
+        }
+
+        private void UpdateStatusIndicator()
+        {
+            var cm = ControllerManager.Instance;
+            switch (cm.State)
+            {
+                case ControllerManager.Status.Started:
+                    statusIndicator.TextColor = Colors.LimeGreen;
+                    statusIndicator.ToolTip = "Daxs running";
+                    break;
+                default:
+                    statusIndicator.TextColor = Colors.Red;
+                    statusIndicator.ToolTip = "Daxs stopped";
+                    break;
+            }
+
+            toggleButton.Text = GetToggleText();
+        }
+
+
         void CreateUi()
         {
+            // --- Start/Stop button ---
+            toggleButton = new Button
+            {
+                Text = GetToggleText(),
+                ToolTip = "Start or stop Daxs Gamepad Loop",
+                Width = 100
+            };
+
+            toggleButton.Click += (s, e) =>
+            {
+                ControllerManager.Instance.Toggle();
+                LayoutManager.Instance.Set(Layout.Menu);
+                UpdateStatusIndicator();
+            };
+
+            // --- Status indicator ---
+            statusIndicator = new Label
+            {
+                Text = "🔴",
+                Font = new Font(SystemFont.Bold, 10),
+                Width = 18,
+                TextColor = Colors.Red,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextAlignment = TextAlignment.Center,
+                ToolTip = "Daxs stopped"
+            };
+
+            // --- Controller info label ---
+            controllerInfoLabel = new Label
+            {
+                TextAlignment = TextAlignment.Center,
+                TextColor = Colors.Gray,
+                Wrap = WrapMode.Word
+            };
+
+            // --- HEADER: top layout ---
+            var headerLayout = new TableLayout
+            {
+                Padding = new Padding(10, 10, 10, 5),
+                Spacing = new Size(8, 5),
+                Rows =
+        {
+            new TableRow(
+                new TableCell(statusIndicator, false),
+                new TableCell(toggleButton, false)
+            ),
+            new TableRow(controllerInfoLabel)
+        }
+            };
+
+            UpdateStatusIndicator();
+
+            // --- SETTINGS TAB CONTENT ---
             var content = new TableLayout
             {
                 Padding = new Padding(10, 10, 0, 10),
-                Spacing = new Size(5, 10),    
+                Spacing = new Size(5, 10)
             };
 
             List<TableRow> rows = new();
-
             rows.Add(CreateControllerImage(ClientSize.Width - 50));
 
-            string[] input =
-{
-                "YawSensitivity",
-                "PitchSensitivity",
-                "Deadzone",
-                "MoveSpeed",
-                "ElevateSpeed"
-            };
+            string[] input = { "YawSensitivity", "PitchSensitivity", "Deadzone", "MoveSpeed", "ElevateSpeed" };
+            string[] hud = { "TextTime", "TextVisible" };
+            string[] walk = { "EyeHeight", "MaximalJump" };
+            string[] lens = { "LensStep", "LensDefault" };
 
-            string[] hud =
-            {
-                "TextTime",
-                "TextVisible",
-            };
-
-            string[] walk =
-            {
-                "EyeHeight",
-                "MaximalJump",
-            };
-
-            rows.Add(EtoFactory.CreateGroupExpander("Input Response", input, name => CreateControl(name),true));
+            rows.Add(EtoFactory.CreateGroupExpander("Input Response", input, name => CreateControl(name), true));
             rows.Add(EtoFactory.CreateGroupExpander("HUD", hud, name => CreateControl(name), true));
             rows.Add(EtoFactory.CreateGroupExpander("WalkMode", walk, name => CreateControl(name), true));
+            rows.Add(EtoFactory.CreateGroupExpander("Lens+-", lens, name => CreateControl(name), true));
             rows.Add(EtoFactory.CreateContentExpander("Input Layout", AddButtonDropdowns(), true));
             rows.Add(CreateCustom());
 
             foreach (TableRow row in rows)
                 content.Rows.Add(row);
-            //Github
+
             var githubLink = new Label
             {
                 Text = "© 2025 Leon Brohmann - Licensed under the MIT License - View on GitHub",
                 Cursor = Cursors.Pointer,
-        
                 VerticalAlignment = VerticalAlignment.Bottom,
-                TextAlignment = TextAlignment.Center,
+                TextAlignment = TextAlignment.Center
             };
             githubLink.MouseDown += (s, e) =>
             {
@@ -120,29 +197,96 @@ namespace Daxs
                 catch { }
             };
 
-            // Add a spacer + link row to the scroll content
-            content.Rows.Add(new TableRow { ScaleHeight = true }); // pushes the link to the bottom
+            content.Rows.Add(new TableRow { ScaleHeight = true });
             content.Rows.Add(new TableRow(githubLink));
 
             var scroll = new Scrollable
-            { 
-                Content = content, 
-                ExpandContentWidth = true, 
+            {
+                Content = content,
+                ExpandContentWidth = true,
                 ExpandContentHeight = false,
+                Border = BorderType.None
             };
 
+            var settingsTab = new TabPage
+            {
+                Text = "⚙️ Settings",
+                Content = scroll
+            };
+
+            // --- ABOUT TAB ---
+            var aboutLayout = new DynamicLayout { Padding = 10, Spacing = new Size(10, 10) };
+            aboutLayout.Add(new ImageView
+            {
+                Image = Bitmap.FromResource("Daxs.Shared.DaxsGamepadLayout.png"),
+                Size = new Size(200, 120)
+            });
+            aboutLayout.Add(new Label
+            {
+                Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. " +
+                       "Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.",
+                Wrap = WrapMode.Word,
+                TextAlignment = TextAlignment.Center,
+                TextColor = Colors.Gray
+            });
+            aboutLayout.Add(new Label
+            {
+                Text = "© 2025 Leon Brohmann – MIT License",
+                TextAlignment = TextAlignment.Center,
+                TextColor = Colors.SlateGray
+            });
+
+            var aboutTab = new TabPage
+            {
+                Text = "ℹ️ About",
+                Content = aboutLayout
+            };
+
+            // --- MAIN TABS ---
+            var tabs = new TabControl
+            {
+                Pages = { settingsTab, aboutTab }
+            };
+
+            // --- BOTTOM BUTTONS ---
+            var bottomButtons = EtoFactory.CreateButtonRow(new[]
+            {
+        ("DEFAULT", (Action)OnDefault),
+        ("CLOSE", (Action)OnOk)
+    });
+
+            // --- FINAL PAGE LAYOUT ---
             var page = new TableLayout
             {
-                Padding = 10,
-                Spacing = new Size(5, 10),
+                Padding = new Padding(10),
+                Spacing = new Size(5, 5),
+                Rows =
+        {
+            new TableRow(headerLayout),
+            new TableRow(tabs) { ScaleHeight = true },
+            new TableRow(bottomButtons)
+        }
             };
 
-            page.Rows.Add(new TableRow(scroll) { ScaleHeight = true });
-            page.Rows.Add(CreateDialogButtons());
-
             Content = page;
+            //okButton.Focus();
 
-            okButton.Focus();
+            SetGamepadType(ControllerManager.Instance.CurrentGamepad);
+        }
+
+        private void SetGamepadType(Gamepad gamepad)
+        {
+            controllerInfoLabel.Text = (gamepad != null) ? $"🎮 {gamepad.GpType}, {gamepad.Name} (VID:{gamepad.VendorID}, PID:{gamepad.ProductID})" : "⚠️ No Gamepad detected.";
+
+
+            foreach (GamepadButton button in inputActions.Keys)
+            {
+                Label label = inputActions[button].Item1;   
+                bool hasButton = gamepad != null && gamepad.HasGamepadButton(button);
+
+                label.Enabled = hasButton;
+                string buttonLabel = hasButton ? (gamepad.GetButtonLabel(button) is "Unknown" ? button.ToString() : gamepad.GetButtonLabel(button)): button.ToString();
+            }
         }
 
         void OnOk()
@@ -163,14 +307,14 @@ namespace Daxs
 
                 controlBoxes.TryGetValue(name, out Control box);
 
-                if (iv is NumericValue nv && box is NumericStepper stepper)
+                if (iv is NumericValue nv && box is NumericStepper stepper) 
                     stepper.Value = nv.DisplayValue;
                 else if (iv is BooleanValue bv && box is CheckBox checkB)
                     checkB.Checked = bv.Value;
                 else if (iv is TextValue tv)
                 {
                     if (Enum.TryParse(name, out GamepadButton button) && inputActions.TryGetValue(button, out var abox))
-                        abox.SelectedKey = tv.Value;
+                        abox.Item2.SelectedKey = tv.Value;
                     else if (box is TextBox textBox)
                         textBox.Text = tv.Value;
                 }
@@ -184,7 +328,10 @@ namespace Daxs
 
             if (val is NumericValue nv)
             {
-                var box = new NumericStepper { Value = nv.DisplayValue };
+                var box = new NumericStepper 
+                { Value = nv.DisplayValue,
+                    DecimalPlaces = 2
+                };
                 box.ValueChanged += (s, e) => nv.DisplayValue = box.Value;
                 controlBoxes[nv.Name] = box;
                 control = box;
@@ -334,11 +481,11 @@ namespace Daxs
             var takenByDropdown = new Dictionary<DropDown, HashSet<GAction>>();
             foreach (var kvA in inputActions)
             {
-                DropDown dropdownA = kvA.Value;
+                DropDown dropdownA = kvA.Value.Item2;
                 HashSet<GAction> set = new();
                 foreach (var kvB in inputActions)
                 {
-                    var dropdownB = kvB.Value;
+                    var dropdownB = kvB.Value.Item2;
                     if (dropdownB == dropdownA) // exclude self
                         continue;
 
@@ -352,7 +499,7 @@ namespace Daxs
             foreach (var kv in inputActions)
             {
                 GamepadButton button = kv.Key;
-                DropDown dropdown = kv.Value;
+                DropDown dropdown = kv.Value.Item2;
                 GAction originalKey = Enum.TryParse(dropdown.SelectedKey, out GAction myAction) ? myAction : GAction.Unset;
 
                 dropdown.DataStore = null;
@@ -416,9 +563,11 @@ namespace Daxs
                 SyncActionDropDowns();
             };
 
-            inputActions.Add(button, dropdown);
+            TableRow tr = EtoFactory.CreateControlRow(buttonName, dropdown);
+            Label label = (Label)tr.Cells[0].Control;
 
-            return EtoFactory.CreateControlRow(buttonName, dropdown);
+            inputActions.Add(button, new Tuple<Label, DropDown>(label, dropdown));
+            return tr;
         }
 
         #endregion

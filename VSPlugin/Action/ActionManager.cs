@@ -102,7 +102,7 @@ namespace Daxs
             axisBindingTable[action] = axis;
         }
 
-        private GamepadState gamepad = null;
+        private Gamepad gamepad = null;
 
         private readonly HUD hud = HUD.Instance;
 
@@ -134,13 +134,10 @@ namespace Daxs
             foreach (var (button, actionEnum) in actionToButtonTable)
             {
                 if (!actionTable.TryGetValue(actionEnum, out var action))
-                {
                     continue;
-                }
 
                 if (gamepad.GetButtonState(button) == action.Input)
                 {
-                    RhinoApp.WriteLine($"ActionManager: Executing action for button {button} mapped to {actionEnum}");
                     hud.SetText(action.HUD_Name, 2000);
                     action.Execute();
                 }
@@ -149,13 +146,10 @@ namespace Daxs
             foreach (var (axis, actionEnum) in actionToAxisTable)
             {
                 if (!actionTable.TryGetValue(actionEnum, out var action))
-                {
                     continue;
-                }
 
                 if (gamepad.GetAxisState(axis) == action.Input)
                 {
-                    RhinoApp.WriteLine($"ActionManager: Executing action for axis {axis} mapped to {actionEnum}");
                     hud.SetText(action.HUD_Name, 2000);
                     action.Execute();
                 }
@@ -163,7 +157,7 @@ namespace Daxs
         }
 
 
-        internal void Update(GamepadState gamepad) => this.gamepad = gamepad;
+        internal void Update(Gamepad gamepad) => this.gamepad = gamepad;
 
 
         public double Speedmulti=> (buttonBindingTable.TryGetValue(GAction.Speedmulti, out var button) && gamepad.GetButtonState(button) == InputX.IsHold)  ? speedMulti : 1;
@@ -174,8 +168,6 @@ namespace Daxs
         double rotSpeedmulti = 0;
 
         public double ElevateUp => axisBindingTable.TryGetValue(GAction.ElevatePlus, out var axis) ? gamepad.GetAxisValue(axis)  : 0;
-
-        double elevateSpeed = 0;
 
         public double ElevateDown => axisBindingTable.TryGetValue(GAction.ElevateMinus, out var axis) ? gamepad.GetAxisValue(axis)  : 0;
 

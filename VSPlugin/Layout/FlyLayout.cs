@@ -42,7 +42,7 @@ namespace Daxs
         double sinceLastUi = 0.0;
         const double uiDt = 1.0 / 60.0;
 
-        public void HandleInput(GamepadState state, double delta)
+        public void HandleInput(Gamepad state, double delta)
         {
             sinceLastUi += delta;   //  accumulate time for UI throttling
 
@@ -61,13 +61,6 @@ namespace Daxs
 
             var (yaw, pitch) = NormalizeStick(state.GetAxisValue(GamepadAxis.RightX), state.GetAxisValue(GamepadAxis.RightY));
             var (strafe, forward) = NormalizeStick(state.GetAxisValue(GamepadAxis.LeftX), state.GetAxisValue(GamepadAxis.LeftY));
-
-
-
-            //RhinoApp.InvokeOnUiThread((Action)(() => { RhinoApp.WriteLine(vertical0.ToString()); }));
-
-
-            //RhinoApp.InvokeOnUiThread((Action)(() => { RhinoApp.WriteLine($"FlyLayout: yaw={yaw}, pitch={pitch}, strafe={strafe}, forward={forward}"); }));
 
             InputY teleport = actionManager.Teleport;
 

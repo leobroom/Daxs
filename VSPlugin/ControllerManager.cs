@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using SDL3;
 using System;
-using static SDL3.SDL;
+
 
 namespace Daxs
 {
@@ -49,6 +49,31 @@ namespace Daxs
         //Loop
         private CancellationTokenSource _cts;
         private Status status = Status.NotInitialized;
+
+        public Status State
+        {
+            get { return status; }
+        }
+
+
+        //Gamepad
+
+        Gamepad gamepad = null;
+
+        private readonly object _lock = new();
+
+        public Gamepad CurrentGamepad
+        {
+            get 
+            {
+                lock (_lock)
+                {
+                    return gamepad;
+                }
+
+            }
+        }
+
 
 
 
@@ -98,7 +123,6 @@ namespace Daxs
             SDL.PumpEvents();
 
             IntPtr gamepadID = IntPtr.Zero;
-            GamepadState gamepad = null;
 
             //Whileloop
             while (!token.IsCancellationRequested)
@@ -112,12 +136,27 @@ namespace Daxs
                     uint[] ids = SDL.GetGamepads(out int count);
                     if (count == 0)
                     {
+                        if (gamepad!= null)
+                        {
+                            lock (_lock)
+                            {
+                                gamepad?.Dispose();
+                                gamepad = null;
+                            }
+
+                            gamepadID = IntPtr.Zero;
+                        }
+
                         RhinoApp.WriteLine("No gamepad connected.");
                         await Task.Delay(5000, token);
                         continue;
                     }
-
-                    gamepadID = SDL.OpenGamepad(ids[0]);
+                    lock (_lock)
+                    {
+                        gamepad = new Gamepad(ids[0]);
+                    }
+                    gamepadID = gamepad.GamepadID;
+           
                     if (gamepadID == IntPtr.Zero)
                     {
                         RhinoApp.WriteLine($"Failed to open gamepad: {SDL.GetError()}");
@@ -125,12 +164,7 @@ namespace Daxs
                         continue;
                     }
 
-                    string name = SDL.GetGamepadName(gamepadID);
-                    ushort vid = SDL.GetGamepadVendor(gamepadID);
-                    ushort pid = SDL.GetGamepadProduct(gamepadID);
-                    RhinoApp.WriteLine($"Connected to {name} (VID:0x{vid:X4}, PID:0x{pid:X4})");
-
-                    gamepad = new GamepadState(gamepadID);
+               
                 }
 
                 long now = sw.ElapsedTicks;
@@ -146,40 +180,16 @@ namespace Daxs
 
                 hud.Tick();
 
-                //RhinoApp.WriteLine("TICK");
-
                 if (SDL.GamepadConnected(gamepadID))
                 {
                     gamepad.Update();
                     actions.Update(gamepad);
-
-
-                    // Update the camera on the UI thread.                    
-                    layout.CurrentLayout.HandleInput(gamepad, delta);  
-
-
-
-                    //RhinoApp.WriteLine($"🎮 Gamepad: L({gamepad.GetAxisValue(GamepadAxis.LeftX):0.00},{gamepad.GetAxisValue(GamepadAxis.LeftY):0.00})");
+                
+                    layout.Current.HandleInput(gamepad, delta);  
                 }
-                else
-                {
-                    RhinoApp.WriteLine("Gamepad disconnected — waiting for reconnection...");
-                    SDL.CloseGamepad(gamepadID);
-                    gamepadID = IntPtr.Zero;
-                    gamepad = null;
-                }
-
-
-
-                //gamepad.Update();
-                //actions.Update(gamepad); //https://chatgpt.com/g/g-p-67e9bd1beeac8191a0f9ff9d384c27a1-xboxcontroller/c/68bdc840-3b1c-8321-93cc-6ff4bbe5a5c6
-
-               
 
                 await Task.Delay(1, token);
             }
-
-
-        }
+        } 
     }
 }
