@@ -1,6 +1,6 @@
-## MIT License
+MIT License
 
-Copyright (c) 2025 Leon Brohmann
+Copyright © 2025 Leon Brohmann <leonbrohmann@gmx.de>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-### Third-Party Notices
+Third-Party Notices
 
 This project uses the RhinoCommon SDK © Robert McNeel & Associates
-(Rhino 3D SDK, not redistributed; see https://www.rhino3d.com/)
+(Rhino 3D SDK, not redistributed) -  see https://www.rhino3d.com/
 
-This project also uses SDL3-CS © the SDL3-CS authors,
-licensed under the zlib license.
+This project also uses SDL3-CS, a C# wrapper for SDL3. © Eduard Gushchin and contributors
+Licensed under the zlib license — see https://github.com/edwardgushchin/SDL3-CS?tab=Zlib-1-ov-file
+
+This project depends on SDL3 © Sam Lantinga and contributors
+Licensed under the zlib license — see https://github.com/libsdl-org/SDL
+
+
