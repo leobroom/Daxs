@@ -5,6 +5,7 @@ using Eto.Forms;
 using Eto.Drawing;
 using System.Reflection;
 using static SDL3.SDL;
+using Rhino;
 
 namespace Daxs
 {
@@ -246,14 +247,15 @@ namespace Daxs
         {
             controllerInfoLabel.Text = (gamepad != null) ? $"🎮 {gamepad.GpType}, {gamepad.Name} (VID:{gamepad.VendorID}, PID:{gamepad.ProductID})" : "⚠️ No Gamepad detected.";
 
-
             foreach (GamepadButton button in inputActions.Keys)
             {
                 Label label = inputActions[button].Item1;
                 bool hasButton = gamepad != null && gamepad.HasGamepadButton(button);
 
                 label.Enabled = hasButton;
-                string buttonLabel = hasButton ? (gamepad.GetButtonLabel(button) is "Unknown" ? button.ToString() : gamepad.GetButtonLabel(button)) : button.ToString();
+                label.Text = hasButton ? (gamepad.GetButtonLabel(button) is "Unknown" ? button.ToString() : gamepad.GetButtonLabel(button)) : button.ToString();
+
+
             }
         }
 
