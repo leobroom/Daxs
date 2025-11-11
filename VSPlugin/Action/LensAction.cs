@@ -7,15 +7,16 @@ namespace Daxs
     internal class LensAction : BaseState
     {
         private InputY mode;
-        private double strength;
-        private double actualLens =-1;
-        private Settings settings;
+        private double strength, defaultLens, actualLens;
+        private readonly Settings settings;
 
         public LensAction( InputX Input, InputY mode) :base( Input)
         {
             settings = Settings.Instance;
+            this.mode = mode;
 
             strength = settings.BindNumeric("LensStep", v => strength = v);
+            defaultLens = settings.BindNumeric("LensDefault", v => defaultLens = v);
 
             actualLens = Math.Round(RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.Camera35mmLensLength);
         }
@@ -30,6 +31,8 @@ namespace Daxs
             RhinoViewport vp = view.ActiveViewport;
             actualLens = Math.Round(vp.Camera35mmLensLength);
 
+            RhinoApp.WriteLine("LensAction actualLens: " + actualLens.ToString() + " | strength : " + strength);
+
             switch (mode)
             {
                 case InputY.Up:
@@ -39,11 +42,15 @@ namespace Daxs
                     actualLens -= strength;
                     break;
                 case InputY.Default:
-                    actualLens = strength;
+                    actualLens = defaultLens;
                     break;
             }
 
+            RhinoApp.WriteLine("LensAction actualLens: " + actualLens.ToString());
+
             Math.Round(actualLens);
+
+            RhinoApp.WriteLine("LensAction actualLens: " + actualLens.ToString());
 
             vp.Camera35mmLensLength = actualLens;
             view.Redraw();

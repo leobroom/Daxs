@@ -3,6 +3,6 @@
     public interface IGamepadLayout
     {
         Layout Name { get; }
-        void HandleInput(GamepadState state, double delta);
+        void HandleInput(Gamepad state, double delta);
     }
 }

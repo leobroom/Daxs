@@ -4,11 +4,11 @@
     {
         public SwitchAction(InputX Input) : base(  Input) {}
 
-        public override string HUD_Name => LayoutManager.Instance.CurrentLayout.Name.ToString();
+        public override string HUD_Name => LayoutManager.Instance.Current.Name.ToString();
 
         public override void Execute() 
         {
-            var current = LayoutManager.Instance.CurrentLayout;
+            var current = LayoutManager.Instance.Current;
 
             Layout name = current.Name;
             if (name == Layout.Fly)
