@@ -6,6 +6,7 @@ using Eto.Drawing;
 using System.Reflection;
 using static SDL3.SDL;
 using Rhino;
+using System.IO;
 
 namespace Daxs
 {
@@ -186,25 +187,50 @@ namespace Daxs
 
             // --- ABOUT TAB ---
             var aboutLayout = new DynamicLayout { Padding = 10, Spacing = new Size(10, 10) };
-            aboutLayout.Add(new ImageView
+
+            string licensePth = Utils.GetSharedFile("LICENSE.txt");
+
+            string licenseText = "License file not found.";
+
+            if (File.Exists(licensePth))
             {
-                Image = Bitmap.FromResource("Daxs.Shared.DaxsGamepadLayout.png"),
-                Size = new Size(200, 120)
-            });
-            aboutLayout.Add(new Label
+                using var reader = new StreamReader(licensePth);
+                string rawText = reader.ReadToEnd();
+
+                // Normalize newlines (handle Windows and Unix endings)
+                rawText = rawText.Replace("\r\n", "\n");
+
+                // Replace double newlines with a placeholder
+                rawText = rawText.Replace("\n\n", "[[PARA]]");
+
+                // Replace remaining single newlines with spaces
+                rawText = rawText.Replace("\n", " ");
+
+                // Restore double newlines as real breaks
+                licenseText = rawText.Replace("[[PARA]]", "\n\n");
+            }
+
+
+            // Create a read-only, selectable TextArea
+            var licenseArea = new TextArea
             {
-                Text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. " +
-                       "Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor.",
-                Wrap = WrapMode.Word,
-                TextAlignment = TextAlignment.Center,
-                TextColor = Colors.Gray
-            });
-            aboutLayout.Add(new Label
+                Text = licenseText,
+                ReadOnly = true,
+                Wrap = true,
+                Size = new Size(500, 400), // adjust as needed
+                BackgroundColor = Colors.Transparent // optional for dark UI themes
+            };
+
+            // Optionally put it inside a scroll container if your About window has limited space
+            var scrollableLicense = new Scrollable
             {
-                Text = "© 2025 Leon Brohmann – MIT License",
-                TextAlignment = TextAlignment.Center,
-                TextColor = Colors.SlateGray
-            });
+                Content = licenseArea,
+                Border = BorderType.None
+            };
+
+            // Add to layout
+            aboutLayout.Add(licenseArea);
+
 
             var aboutTab = new TabPage
             {
@@ -254,8 +280,6 @@ namespace Daxs
 
                 label.Enabled = hasButton;
                 label.Text = hasButton ? (gamepad.GetButtonLabel(button) is "Unknown" ? button.ToString() : gamepad.GetButtonLabel(button)) : button.ToString();
-
-
             }
         }
 

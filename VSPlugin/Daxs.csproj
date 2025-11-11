@@ -12,7 +12,7 @@
     <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>0.1.441</Version>
+    <Version>0.1.449</Version>
     <Title>Daxs</Title>
     <Company>Leon Brohmann</Company>
     <Description>Daxs is a Rhino package that enables support for gamepad input, making it easier to integrate Xbox and PlayStation 4 controllers into your Rhino workflows or plugins.</Description>
@@ -27,6 +27,9 @@
     <EmbeddedResource Include="Shared\gamecontrollerdb.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="Shared\LICENSE.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="RhinoCommon" Version="8.0.23304.9001" ExcludeAssets="runtime" />
@@ -38,6 +41,15 @@
       <TargetPath>Daxs.rui</TargetPath>
     </None>
   </ItemGroup>
+  <!-- Copy LICENSE file from parent folder into Shared as LICENSE.txt before build -->
+  <Target Name="CopyLicenseFile" BeforeTargets="BeforeBuild">
+    <PropertyGroup>
+      <LicenseSource>$(MSBuildProjectDirectory)\..\LICENSE</LicenseSource>
+      <LicenseDestination>$(MSBuildProjectDirectory)\Shared\LICENSE.txt</LicenseDestination>
+    </PropertyGroup>
+    <Message Text="Copying license from $(LicenseSource) to $(LicenseDestination)" Importance="High" />
+    <Copy SourceFiles="$(LicenseSource)" DestinationFiles="$(LicenseDestination)" Condition="Exists('$(LicenseSource)')" />
+  </Target>
   <Target Name="IncrementVersion" BeforeTargets="BeforeBuild">
     <PropertyGroup>
       <CurrentVersion>$(Version)</CurrentVersion>
