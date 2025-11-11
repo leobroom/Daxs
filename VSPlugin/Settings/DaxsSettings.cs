@@ -8,6 +8,7 @@ using static SDL3.SDL;
 
 namespace Daxs
 {
+
     public class DaxsSettings : Dialog<bool>
     {
         private readonly Settings settings = Settings.Instance;
@@ -18,16 +19,16 @@ namespace Daxs
         private readonly SortedDictionary<GAction, string> actionTable = new SortedDictionary<GAction, string>()
         {
             { GAction.Unset, "Unset" },
-            { GAction.LensPlus, "Lens+" },
-            { GAction.LensMinus, "Lens-" },
-            { GAction.LensDefault, "LensDefault" },
-            { GAction.TeleportPlus, "Teleport+" },
-            { GAction.TeleportMinus, "Teleport-" },
-            { GAction.Speedmulti, "Speedmulti" },
-            { GAction.RotSpeedMulti, "RotSpeedMulti" },
-            { GAction.ElevatePlus, "ElevatePlus" },
-            { GAction.ElevateMinus, "ElevateMinus" },
-            { GAction.SwitchMode, "SwitchMode" },
+            { GAction.LensPlus, "Lens +" },
+            { GAction.LensMinus, "Lens -" },
+            { GAction.LensDefault, "Lens Default" },
+            { GAction.TeleportPlus, "Teleport +" },
+            { GAction.TeleportMinus, "Teleport -" },
+            { GAction.Speedmulti, "Speed Multi" },
+            { GAction.RotSpeedMulti, "Rotation Multi" },
+            { GAction.ElevatePlus, "Elevate +" },
+            { GAction.ElevateMinus, "Elevate -" },
+            { GAction.SwitchMode, "Switch Mode" },
             { GAction.C1, "C1" },
             { GAction.C2, "C2" },
             { GAction.C3, "C3" },
@@ -38,18 +39,14 @@ namespace Daxs
 
         private Button okButton;
 
-        private Label controllerInfoLabel = new ();
+        private Label controllerInfoLabel = new();
 
-        private Button toggleButton;
-
-        private Label statusIndicator;
 
 
         public DaxsSettings()
         {
-            Gamepad.Created += (s, e) =>{Application.Instance.AsyncInvoke(() =>SetGamepadType(e.Gamepad));};
-            Gamepad.Destroyed += (s, e) =>{Application.Instance.AsyncInvoke(() =>SetGamepadType(null));};
-
+            Gamepad.Created += (s, e) => { Application.Instance.AsyncInvoke(() => SetGamepadType(e.Gamepad)); };
+            Gamepad.Destroyed += (s, e) => { Application.Instance.AsyncInvoke(() => SetGamepadType(null)); };
 
             Title = "Daxs Gamepad Settings";
             ClientSize = new Size(500, 700);
@@ -65,72 +62,29 @@ namespace Daxs
                     this.Close(false);
                     e.Handled = true;
                 }
-            };             
+            };
         }
-
-        private static string GetToggleText()
-        {
-            switch (ControllerManager.Instance.State)
-            {
-                default:
-                    return "START Daxs";
-                case ControllerManager.Status.Started:
-                    return "STOP Daxs";
-            }
-        }
-
-        private void UpdateStatusIndicator()
-        {
-            var cm = ControllerManager.Instance;
-            switch (cm.State)
-            {
-                case ControllerManager.Status.Started:
-                    statusIndicator.TextColor = Colors.LimeGreen;
-                    statusIndicator.ToolTip = "Daxs running";
-                    break;
-                default:
-                    statusIndicator.TextColor = Colors.Red;
-                    statusIndicator.ToolTip = "Daxs stopped";
-                    break;
-            }
-
-            toggleButton.Text = GetToggleText();
-        }
-
 
         void CreateUi()
         {
             // --- Start/Stop button ---
-            toggleButton = new Button
+            var toggleSwitch = new ToggleSwitch
             {
-                Text = GetToggleText(),
-                ToolTip = "Start or stop Daxs Gamepad Loop",
-                Width = 100
+                IsOn = ControllerManager.Instance.State == ControllerManager.Status.Started,
+                Width = 65,
             };
 
-            toggleButton.Click += (s, e) =>
+            toggleSwitch.Toggled += (s, isOn) =>
             {
                 ControllerManager.Instance.Toggle();
                 LayoutManager.Instance.Set(Layout.Menu);
-                UpdateStatusIndicator();
-            };
-
-            // --- Status indicator ---
-            statusIndicator = new Label
-            {
-                Text = "🔴",
-                Font = new Font(SystemFont.Bold, 10),
-                Width = 18,
-                TextColor = Colors.Red,
-                VerticalAlignment = VerticalAlignment.Center,
-                TextAlignment = TextAlignment.Center,
-                ToolTip = "Daxs stopped"
+                toggleSwitch.IsOn = ControllerManager.Instance.State == ControllerManager.Status.Started;
             };
 
             // --- Controller info label ---
             controllerInfoLabel = new Label
             {
-                TextAlignment = TextAlignment.Center,
+                TextAlignment = TextAlignment.Left,
                 TextColor = Colors.Gray,
                 Wrap = WrapMode.Word
             };
@@ -138,19 +92,19 @@ namespace Daxs
             // --- HEADER: top layout ---
             var headerLayout = new TableLayout
             {
-                Padding = new Padding(10, 10, 10, 5),
+                Padding = new Padding(5, 0, 5, 10),
                 Spacing = new Size(8, 5),
                 Rows =
-        {
-            new TableRow(
-                new TableCell(statusIndicator, false),
-                new TableCell(toggleButton, false)
-            ),
-            new TableRow(controllerInfoLabel)
-        }
+                {
+                    new TableRow(
+      
+                        new TableCell(toggleSwitch, false),
+                        controllerInfoLabel
+                           // new TableCell(null, true) // spacer to absorb width
+                    ),
+                }
             };
 
-            UpdateStatusIndicator();
 
             // --- SETTINGS TAB CONTENT ---
             var content = new TableLayout
@@ -214,6 +168,21 @@ namespace Daxs
                 Content = scroll
             };
 
+            // --- THEME COLOR TAB (NEW) ---
+            var colorViewer = new ColorViewer();
+            var themeScroll = new Scrollable
+            {
+                Content = colorViewer,
+                ExpandContentWidth = true,
+                ExpandContentHeight = false,
+                Border = BorderType.None
+            };
+            var themeTab = new TabPage
+            {
+                Text = "🎨 Theme Colors",
+                Content = themeScroll
+            };
+
             // --- ABOUT TAB ---
             var aboutLayout = new DynamicLayout { Padding = 10, Spacing = new Size(10, 10) };
             aboutLayout.Add(new ImageView
@@ -245,15 +214,15 @@ namespace Daxs
             // --- MAIN TABS ---
             var tabs = new TabControl
             {
-                Pages = { settingsTab, aboutTab }
+                Pages = { settingsTab, themeTab, aboutTab } // Inserted the new themeTab here
             };
 
             // --- BOTTOM BUTTONS ---
             var bottomButtons = EtoFactory.CreateButtonRow(new[]
             {
-        ("DEFAULT", (Action)OnDefault),
-        ("CLOSE", (Action)OnOk)
-    });
+                ("DEFAULT", (Action)OnDefault),
+                ("CLOSE", (Action)OnOk)
+            });
 
             // --- FINAL PAGE LAYOUT ---
             var page = new TableLayout
@@ -261,15 +230,14 @@ namespace Daxs
                 Padding = new Padding(10),
                 Spacing = new Size(5, 5),
                 Rows =
-        {
-            new TableRow(headerLayout),
-            new TableRow(tabs) { ScaleHeight = true },
-            new TableRow(bottomButtons)
-        }
+                {
+                    new TableRow(headerLayout),
+                    new TableRow(tabs) { ScaleHeight = true },
+                    new TableRow(bottomButtons)
+                }
             };
 
             Content = page;
-            //okButton.Focus();
 
             SetGamepadType(ControllerManager.Instance.CurrentGamepad);
         }
@@ -281,11 +249,11 @@ namespace Daxs
 
             foreach (GamepadButton button in inputActions.Keys)
             {
-                Label label = inputActions[button].Item1;   
+                Label label = inputActions[button].Item1;
                 bool hasButton = gamepad != null && gamepad.HasGamepadButton(button);
 
                 label.Enabled = hasButton;
-                string buttonLabel = hasButton ? (gamepad.GetButtonLabel(button) is "Unknown" ? button.ToString() : gamepad.GetButtonLabel(button)): button.ToString();
+                string buttonLabel = hasButton ? (gamepad.GetButtonLabel(button) is "Unknown" ? button.ToString() : gamepad.GetButtonLabel(button)) : button.ToString();
             }
         }
 
@@ -307,7 +275,7 @@ namespace Daxs
 
                 controlBoxes.TryGetValue(name, out Control box);
 
-                if (iv is NumericValue nv && box is NumericStepper stepper) 
+                if (iv is NumericValue nv && box is NumericStepper stepper)
                     stepper.Value = nv.DisplayValue;
                 else if (iv is BooleanValue bv && box is CheckBox checkB)
                     checkB.Checked = bv.Value;
@@ -321,15 +289,16 @@ namespace Daxs
             }
         }
 
-        TableRow CreateControl(string settingsName, string labelName ="")
+        TableRow CreateControl(string settingsName, string labelName = "")
         {
             IValue val = settings[settingsName];
             Control control = null;
 
             if (val is NumericValue nv)
             {
-                var box = new NumericStepper 
-                { Value = nv.DisplayValue,
+                var box = new NumericStepper
+                {
+                    Value = nv.DisplayValue,
                     DecimalPlaces = 2
                 };
                 box.ValueChanged += (s, e) => nv.DisplayValue = box.Value;
@@ -401,7 +370,7 @@ namespace Daxs
                 layout.Add(CreateControl($"C{i}_SimulateKeys", "Simulate keys"));
 
                 var textBox = (TextBox)nameRow.Cells[1].Control;
-                var subExpander = CreateCustomExpander($"Custom {i}", $"C{i}" , layout, textBox);
+                var subExpander = CreateCustomExpander($"Custom {i}", $"C{i}", layout, textBox);
 
                 innerLayout.Add(subExpander);
             }
@@ -432,11 +401,11 @@ namespace Daxs
             ;
 
             boundTextBox.TextChanged += (_, _) =>
-                {
+            {
 
-                    label.Text = MakeHeader();
-                    SyncCustomNames();
-                };
+                label.Text = MakeHeader();
+                SyncCustomNames();
+            };
 
             return new Expander
             {
@@ -537,7 +506,7 @@ namespace Daxs
 
             string buttonName = button.ToString();
 
-        
+
 
             TextValue tVal = (TextValue)settings[buttonName];
 

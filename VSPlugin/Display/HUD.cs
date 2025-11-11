@@ -51,7 +51,7 @@ namespace Daxs
         /// </summary>
         public void SetText(string text, int durationMs)
         {
-            if (textVisible) 
+            if (!textVisible) 
             {
                 if (Enabled)
                     DisableText();
