@@ -2,6 +2,7 @@
 using Eto.Drawing;
 using Eto.Forms;
 using System;
+using System.IO;
 
 namespace Daxs
 {
@@ -78,6 +79,91 @@ namespace Daxs
         {
             var expander = CreateExpander(title, content, expanded);
             return new TableRow(expander);
+        }
+
+        internal static TabPage CreateAboutTab() 
+        {
+            // --- ABOUT TAB ---
+            var aboutLayout = new DynamicLayout { Padding = 10, Spacing = new Size(10, 10) };
+
+            // Github
+
+            var githubLink = new Label
+            {
+                Text = "View on GitHub",
+                Cursor = Cursors.Pointer,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                TextAlignment = TextAlignment.Center
+            };
+            githubLink.MouseDown += (s, e) =>
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = "https://github.com/leobroom/Daxs",
+                        UseShellExecute = true
+                    });
+                }
+                catch { }
+            };
+
+            aboutLayout.Add(new TableRow(githubLink));
+            aboutLayout.Add(new TableRow { ScaleHeight = true });
+
+            string licensePth = Utils.GetSharedFile("LICENSE.txt");
+
+            string licenseText = "License file not found.";
+
+            if (File.Exists(licensePth))
+            {
+                using var reader = new StreamReader(licensePth);
+                string rawText = reader.ReadToEnd();
+
+                // Normalize newlines (handle Windows and Unix endings)
+                rawText = rawText.Replace("\r\n", "\n");
+
+                // Replace double newlines with a placeholder
+                rawText = rawText.Replace("\n\n", "[[PARA]]");
+
+                // Replace remaining single newlines with spaces
+                rawText = rawText.Replace("\n", " ");
+
+                // Restore double newlines as real breaks
+                licenseText = rawText.Replace("[[PARA]]", "\n\n");
+            }
+
+
+            aboutLayout.Add(new Label
+            {
+                Text = licenseText,
+                Wrap = WrapMode.Word,
+                TextAlignment = TextAlignment.Left,
+                TextColor = Colors.Gray
+            });
+
+            return  new TabPage
+            {
+                Text = "ℹ️ About",
+                Content = aboutLayout
+            };
+        }
+
+        internal static TabPage CreateThemeTab() 
+        {
+            var colorViewer = new ColorViewer();
+            var themeScroll = new Scrollable
+            {
+                Content = colorViewer,
+                ExpandContentWidth = true,
+                ExpandContentHeight = false,
+                Border = BorderType.None
+            };
+            return new TabPage
+            {
+                Text = "🎨 Theme Colors",
+                Content = themeScroll
+            };
         }
     }
 }

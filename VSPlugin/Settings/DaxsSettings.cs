@@ -133,29 +133,6 @@ namespace Daxs
             foreach (TableRow row in rows)
                 content.Rows.Add(row);
 
-            var githubLink = new Label
-            {
-                Text = "© 2025 Leon Brohmann - Licensed under the MIT License - View on GitHub",
-                Cursor = Cursors.Pointer,
-                VerticalAlignment = VerticalAlignment.Bottom,
-                TextAlignment = TextAlignment.Center
-            };
-            githubLink.MouseDown += (s, e) =>
-            {
-                try
-                {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = "https://github.com/leobroom/Daxs",
-                        UseShellExecute = true
-                    });
-                }
-                catch { }
-            };
-
-            content.Rows.Add(new TableRow { ScaleHeight = true });
-            content.Rows.Add(new TableRow(githubLink));
-
             var scroll = new Scrollable
             {
                 Content = content,
@@ -164,84 +141,35 @@ namespace Daxs
                 Border = BorderType.None
             };
 
-            var settingsTab = new TabPage
+            TabPage inputTab = new TabPage
             {
-                Text = "⚙️ Settings",
+                Text = "🕹️ Input",
                 Content = scroll
             };
 
-            // --- THEME COLOR TAB (NEW) ---
-            var colorViewer = new ColorViewer();
-            var themeScroll = new Scrollable
+            TabPage settingsTab = new TabPage
             {
-                Content = colorViewer,
-                ExpandContentWidth = true,
-                ExpandContentHeight = false,
-                Border = BorderType.None
+                Text = "⚙️ Settings",
+                //Content = scroll
             };
-            var themeTab = new TabPage
+
+            // --- CUSTOM ---
+            TabPage customTab = new TabPage
             {
-                Text = "🎨 Theme Colors",
-                Content = themeScroll
+                Text = "🧩 Custom",
+                //Content = nu
             };
+
+            // --- THEME COLOR TAB ---
+            TabPage themeTab = EtoFactory.CreateThemeTab();
 
             // --- ABOUT TAB ---
-            var aboutLayout = new DynamicLayout { Padding = 10, Spacing = new Size(10, 10) };
-
-            string licensePth = Utils.GetSharedFile("LICENSE.txt");
-
-            string licenseText = "License file not found.";
-
-            if (File.Exists(licensePth))
-            {
-                using var reader = new StreamReader(licensePth);
-                string rawText = reader.ReadToEnd();
-
-                // Normalize newlines (handle Windows and Unix endings)
-                rawText = rawText.Replace("\r\n", "\n");
-
-                // Replace double newlines with a placeholder
-                rawText = rawText.Replace("\n\n", "[[PARA]]");
-
-                // Replace remaining single newlines with spaces
-                rawText = rawText.Replace("\n", " ");
-
-                // Restore double newlines as real breaks
-                licenseText = rawText.Replace("[[PARA]]", "\n\n");
-            }
-
-
-            // Create a read-only, selectable TextArea
-            var licenseArea = new TextArea
-            {
-                Text = licenseText,
-                ReadOnly = true,
-                Wrap = true,
-                Size = new Size(500, 400), // adjust as needed
-                BackgroundColor = Colors.Transparent // optional for dark UI themes
-            };
-
-            // Optionally put it inside a scroll container if your About window has limited space
-            var scrollableLicense = new Scrollable
-            {
-                Content = licenseArea,
-                Border = BorderType.None
-            };
-
-            // Add to layout
-            aboutLayout.Add(licenseArea);
-
-
-            var aboutTab = new TabPage
-            {
-                Text = "ℹ️ About",
-                Content = aboutLayout
-            };
+            TabPage aboutTab = EtoFactory.CreateAboutTab();
 
             // --- MAIN TABS ---
             var tabs = new TabControl
             {
-                Pages = { settingsTab, themeTab, aboutTab } // Inserted the new themeTab here
+                Pages = { inputTab, settingsTab, customTab, aboutTab, /*themeTab*/ } // Inserted the new themeTab here
             };
 
             // --- BOTTOM BUTTONS ---
