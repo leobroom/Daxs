@@ -23,12 +23,10 @@ SOFTWARE.
 Third-Party Notices
 
 This project uses the RhinoCommon SDK © Robert McNeel & Associates
-(Rhino 3D SDK, not redistributed) -  see https://www.rhino3d.com/
+(Rhino 3D SDK, not redistributed) - see https://www.rhino3d.com/
 
 This project also uses SDL3-CS, a C# wrapper for SDL3. © Eduard Gushchin and contributors
-Licensed under the zlib license — see https://github.com/edwardgushchin/SDL3-CS?tab=Zlib-1-ov-file
+Licensed under the zlib license - see https://github.com/edwardgushchin/SDL3-CS?tab=Zlib-1-ov-file
 
 This project depends on SDL3 © Sam Lantinga and contributors
-Licensed under the zlib license — see https://github.com/libsdl-org/SDL
-
-
+Licensed under the zlib license - see https://github.com/libsdl-org/SDL
