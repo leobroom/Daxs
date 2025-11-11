@@ -1,4 +1,4 @@
-MIT License
+## MIT License
 
 Copyright (c) 2025 Leon Brohmann
 
@@ -19,3 +19,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+### Third-Party Notices
+
+This project uses the RhinoCommon SDK © Robert McNeel & Associates
+(Rhino 3D SDK, not redistributed; see https://www.rhino3d.com/)
+
+This project also uses SDL3-CS © the SDL3-CS authors,
+licensed under the zlib license.
