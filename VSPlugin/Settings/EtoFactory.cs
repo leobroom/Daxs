@@ -1,5 +1,4 @@
-﻿
-using Eto.Drawing;
+﻿using Eto.Drawing;
 using Eto.Forms;
 using System;
 using System.IO;
@@ -62,18 +61,22 @@ namespace Daxs
             return new TableRow(expander);
         }
 
-        internal static TableRow CreateButtonRow((string text, Action onClick)[] buttons)
+        internal static TableRow CreateButtonButtons((string text, Action onClick)[] buttons)
         {
             var layout = new TableLayout { Padding = 10, Spacing = new Size(5, 5) };
             var row = new TableRow();
             foreach (var (text, onClick) in buttons)
-                row.Cells.Add(new TableCell(new Button { Text = text, Command = new Command((_, _) => onClick()) }, false));
+            {
+
+                TableCell tc = (onClick != null) ? new TableCell(new Button { Text = text, Command = new Command((_, _) => onClick()) }, false) : new TableCell { ScaleWidth = true };
+
+                row.Cells.Add(tc);
+            }
+               
             layout.Rows.Add(null);
             layout.Rows.Add(row);
             return new TableRow(layout);
         }
-
-
 
         internal static TableRow CreateContentExpander(string title, Control content, bool expanded = false)
         {
@@ -81,89 +84,88 @@ namespace Daxs
             return new TableRow(expander);
         }
 
-        internal static TabPage CreateAboutTab() 
+        //TABS
+
+        internal static TabPage CreateAboutTab()
         {
-            // --- ABOUT TAB ---
-            var aboutLayout = new DynamicLayout { Padding = 10, Spacing = new Size(10, 10) };
-
-            // Github
-
             var githubLink = new Label
             {
-                Text = "View on GitHub",
+                Text =
+                $"Daxs {Utils.GetPackageVersion()}\n" +
+                "View on GitHub",
                 Cursor = Cursors.Pointer,
                 VerticalAlignment = VerticalAlignment.Bottom,
                 TextAlignment = TextAlignment.Center
             };
+
             githubLink.MouseDown += (s, e) =>
             {
                 try
                 {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = "https://github.com/leobroom/Daxs",
-                        UseShellExecute = true
-                    });
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = "https://github.com/leobroom/Daxs", UseShellExecute = true });
                 }
                 catch { }
             };
 
-            aboutLayout.Add(new TableRow(githubLink));
-            aboutLayout.Add(new TableRow { ScaleHeight = true });
-
             string licensePth = Utils.GetSharedFile("LICENSE.txt");
-
-            string licenseText = "License file not found.";
-
-            if (File.Exists(licensePth))
+            string licenseText = "License file not found."; if (File.Exists(licensePth))
             {
-                using var reader = new StreamReader(licensePth);
-                string rawText = reader.ReadToEnd();
-
-                // Normalize newlines (handle Windows and Unix endings)
-                rawText = rawText.Replace("\r\n", "\n");
-
-                // Replace double newlines with a placeholder
-                rawText = rawText.Replace("\n\n", "[[PARA]]");
-
-                // Replace remaining single newlines with spaces
-                rawText = rawText.Replace("\n", " ");
-
-                // Restore double newlines as real breaks
+                using var reader = new StreamReader(licensePth); 
+                string rawText = reader.ReadToEnd(); 
+                                                                                                    
+                rawText = rawText.Replace("\r\n", "\n"); 
+                rawText = rawText.Replace("\n\n", "[[PARA]]"); 
+                rawText = rawText.Replace("\n", " "); 
                 licenseText = rawText.Replace("[[PARA]]", "\n\n");
             }
 
-
-            aboutLayout.Add(new Label
+            var licenseLabel = new Label
             {
                 Text = licenseText,
                 Wrap = WrapMode.Word,
                 TextAlignment = TextAlignment.Left,
-                TextColor = Colors.Gray
-            });
-
-            return  new TabPage
-            {
-                Text = "ℹ️ About",
-                Content = aboutLayout
+                //TextColor = Colors.Gray,
+                //BackgroundColor = Colors.Red,
             };
+
+            Control[] rows = new Control[] 
+            { 
+                new TableRow(githubLink), 
+                new TableRow { ScaleHeight = true },
+                new TableRow(licenseLabel) { ScaleHeight = true }
+            };
+
+            return CreateTabpage("ℹ️ About", rows);
         }
 
         internal static TabPage CreateThemeTab() 
         {
             var colorViewer = new ColorViewer();
-            var themeScroll = new Scrollable
+            return CreateTabpage("🎨 Theme Colors", new Control[] { new TableRow(colorViewer) });
+        }
+
+        internal static TabPage CreateTabpage(string tabTitle, Control[] rows) 
+        {
+            var layout = new DynamicLayout { Padding = new Padding(10,10,10,10), Spacing = new Size(10, 10), Width = 420 };
+            
+            if (rows != null)
+                layout.AddRange(rows);
+
+            Scrollable scroll = new ()
             {
-                Content = colorViewer,
+                Content = layout,
                 ExpandContentWidth = true,
                 ExpandContentHeight = false,
-                Border = BorderType.None
+                Border = BorderType.None,
             };
-            return new TabPage
+
+            TabPage inputTab = new ()
             {
-                Text = "🎨 Theme Colors",
-                Content = themeScroll
+                Text = tabTitle,
+                Content = scroll
             };
+
+            return inputTab;
         }
     }
 }

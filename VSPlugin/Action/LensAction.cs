@@ -31,7 +31,7 @@ namespace Daxs
             RhinoViewport vp = view.ActiveViewport;
             actualLens = Math.Round(vp.Camera35mmLensLength);
 
-            RhinoApp.WriteLine("LensAction actualLens: " + actualLens.ToString() + " | strength : " + strength);
+            //RhinoApp.WriteLine("LensAction actualLens: " + actualLens.ToString() + " | strength : " + strength);
 
             switch (mode)
             {
@@ -46,11 +46,11 @@ namespace Daxs
                     break;
             }
 
-            RhinoApp.WriteLine("LensAction actualLens: " + actualLens.ToString());
+            //RhinoApp.WriteLine("LensAction actualLens: " + actualLens.ToString());
 
             Math.Round(actualLens);
 
-            RhinoApp.WriteLine("LensAction actualLens: " + actualLens.ToString());
+            //RhinoApp.WriteLine("LensAction actualLens: " + actualLens.ToString());
 
             vp.Camera35mmLensLength = actualLens;
             view.Redraw();

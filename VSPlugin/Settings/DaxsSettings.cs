@@ -5,12 +5,9 @@ using Eto.Forms;
 using Eto.Drawing;
 using System.Reflection;
 using static SDL3.SDL;
-using Rhino;
-using System.IO;
 
 namespace Daxs
 {
-
     public class DaxsSettings : Dialog<bool>
     {
         private readonly Settings settings = Settings.Instance;
@@ -39,11 +36,7 @@ namespace Daxs
             { GAction.C6, "C6" }
         };
 
-        private Button okButton;
-
         private Label controllerInfoLabel = new();
-
-
 
         public DaxsSettings()
         {
@@ -72,7 +65,7 @@ namespace Daxs
             // --- Start/Stop button ---
             var toggleSwitch = new ToggleSwitch
             {
-                IsOn = ControllerManager.Instance.State == ControllerManager.Status.Started,
+                IsOn = ControllerManager.Instance.State == ControllerManager.DaxStatus.Started,
                 Width = 65,
             };
 
@@ -80,7 +73,7 @@ namespace Daxs
             {
                 ControllerManager.Instance.Toggle();
                 LayoutManager.Instance.Set(Layout.Menu);
-                toggleSwitch.IsOn = ControllerManager.Instance.State == ControllerManager.Status.Started;
+                toggleSwitch.IsOn = ControllerManager.Instance.State == ControllerManager.DaxStatus.Started;
             };
 
             // --- Controller info label ---
@@ -98,89 +91,53 @@ namespace Daxs
                 Spacing = new Size(8, 5),
                 Rows =
                 {
-                    new TableRow(
-      
+                    new TableRow
+                    (
                         new TableCell(toggleSwitch, false),
                         controllerInfoLabel
-                           // new TableCell(null, true) // spacer to absorb width
                     ),
                 }
             };
-
-
-            // --- SETTINGS TAB CONTENT ---
-            var content = new TableLayout
-            {
-                Padding = new Padding(10, 10, 0, 10),
-                Spacing = new Size(5, 10)
-            };
-
-            List<TableRow> rows = new();
-            rows.Add(CreateControllerImage(ClientSize.Width - 50));
 
             string[] input = { "YawSensitivity", "PitchSensitivity", "Deadzone", "MoveSpeed", "ElevateSpeed" };
             string[] hud = { "TextTime", "TextVisible" };
             string[] walk = { "EyeHeight", "MaximalJump" };
             string[] lens = { "LensStep", "LensDefault" };
 
-            rows.Add(EtoFactory.CreateGroupExpander("Input Response", input, name => CreateControl(name), true));
-            rows.Add(EtoFactory.CreateGroupExpander("HUD", hud, name => CreateControl(name), true));
-            rows.Add(EtoFactory.CreateGroupExpander("WalkMode", walk, name => CreateControl(name), true));
-            rows.Add(EtoFactory.CreateGroupExpander("Lens+-", lens, name => CreateControl(name), true));
-            rows.Add(EtoFactory.CreateContentExpander("Input Layout", AddButtonDropdowns(), true));
-            rows.Add(CreateCustom());
-
-            foreach (TableRow row in rows)
-                content.Rows.Add(row);
-
-            var scroll = new Scrollable
+            Control[] inputRows = 
             {
-                Content = content,
-                ExpandContentWidth = true,
-                ExpandContentHeight = false,
-                Border = BorderType.None
+                CreateControllerImage(ClientSize.Width - 60),
+                EtoFactory.CreateGroupExpander("Input Response", input, name => CreateControl(name), true),
+                EtoFactory.CreateContentExpander("Input Layout", AddButtonDropdowns(), true)
             };
 
-            TabPage inputTab = new TabPage
+            Control[] settingRows =
             {
-                Text = "🕹️ Input",
-                Content = scroll
+                EtoFactory.CreateGroupExpander("HUD", hud, name => CreateControl(name), true),
+                EtoFactory.CreateGroupExpander("WalkMode", walk, name => CreateControl(name), true),
+                EtoFactory.CreateGroupExpander("Lens+-", lens, name => CreateControl(name), true)
             };
 
-            TabPage settingsTab = new TabPage
+            Control[] customRows =
             {
-                Text = "⚙️ Settings",
-                //Content = scroll
+                CreateCustom()
             };
 
-            // --- CUSTOM ---
-            TabPage customTab = new TabPage
+            TabControl tabs = new()
             {
-                Text = "🧩 Custom",
-                //Content = nu
+                Pages =
+                {
+                    EtoFactory.CreateTabpage("🕹️ Input", inputRows),
+                    EtoFactory.CreateTabpage("⚙️ Settings", settingRows),
+                    EtoFactory.CreateTabpage("🧩 Custom", customRows),
+                    EtoFactory.CreateAboutTab(), 
+                    /*EtoFactory.CreateThemeTab()*/ 
+                }
             };
 
-            // --- THEME COLOR TAB ---
-            TabPage themeTab = EtoFactory.CreateThemeTab();
+            var bottomButtons = EtoFactory.CreateButtonButtons(new[]{("DEFAULT", (Action)OnDefault),(null,null), ("OK", (Action)OnOk)});
 
-            // --- ABOUT TAB ---
-            TabPage aboutTab = EtoFactory.CreateAboutTab();
-
-            // --- MAIN TABS ---
-            var tabs = new TabControl
-            {
-                Pages = { inputTab, settingsTab, customTab, aboutTab, /*themeTab*/ } // Inserted the new themeTab here
-            };
-
-            // --- BOTTOM BUTTONS ---
-            var bottomButtons = EtoFactory.CreateButtonRow(new[]
-            {
-                ("DEFAULT", (Action)OnDefault),
-                ("CLOSE", (Action)OnOk)
-            });
-
-            // --- FINAL PAGE LAYOUT ---
-            var page = new TableLayout
+            Content = new TableLayout
             {
                 Padding = new Padding(10),
                 Spacing = new Size(5, 5),
@@ -191,8 +148,6 @@ namespace Daxs
                     new TableRow(bottomButtons)
                 }
             };
-
-            Content = page;
 
             SetGamepadType(ControllerManager.Instance.CurrentGamepad);
         }
@@ -279,16 +234,6 @@ namespace Daxs
             return EtoFactory.CreateControlRow(labelName, control);
         }
 
-        TableRow CreateDialogButtons()
-        {
-            okButton = new Button { Text = "CLOSE", Command = new Command((_, _) => OnOk()) };
-            return EtoFactory.CreateButtonRow(new[]
-            {
-                ("DEFAULT", (Action)OnDefault),
-                ("CLOSE", (Action)OnOk)
-            });
-        }
-
         static ImageView CreateControllerImage(int targetWidth)
         {
             Bitmap bmp;
@@ -329,7 +274,7 @@ namespace Daxs
                 innerLayout.Add(subExpander);
             }
 
-            var mainExpander = EtoFactory.CreateExpander("Custom Commands", innerLayout, expanded: false);
+            var mainExpander = EtoFactory.CreateExpander("Custom Commands", innerLayout, expanded: true);
 
             return new TableRow(mainExpander);
         }
@@ -343,7 +288,6 @@ namespace Daxs
             label.Tag = tag;
             SyncCustomNames();
 
-
             void SyncCustomNames()
             {
                 string tag = (string)label.Tag;
@@ -351,12 +295,10 @@ namespace Daxs
                 actionTable[action] = label.Text;
 
                 SyncActionDropDowns();
-            }
-            ;
+            };
 
             boundTextBox.TextChanged += (_, _) =>
             {
-
                 label.Text = MakeHeader();
                 SyncCustomNames();
             };
@@ -365,7 +307,7 @@ namespace Daxs
             {
                 Header = label,
                 Content = content,
-                Expanded = false,
+                Expanded = true,
                 Padding = new Padding(0, 0, 0, 0)
             };
         }
@@ -381,8 +323,7 @@ namespace Daxs
                 if (button == GamepadButton.Invalid || button == GamepadButton.Count)
                     continue;
 
-                var tB = CreateActionDropdown(button);
-                inputLayout.Add(tB);
+                inputLayout.Add(CreateActionDropdown(button));
             }
 
             SyncActionDropDowns();
@@ -459,8 +400,6 @@ namespace Daxs
                 throw new Exception("Create DropDown failed! Button can't be unset");
 
             string buttonName = button.ToString();
-
-
 
             TextValue tVal = (TextValue)settings[buttonName];
 

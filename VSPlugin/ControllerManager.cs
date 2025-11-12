@@ -1,12 +1,10 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-
 using Rhino;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using SDL3;
 using System;
-
 
 namespace Daxs
 {
@@ -18,27 +16,21 @@ namespace Daxs
         {
             RhinoApp.Closing += (sender, e) => { settings.SaveSettings(); };
 
-
             //INIT SDL3
-
             string sdl3pth = Utils.GetSharedFile("SDL3.dll");
-
-            RhinoApp.WriteLine(sdl3pth);
-
-
             NativeLibrary.Load(sdl3pth);
 
             if (!SDL.Init(SDL.InitFlags.Gamepad))
             {
                 RhinoApp.WriteLine($"SDL init failed: {SDL.GetError()}");
                 return;
-            }else
-                RhinoApp.WriteLine($"SDL init success! {SDL.GetVersion()}");
+            }
+            //else
+            //    RhinoApp.WriteLine($"SDL init success! {SDL.GetVersion()}");
 
-            string dbpth = Utils.GetSharedFile("gamecontrollerdb.txt");
-            
+            string dbpth = Utils.GetSharedFile("gamecontrollerdb.txt");       
             int added = SDL.AddGamepadMappingsFromFile(dbpth);
-            RhinoApp.WriteLine($"Loaded {added} SDL Gamepad mappings");
+            //RhinoApp.WriteLine($"Loaded {added} SDL Gamepad mappings");
         }
 
         private readonly ActionManager actions = ActionManager.Instance;
@@ -48,16 +40,11 @@ namespace Daxs
 
         //Loop
         private CancellationTokenSource _cts;
-        private Status status = Status.NotInitialized;
+        private DaxStatus status = DaxStatus.NotInitialized;
 
-        public Status State
-        {
-            get { return status; }
-        }
-
+        public DaxStatus State => status;
 
         //Gamepad
-
         Gamepad gamepad = null;
 
         private readonly object _lock = new();
@@ -70,14 +57,10 @@ namespace Daxs
                 {
                     return gamepad;
                 }
-
             }
         }
 
-
-
-
-        public enum Status
+        public enum DaxStatus
         {
             NotInitialized = 0,
             Started = 1,
@@ -86,9 +69,9 @@ namespace Daxs
 
         public void Toggle()
         {
-            if (status == Status.NotInitialized || status == Status.Stopped)
+            if (status == DaxStatus.NotInitialized || status == DaxStatus.Stopped)
                 Start();
-            else if (status == Status.Started)
+            else if (status == DaxStatus.Started)
                 Stop();
         }
 
@@ -96,17 +79,17 @@ namespace Daxs
         {
             _cts = new CancellationTokenSource();
             _ = Task.Run(() => Loop(_cts.Token), _cts.Token);
-            status = Status.Started;
+            status = DaxStatus.Started;
 
             layout.Set(Layout.Fly);
 
-            RhinoApp.WriteLine($"Daxs {Utils.GetPackageVersion()} Start");
+            RhinoApp.WriteLine("Daxs Start");
         }
 
         void Stop()
         {
             _cts.Cancel();
-            status = Status.Stopped;
+            status = DaxStatus.Stopped;
 
             RhinoApp.WriteLine("Daxs Stop");
         }
@@ -147,7 +130,7 @@ namespace Daxs
                             gamepadID = IntPtr.Zero;
                         }
 
-                        RhinoApp.WriteLine("No gamepad connected.");
+                        //RhinoApp.WriteLine("No gamepad connected.");
                         await Task.Delay(5000, token);
                         continue;
                     }

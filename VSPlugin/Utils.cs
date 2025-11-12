@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using Rhino.PlugIns;
-using Rhino;
 
 namespace Daxs
 {
@@ -9,10 +8,8 @@ namespace Daxs
     {
         public static string GetPackageFolderPath()
         {
-
             PlugInInfo packageInfo = GetInfo();
             var pth = Path.GetDirectoryName(packageInfo.FileName);
-            RhinoApp.WriteLine(pth);
             return pth;
         }
 

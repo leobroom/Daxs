@@ -39,14 +39,14 @@ namespace Daxs
             if (layouts.TryGetValue(name, out var layout))
             {
                 previousLayout = (previousLayout == null) ? layout : currentLayout;
-                RhinoApp.WriteLine("SetLayout:" + name);
+                //RhinoApp.WriteLine("SetLayout:" + name);
                 currentLayout = layout;
             }
         }
 
         public void SetToPreviousLayout() 
         {
-            RhinoApp.WriteLine("SetToPreviousLayout");
+            //RhinoApp.WriteLine("SetToPreviousLayout");
             Layout mode = (previousLayout == null || currentLayout == null) ? Layout .Fly: previousLayout.Name;
             Set(mode);
         }

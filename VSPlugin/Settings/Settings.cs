@@ -159,7 +159,7 @@ namespace Daxs
             }
 
             PlugIn.SavePluginSettings(id);
-            RhinoApp.WriteLine($"settings saved.");
+            RhinoApp.WriteLine($"Daxs settings saved.");
         }
 
         public void LoadSettings()
@@ -178,7 +178,7 @@ namespace Daxs
                     sV.Value = settings.GetString(sV.Name, sV.Value);
             }
 
-            RhinoApp.WriteLine($"settings loaded.");
+            //RhinoApp.WriteLine($"settings loaded.");
         }
     }
 }

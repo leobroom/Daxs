@@ -18,12 +18,10 @@ namespace Daxs
 
             var result = dSettings.ShowSemiModal(RhinoDoc.ActiveDoc, RhinoEtoApp.MainWindow);
             if (!result)
-            {
                 return Result.Cancel;
-            }
 
-            foreach (var nv in Daxs.Settings.Instance)
-                RhinoApp.WriteLine(nv.ToString());
+            //foreach (var nv in Daxs.Settings.Instance)
+            //    RhinoApp.WriteLine(nv.ToString());
 
             return Result.Success;
         }
