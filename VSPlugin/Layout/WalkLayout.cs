@@ -9,7 +9,7 @@ namespace Daxs
     {
         public override Layout Name => Layout.Walk;
 
-        private Mesh collider = null;
+        private Mesh navMesh = null;
 
         private double eyeHeight, maximalJump;
 
@@ -38,8 +38,8 @@ namespace Daxs
             Point3d pos = camPlane.Origin + move;
 
             //Collision
-            if (collider != null)
-                GetMeshCollision(ref pos, collider, teleport);
+            if (navMesh != null)
+                GetMeshCollision(ref pos, navMesh, teleport);
 
             return new Plane(pos, viewDir, right);
         }
@@ -66,16 +66,15 @@ namespace Daxs
             }
         }
 
-        public void SetCollider(Mesh collider)
+        public void SetNavigationMesh(Mesh nevMesh)
         {
-            this.collider = collider;
-            RhinoApp.WriteLine("Walk layout - SetCollider.");
+            this.navMesh = nevMesh;
+            RhinoApp.WriteLine("Walk layout - Set Navigation Mesh.");
         }
 
-        public void ClearCollider() { collider = null; }
+        public void ClearCollider() { navMesh = null; }
 
         //----------Jump
-
         private void Teleport(ref Point3d pos, Mesh colMsh, InputY teleport)
         {
             if (teleport == InputY.Default)

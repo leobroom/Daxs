@@ -13,6 +13,9 @@ namespace Daxs
 
         public event EventHandler<double>? ValueChanged;
 
+
+        public int DecimalPlaces { get; private set; } = 0;
+
         public double Value
         {
             get => _value;
@@ -48,12 +51,13 @@ namespace Daxs
             }
         }
 
-        public NumericValue(double value, double displayFactor, string name)
+        public NumericValue(double value, double displayFactor, string name, int decimalPlaces = 0)
         {
             Value = value;
             DisplayFactor = displayFactor;
             Name = name;
             defaultValue = value;
+            DecimalPlaces = decimalPlaces;
         }
 
         public void Reset() => Value = defaultValue;

@@ -3,7 +3,7 @@ using System;
 
 namespace Daxs
 {
-    internal class RhinoCustomAction :BaseState, IAction
+    internal class RhinoCustomAction : BaseState, IAction
     {
         private string _function;
         private string name;
@@ -29,8 +29,12 @@ namespace Daxs
             if (simulateKeys)
                 LayoutManager.Instance.Set(Layout.Menu);
             RhinoApp.RunScript(_function, true);
-            if (simulateKeys)
+            if (simulateKeys && LayoutManager.Instance.Current.Name == Layout.Menu )
                 LayoutManager.Instance.SetToPreviousLayout();
+
+            //Fallback to Fly layout if still in Menu
+            if (LayoutManager.Instance.Current.Name == Layout.Menu)
+                LayoutManager.Instance.Set(Layout.Fly);
         }
     }
 }

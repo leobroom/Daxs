@@ -13,7 +13,7 @@ namespace Daxs
         [DllImport("user32.dll", SetLastError = true)]
         private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
-        private const byte KEY_UP = 0x26, KEY_DOWN = 0x28, KEY_TAB = 0x09, KEY_SHIFT = 0x10, KEY_ESCAPE = 0x1B, KEY_ENTER = 0x0D;
+        private const byte KEY_UP = 0x26, KEY_DOWN = 0x28, KEY_TAB = 0x09, KEY_SHIFT = 0x10, KEY_ESCAPE = 0x1B, KEY_ENTER = 0x0D, KEY_LEFT = 0x25, KEY_RIGHT = 0x27;
         public void HandleInput(Gamepad state, double delta)
         {
             RhinoApp.InvokeOnUiThread((Action)(() =>
@@ -33,16 +33,23 @@ namespace Daxs
                 }
 
                 if (state.GetButtonState(GamepadButton.DPadRight) == InputX.IsDown)
-                    SimulateKey(KEY_UP);
+                    SimulateKey(KEY_RIGHT);
 
                 if (state.GetButtonState(GamepadButton.DPadLeft) == InputX.IsDown)
-                    SimulateKey(KEY_DOWN);
+                    SimulateKey(KEY_LEFT);
 
                 if (state.GetButtonState(GamepadButton.DPadUp) == InputX.IsDown)
                     SimulateCombinedKey(KEY_SHIFT, KEY_TAB);
 
                 if (state.GetButtonState(GamepadButton.DPadDown) == InputX.IsDown)
                     SimulateKey(KEY_TAB);
+
+                //TAB LEFT RIGHT
+                if (state.GetButtonState(GamepadButton.LeftShoulder) == InputX.IsDown)
+                    SimulateKey(KEY_DOWN);
+
+                if (state.GetButtonState(GamepadButton.RightShoulder) == InputX.IsDown)
+                    SimulateKey(KEY_UP);
             }));
         }
 

@@ -55,6 +55,8 @@ namespace Daxs
                 if (e.Key == Keys.Escape)
                 {
                     this.Close(false);
+                    LayoutManager.Instance.SetToPreviousLayout();
+
                     e.Handled = true;
                 }
             };
@@ -65,7 +67,7 @@ namespace Daxs
             // --- Start/Stop button ---
             var toggleSwitch = new ToggleSwitch
             {
-                IsOn = ControllerManager.Instance.State == ControllerManager.DaxStatus.Started,
+                IsOn = ControllerManager.Instance.State == DaxStatus.Started,
                 Width = 65,
             };
 
@@ -73,7 +75,16 @@ namespace Daxs
             {
                 ControllerManager.Instance.Toggle();
                 LayoutManager.Instance.Set(Layout.Menu);
-                toggleSwitch.IsOn = ControllerManager.Instance.State == ControllerManager.DaxStatus.Started;
+
+                toggleSwitch.IsOn = ControllerManager.Instance.State == DaxStatus.Started;
+            };
+
+            //Checkbox Autostart
+
+            CheckBox autoStartCheckbox = new CheckBox
+            {
+                Text = "Auto-start with Rhino",
+                Checked = false
             };
 
             // --- Controller info label ---
@@ -100,6 +111,8 @@ namespace Daxs
             };
 
             string[] input = { "YawSensitivity", "PitchSensitivity", "Deadzone", "MoveSpeed", "ElevateSpeed" };
+
+            string[] general = { "AutoStart" };
             string[] hud = { "TextTime", "TextVisible" };
             string[] walk = { "EyeHeight", "MaximalJump" };
             string[] lens = { "LensStep", "LensDefault" };
@@ -113,6 +126,7 @@ namespace Daxs
 
             Control[] settingRows =
             {
+                EtoFactory.CreateGroupExpander("General", general, name => CreateControl(name), true),
                 EtoFactory.CreateGroupExpander("HUD", hud, name => CreateControl(name), true),
                 EtoFactory.CreateGroupExpander("WalkMode", walk, name => CreateControl(name), true),
                 EtoFactory.CreateGroupExpander("Lens+-", lens, name => CreateControl(name), true)
@@ -173,6 +187,7 @@ namespace Daxs
 
             Result = true;
             Close();
+            LayoutManager.Instance.SetToPreviousLayout();
         }
 
         void OnDefault()
@@ -208,7 +223,7 @@ namespace Daxs
                 var box = new NumericStepper
                 {
                     Value = nv.DisplayValue,
-                    DecimalPlaces = 2
+                    DecimalPlaces = nv.DecimalPlaces
                 };
                 box.ValueChanged += (s, e) => nv.DisplayValue = box.Value;
                 controlBoxes[nv.Name] = box;

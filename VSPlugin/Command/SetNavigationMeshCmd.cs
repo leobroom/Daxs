@@ -7,12 +7,12 @@ using System.Linq;
 
 namespace Daxs
 {
-    public class DaxsCollisionCmd : Command
+    public class SetNavigationMeshCmd : Command
     {
-        public DaxsCollisionCmd(){ Instance = this;}
-        public static DaxsCollisionCmd Instance { get; private set; }
+        public SetNavigationMeshCmd(){ Instance = this;}
+        public static SetNavigationMeshCmd Instance { get; private set; }
 
-        public override string EnglishName => "Daxs_SetCollisionMesh";
+        public override string EnglishName => "Daxs_SetNavigationMesh";
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
@@ -29,7 +29,7 @@ namespace Daxs
             else
             {
                 var gm = new GetObject();
-                gm.SetCommandPrompt("Select a mesh");
+                gm.SetCommandPrompt("Select a navigation mesh:");
                 gm.GeometryFilter = ObjectType.Mesh;
                 gm.DisablePreSelect();
                 gm.SubObjectSelect = false;
@@ -39,7 +39,7 @@ namespace Daxs
                     return Result.Cancel;
 
                 mesh = gm.Object(0).Mesh()?.DuplicateMesh();
-                RhinoApp.WriteLine("Mesh was selected.");
+                RhinoApp.WriteLine("Navigation Mesh was selected.");
             }
 
             //Set Mesh to

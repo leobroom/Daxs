@@ -45,9 +45,10 @@ namespace Daxs
         }
 
         public void SetToPreviousLayout() 
-        {
-            //RhinoApp.WriteLine("SetToPreviousLayout");
+        {   
             Layout mode = (previousLayout == null || currentLayout == null) ? Layout .Fly: previousLayout.Name;
+
+            RhinoApp.WriteLine("SetToPreviousLayout: " + mode);
             Set(mode);
         }
 
@@ -61,7 +62,7 @@ namespace Daxs
         public void SetCollisionMesh(Mesh colMesh)
         {
             WalkLayout wLayout = (WalkLayout)Get(Layout.Walk);
-            wLayout.SetCollider(colMesh);
+            wLayout.SetNavigationMesh(colMesh);
         }
     }
 }

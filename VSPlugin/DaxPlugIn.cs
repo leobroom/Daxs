@@ -1,4 +1,8 @@
-﻿namespace Daxs
+﻿using Rhino;
+using Rhino.PlugIns;
+using System;
+
+namespace Daxs
 {
     ///<summary>
     /// <para>Every RhinoCommon .rhp assembly must have one and only one PlugIn-derived
@@ -15,11 +19,38 @@
             Instance = this;
         }
 
+        public override PlugInLoadTime LoadTime
+        {
+            get { return PlugInLoadTime.AtStartup; }
+        }
+
         ///<summary>Gets the only instance of the Dax plug-in.</summary>
         public static DaxPlugIn Instance { get; private set; }
 
         // You can override methods here to change the plug-in behavior on
         // loading and shut down, add options pages to the Rhino _Option command
         // and maintain plug-in wide options in a document.
+
+        protected override LoadReturnCode OnLoad(ref string errorMessage)
+        {         
+            RhinoApp.Initialized += OnRhinoInitialized;
+
+            return base.OnLoad(ref errorMessage);
+        }
+
+        /// <summary>
+        /// Starts Dax after Rhino has fully initialized, when autostart is enabled.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnRhinoInitialized(object sender, EventArgs e)
+        {
+                RhinoApp.Initialized -= OnRhinoInitialized; // Run only once
+
+                bool autostartActive = ((BooleanValue)Daxs.Settings.Instance["AutoStart"]).Value;
+
+                if (autostartActive && ControllerManager.Instance.State == DaxStatus.NotInitialized)
+                   ControllerManager.Instance.Toggle();
+        }
     }
 }

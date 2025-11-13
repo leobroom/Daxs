@@ -8,6 +8,13 @@ using System;
 
 namespace Daxs
 {
+    public enum DaxStatus
+    {
+        NotInitialized = 0,
+        Started = 1,
+        Stopped = 2
+    }
+
     public sealed class ControllerManager
     {
         public static ControllerManager Instance { get; } = new ControllerManager();
@@ -60,12 +67,7 @@ namespace Daxs
             }
         }
 
-        public enum DaxStatus
-        {
-            NotInitialized = 0,
-            Started = 1,
-            Stopped = 2
-        }
+
 
         public void Toggle()
         {
@@ -83,7 +85,7 @@ namespace Daxs
 
             layout.Set(Layout.Fly);
 
-            RhinoApp.WriteLine("Daxs Start");
+            RhinoApp.WriteLine("Daxs started");
         }
 
         void Stop()
@@ -91,7 +93,7 @@ namespace Daxs
             _cts.Cancel();
             status = DaxStatus.Stopped;
 
-            RhinoApp.WriteLine("Daxs Stop");
+            RhinoApp.WriteLine("Daxs stopped");
         }
 
         async Task Loop(CancellationToken token)
@@ -146,8 +148,6 @@ namespace Daxs
                         await Task.Delay(5000, token);
                         continue;
                     }
-
-               
                 }
 
                 long now = sw.ElapsedTicks;
