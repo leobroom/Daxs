@@ -50,9 +50,12 @@ namespace Daxs
             foreach (GamepadButton b in Enum.GetValues<GamepadButton>())
                 Add(b, GAction.Unset);
 
-            Add(GamepadButton.East, GAction.C1);
-            Add(GamepadButton.Start, GAction.C2);
-           
+            Add(GamepadButton.Start, GAction.C1);
+            Add(GamepadButton.East, GAction.C2);
+
+            Add(GamepadButton.West, GAction.NextViewport);
+            Add(GamepadButton.South, GAction.NextDisplaymode);
+
             Add(GamepadButton.LeftShoulder, GAction.TeleportPlus);
             Add(GamepadButton.RightShoulder, GAction.TeleportMinus);
 

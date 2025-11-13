@@ -84,6 +84,9 @@ namespace Daxs
             { GAction.LensMinus, new LensAction( InputX.IsDown,InputY.Down) },
             { GAction.LensDefault,new LensAction(InputX.IsDown,InputY.Default ) },
             { GAction.SwitchMode, new SwitchAction(InputX.IsDown) },
+            { GAction.NextViewport, new NextViewport(InputX.IsDown)},
+            { GAction.NextDisplaymode, new NextDisplaymode(InputX.IsDown)},
+            { GAction.NextNamedView, new NextNamedView(InputX.IsDown)},
         };
 
         private void ResetButtonBinding(GAction action, GamepadButton button) 
@@ -131,7 +134,8 @@ namespace Daxs
 
         internal void ExecuteActionsOnMainThread()
         {
-            foreach (var (button, actionEnum) in actionToButtonTable)
+            // BUTTON actions
+            foreach (var (button, actionEnum) in actionToButtonTable.ToArray()) //HACK  SLOW!!!!!
             {
                 if (!actionTable.TryGetValue(actionEnum, out var action))
                     continue;
@@ -143,7 +147,8 @@ namespace Daxs
                 }
             }
 
-            foreach (var (axis, actionEnum) in actionToAxisTable)
+            // AXIS actions
+            foreach (var (axis, actionEnum) in actionToAxisTable.ToArray()) //HACK  SLOW!!!!!
             {
                 if (!actionTable.TryGetValue(actionEnum, out var action))
                     continue;
@@ -155,6 +160,38 @@ namespace Daxs
                 }
             }
         }
+
+
+        //internal void ExecuteActionsOnMainThread()
+        //{
+
+        //        foreach (var (button, actionEnum) in actionToButtonTable)
+        //        {
+        //            if (!actionTable.TryGetValue(actionEnum, out var action))
+        //                continue;
+
+        //            if (gamepad.GetButtonState(button) == action.Input)
+        //            {
+        //                hud.SetText(action.HUD_Name, 2000);
+        //                action.Execute();
+        //            }
+        //        }
+
+
+
+        //        foreach (var (axis, actionEnum) in actionToAxisTable)
+        //        {
+        //            if (!actionTable.TryGetValue(actionEnum, out var action))
+        //                continue;
+
+        //            if (gamepad.GetAxisState(axis) == action.Input)
+        //            {
+        //                hud.SetText(action.HUD_Name, 2000);
+        //                action.Execute();
+        //            }
+        //        }
+
+        //}
 
 
         internal void Update(Gamepad gamepad) => this.gamepad = gamepad;
