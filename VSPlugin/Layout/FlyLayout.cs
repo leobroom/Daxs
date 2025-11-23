@@ -69,7 +69,6 @@ namespace Daxs
             if (!hasMoved && !_uiUpdatePending) //GetActual Campos
             {
                 var vp = doc?.Views?.ActiveView?.ActiveViewport;
-
                 if (vp == null)
                     return;
 
@@ -104,13 +103,9 @@ namespace Daxs
                 camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti * moveSpeed, delta, teleport);
             }
 
-            bool hasAction = actionManager.HasActionsOnMainThread();
-            if (hasAction)
-            {
-                RhinoApp.InvokeOnUiThread((Action)(() => { actionManager.ExecuteActionsOnMainThread(); }));
-            }
+            actionManager.QueueActions();
 
-            if (hasMoved && sinceLastUi >= uiDt && !_uiUpdatePending)
+            if ((hasMoved || actionManager.HasActions) && sinceLastUi >= uiDt && !_uiUpdatePending)
             {
                 _uiUpdatePending = true;
 
@@ -119,16 +114,21 @@ namespace Daxs
                     var view = doc.Views.ActiveView;
                     var vp = view.ActiveViewport;
 
-                    if (!vp.IsPlanView)
-                    {
-                        //RhinoApp.WriteLine("" + vp + " | " + forward + " | " + strafe + " | " + vertical + " | " + pitch + " | " + moveSpeed + " | " + delta);
-                        vp.SetCameraLocation(camPlane.Origin, true);
-                        vp.SetCameraDirection(camPlane.XAxis, true);
-                    }
-                    else
-                        ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
+                    actionManager.ExecuteActionsOnMainThread();
 
-                    view.Redraw();
+                    if (hasMoved) 
+                    {
+                        if (!vp.IsPlanView)
+                        {
+                            //RhinoApp.WriteLine("" + vp + " | " + forward + " | " + strafe + " | " + vertical + " | " + pitch + " | " + moveSpeed + " | " + delta);
+                            vp.SetCameraLocation(camPlane.Origin, true);
+                            vp.SetCameraDirection(camPlane.XAxis, true);
+                        }
+                        else
+                            ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
+
+                        view.Redraw();
+                    }
 
                     _uiUpdatePending = false;
                 }));

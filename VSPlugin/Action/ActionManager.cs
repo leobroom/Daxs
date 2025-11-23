@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using Rhino;
 using static SDL3.SDL;
+using System.Runtime.CompilerServices;
 
 namespace Daxs
 {
@@ -84,6 +85,7 @@ namespace Daxs
             { GAction.LensMinus, new LensAction( InputX.IsDown,InputY.Down) },
             { GAction.LensDefault,new LensAction(InputX.IsDown,InputY.Default ) },
             { GAction.SwitchMode, new SwitchAction(InputX.IsDown) },
+            { GAction.NextView, new NextView(InputX.IsDown)},
             { GAction.NextViewport, new NextViewport(InputX.IsDown)},
             { GAction.NextDisplaymode, new NextDisplaymode(InputX.IsDown)},
             { GAction.NextNamedView, new NextNamedView(InputX.IsDown)},
@@ -109,90 +111,60 @@ namespace Daxs
 
         private readonly HUD hud = HUD.Instance;
 
-        internal bool HasActionsOnMainThread()
+
+        private readonly UniqueQueue<IAction> actionQueue = new UniqueQueue<IAction>();
+
+        public bool HasActions=>  actionQueue.HasValues; 
+
+
+
+        internal bool QueueActions()    
         {
-            bool buttonTriggered = actionToButtonTable.Any(pair =>
+            bool hasActions = false;
+
+            foreach (var kvPair in actionToButtonTable) 
             {
-                if (!actionTable.TryGetValue(pair.Value, out var action))
-                    return gamepad.GetButtonState(pair.Key) == InputX.IsDown; // fallback
-                return gamepad.GetButtonState(pair.Key) == action.Input;
-            });
+                GamepadButton button = kvPair.Key;
+                GAction actionType = kvPair.Value;
 
-            if (buttonTriggered) 
-                return true;
+                if (actionTable.TryGetValue(actionType, out IAction action) && gamepad.GetButtonState(button) == action.Input) 
+                {
+                    hasActions = true;
+                    actionQueue.Enqueue(action);
+                }
+            }
 
-            bool axisTriggered = actionToAxisTable.Any(pair =>
+            foreach (var kvPair in actionToAxisTable)
             {
-                if (!actionTable.TryGetValue(pair.Value, out var action))
-                    return gamepad.GetAxisState(pair.Key) == InputX.IsDown; // fallback
-                return gamepad.GetAxisState(pair.Key) == action.Input;
-            });
+                GamepadAxis axis = kvPair.Key;
+                GAction actionType = kvPair.Value;
 
-            return axisTriggered;
+                if (!actionTable.TryGetValue(kvPair.Value, out var action))
+                {
+                    if (gamepad.GetAxisState(axis) == InputX.IsDown)
+                        hasActions = true;
+                }
+                else if(gamepad.GetAxisState(axis) == action.Input)
+                {
+                    hasActions = true;
+                    actionQueue.Enqueue(action);
+                }
+            }
+
+            return hasActions;
         }
-
 
         internal void ExecuteActionsOnMainThread()
         {
-            // BUTTON actions
-            foreach (var (button, actionEnum) in actionToButtonTable.ToArray()) //HACK  SLOW!!!!!
+            if(!HasActions)
+                return;
+
+            while (actionQueue.TryDequeue(out var action))
             {
-                if (!actionTable.TryGetValue(actionEnum, out var action))
-                    continue;
-
-                if (gamepad.GetButtonState(button) == action.Input)
-                {
-                    hud.SetText(action.HUD_Name, 2000);
-                    action.Execute();
-                }
-            }
-
-            // AXIS actions
-            foreach (var (axis, actionEnum) in actionToAxisTable.ToArray()) //HACK  SLOW!!!!!
-            {
-                if (!actionTable.TryGetValue(actionEnum, out var action))
-                    continue;
-
-                if (gamepad.GetAxisState(axis) == action.Input)
-                {
-                    hud.SetText(action.HUD_Name, 2000);
-                    action.Execute();
-                }
+                hud.SetText(action.HUD_Name, 2000);
+                action.Execute();
             }
         }
-
-
-        //internal void ExecuteActionsOnMainThread()
-        //{
-
-        //        foreach (var (button, actionEnum) in actionToButtonTable)
-        //        {
-        //            if (!actionTable.TryGetValue(actionEnum, out var action))
-        //                continue;
-
-        //            if (gamepad.GetButtonState(button) == action.Input)
-        //            {
-        //                hud.SetText(action.HUD_Name, 2000);
-        //                action.Execute();
-        //            }
-        //        }
-
-
-
-        //        foreach (var (axis, actionEnum) in actionToAxisTable)
-        //        {
-        //            if (!actionTable.TryGetValue(actionEnum, out var action))
-        //                continue;
-
-        //            if (gamepad.GetAxisState(axis) == action.Input)
-        //            {
-        //                hud.SetText(action.HUD_Name, 2000);
-        //                action.Execute();
-        //            }
-        //        }
-
-        //}
-
 
         internal void Update(Gamepad gamepad) => this.gamepad = gamepad;
 

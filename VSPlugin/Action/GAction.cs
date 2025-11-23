@@ -13,6 +13,7 @@
         ElevatePlus,
         ElevateMinus,
         SwitchMode,
+        NextView,
         NextViewport,
         NextDisplaymode,
         NextNamedView,

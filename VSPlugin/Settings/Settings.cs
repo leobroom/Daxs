@@ -51,10 +51,11 @@ namespace Daxs
                 Add(b, GAction.Unset);
 
             Add(GamepadButton.Start, GAction.C1);
-            Add(GamepadButton.East, GAction.C2);
 
+            Add(GamepadButton.North, GAction.NextView);
             Add(GamepadButton.West, GAction.NextViewport);
-            Add(GamepadButton.South, GAction.NextDisplaymode);
+            Add(GamepadButton.East, GAction.NextDisplaymode);
+            Add(GamepadButton.South, GAction.NextNamedView);
 
             Add(GamepadButton.LeftShoulder, GAction.TeleportPlus);
             Add(GamepadButton.RightShoulder, GAction.TeleportMinus);
@@ -74,13 +75,12 @@ namespace Daxs
             Add("C1_Name", "DaxsSettings");
             Add("C1_Function", "_Daxs_Settings");
             Add("C1_SimulateKeys", true);
-            //Add("C1_Enabled", true);
 
             //Custom2
             Add("C2_Name", "ViewCaptureToFile");
             Add("C2_Function", "_ViewCaptureToFile");
             Add("C2_SimulateKeys", true);
-           // Add("C2_Enabled", true);
+
 
             foreach (GAction c in Enum.GetValues<GAction>())
             {

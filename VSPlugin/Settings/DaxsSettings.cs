@@ -31,6 +31,7 @@ namespace Daxs
             { GAction.NextViewport, "Next Viewport" },
             { GAction.NextDisplaymode, "Next DisplayMode" },
             { GAction.NextNamedView, "Next Named View" },
+            { GAction.NextView, "Next View" },
             { GAction.C1, "C1" },
             { GAction.C2, "C2" },
             { GAction.C3, "C3" },
