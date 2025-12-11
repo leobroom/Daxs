@@ -18,7 +18,14 @@ namespace Daxs
             strength = settings.BindNumeric("LensStep", v => strength = v);
             defaultLens = settings.BindNumeric("LensDefault", v => defaultLens = v);
 
-            actualLens = Math.Round(RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.Camera35mmLensLength);
+           double? v= Rhino.RhinoDoc.ActiveDoc?.Views?.ActiveView?.ActiveViewport.Camera35mmLensLength;
+
+            if (v.HasValue)
+                actualLens = Math.Round(RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.Camera35mmLensLength);
+            else
+            {
+                actualLens = 50;
+            }
         }
 
         public override string HUD_Name => $"Lens: " + actualLens;

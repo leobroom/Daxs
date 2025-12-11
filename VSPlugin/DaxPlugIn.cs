@@ -1,17 +1,12 @@
 ﻿using Rhino;
+using Rhino.Collections;
+using Rhino.FileIO;
+using Rhino.Geometry;
 using Rhino.PlugIns;
 using System;
 
 namespace Daxs
 {
-    ///<summary>
-    /// <para>Every RhinoCommon .rhp assembly must have one and only one PlugIn-derived
-    /// class. DO NOT create instances of this class yourself. It is the
-    /// responsibility of Rhino to create an instance of this class.</para>
-    /// <para>To complete plug-in information, please also see all PlugInDescription
-    /// attributes in AssemblyInfo.cs (you might need to click "Project" ->
-    /// "Show All Files" to see it in the "Solution Explorer" window).</para>
-    ///</summary>
     public class DaxPlugIn : Rhino.PlugIns.PlugIn
     {
         public DaxPlugIn()
@@ -19,10 +14,7 @@ namespace Daxs
             Instance = this;
         }
 
-        public override PlugInLoadTime LoadTime
-        {
-            get { return PlugInLoadTime.AtStartup; }
-        }
+        public override PlugInLoadTime LoadTime=> PlugInLoadTime.AtStartup; 
 
         ///<summary>Gets the only instance of the Dax plug-in.</summary>
         public static DaxPlugIn Instance { get; private set; }
@@ -34,9 +26,23 @@ namespace Daxs
         protected override LoadReturnCode OnLoad(ref string errorMessage)
         {         
             RhinoApp.Initialized += OnRhinoInitialized;
+            RhinoApp.RdkNewDocument += OnRhinoNewDocument;
+
 
             return base.OnLoad(ref errorMessage);
         }
+
+        private void OnRhinoNewDocument(object sender, EventArgs e)
+        {
+            RhinoApp.WriteLine("OnRhinoNewDocument");
+
+
+
+            RhinoDoc.ActiveDoc.Strings.SetString("Preferences", "Unit", "SI");
+        }
+
+
+
 
         /// <summary>
         /// Starts Dax after Rhino has fully initialized, when autostart is enabled.
@@ -51,6 +57,86 @@ namespace Daxs
 
                 if (autostartActive && ControllerManager.Instance.State == DaxStatus.NotInitialized)
                    ControllerManager.Instance.Toggle();
+        }
+
+
+
+        //Loading from Document
+
+        protected override bool ShouldCallWriteDocument(FileWriteOptions options)
+        {
+            return true;
+        }
+
+
+        //Versioning
+        private const int Major = 0, Minor = 0;
+
+        /// <summary>
+        /// Called when Rhino is saving a .3dm file to allow the plug-in to save document user data.
+        /// </summary>
+        protected override void WriteDocument(RhinoDoc doc, BinaryArchiveWriter archive, FileWriteOptions options)
+        {
+            RhinoApp.InvokeOnUiThread((Action)(() =>
+            {   
+                RhinoApp.WriteLine($"WriteDocument...");   
+            }));
+
+            archive.Write3dmChunkVersion(Major, Minor);
+
+            var dict = new ArchivableDictionary();
+            dict.Set("DaxNavMeshGuid", Daxs.Settings.Instance.NavMeshId);
+
+            archive.WriteDictionary(dict);
+        }
+
+        /// <summary>
+        /// Called whenever a Rhino document is being loaded and plug-in user data was
+        /// encountered written by a plug-in with this plug-in's GUID.
+        /// </summary>
+        protected override void ReadDocument(RhinoDoc doc, BinaryArchiveReader archive, FileReadOptions options)
+        {
+            archive.Read3dmChunkVersion(out int major, out int minor);
+
+            var dict = archive.ReadDictionary();
+
+            try
+            {
+                Guid navMeshId = dict.GetGuid("DaxNavMeshGuid");
+                Mesh mesh = GetMeshById(navMeshId);
+
+                if (mesh == null)
+                {
+                    LayoutManager.Instance.SetCollisionMesh(null, Guid.Empty);
+                    return;
+                }
+
+                LayoutManager.Instance.SetCollisionMesh(mesh, navMeshId);
+
+                RhinoApp.InvokeOnUiThread((Action)(() =>
+                {
+                    RhinoApp.WriteLine($"DAXS Navigationmesh found in file! Loaded: {navMeshId}");
+                }));
+            }
+            catch (Exception)
+            {
+                LayoutManager.Instance.SetCollisionMesh(null, Guid.Empty);
+            }
+         
+
+
+
+
+  
+        }
+
+        public static Mesh GetMeshById(Guid id)
+        {
+            var rhObj = RhinoDoc.ActiveDoc.Objects.Find(id);
+            if (rhObj == null)
+                return null;
+
+            return rhObj.Geometry as Mesh;   // or DuplicateMesh()
         }
     }
 }

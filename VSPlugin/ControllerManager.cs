@@ -77,23 +77,42 @@ namespace Daxs
                 Stop();
         }
 
-        void Start()
+        public void Start(bool restart = false)
         {
+            if (status == DaxStatus.Started)
+                return;
+
             _cts = new CancellationTokenSource();
             _ = Task.Run(() => Loop(_cts.Token), _cts.Token);
             status = DaxStatus.Started;
 
-            layout.Set(Layout.Fly);
+            if (!restart) 
+            {
+                layout.Set(Layout.Fly);
 
-            RhinoApp.WriteLine("Daxs started");
+                RhinoApp.WriteLine("Daxs started");
+            }
         }
 
-        void Stop()
+        public void Restart()
         {
+            if (status == DaxStatus.Started)
+                return;
+
+            Stop(true);
+            Start(true);
+        }
+
+        public void Stop(bool restart = false)
+        {
+            if (status == DaxStatus.NotInitialized || status == DaxStatus.Stopped)
+                 return;
+
             _cts.Cancel();
             status = DaxStatus.Stopped;
 
-            RhinoApp.WriteLine("Daxs stopped");
+            if (!restart)
+                RhinoApp.WriteLine("Daxs stopped");
         }
 
         async Task Loop(CancellationToken token)
@@ -148,6 +167,8 @@ namespace Daxs
                         await Task.Delay(5000, token);
                         continue;
                     }
+
+                    SignalConnection(gamepadID);
                 }
 
                 long now = sw.ElapsedTicks;
@@ -173,6 +194,12 @@ namespace Daxs
 
                 await Task.Delay(1, token);
             }
-        } 
+        }
+
+        private void SignalConnection(nint gamepadID)
+        {
+            SDL.RumbleGamepad(gamepadID, 30000, 30000, 300);
+            SDL.SetGamepadLED(gamepadID, 0, 255, 255);
+        }
     }
 }

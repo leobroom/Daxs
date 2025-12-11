@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Rhino;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
@@ -10,8 +11,10 @@ namespace Daxs
         public override Layout Name => Layout.Walk;
 
         private Mesh navMesh = null;
-
+        private Guid navMeshId = Guid.Empty;
         private double eyeHeight, maximalJump;
+
+        public Guid NavMeshId => navMeshId;
 
         public WalkLayout() : base()
         {
@@ -44,6 +47,8 @@ namespace Daxs
             return new Plane(pos, viewDir, right);
         }
 
+        Point3d? lastPoint = null;
+
         private void GetMeshCollision(ref Point3d pos, Mesh colMsh, InputY teleport)
         {
             Vector3d dir = (teleport == InputY.Up) ? Vector3d.ZAxis : -Vector3d.ZAxis;
@@ -59,16 +64,35 @@ namespace Daxs
             {
                 pos.Z -= distance - eyeHeight;
             }
-            else
+            else 
             {
+                RhinoApp.WriteLine("ClosestPoint");
+                pos.Z -= eyeHeight;
                 pos = colMsh.ClosestPoint(pos);
                 pos.Z += eyeHeight;
             }
+
         }
 
-        public void SetNavigationMesh(Mesh nevMesh)
+        public void SetNavigationMesh(Mesh nevMesh, Guid meshId)
         {
-            this.navMesh = nevMesh;
+            if (nevMesh == null)
+            {
+                this.navMesh = null;
+                Settings.Instance.NavMeshId = Guid.Empty;
+                return;
+            }
+
+
+            lock (this.navMesh)
+            {
+                this.navMesh = nevMesh;
+            }
+
+            this.navMeshId = meshId;
+
+
+            Settings.Instance.NavMeshId = meshId;
             RhinoApp.WriteLine("Walk layout - Set Navigation Mesh.");
         }
 

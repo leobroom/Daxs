@@ -4,6 +4,7 @@ using Rhino.DocObjects;
 using Rhino.Input.Custom;
 using Rhino.Geometry;
 using System.Linq;
+using System;
 
 namespace Daxs
 {
@@ -17,33 +18,43 @@ namespace Daxs
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
             Mesh mesh = null;
+            Guid meshId = Guid.Empty;
 
-            // Try preselection
-            var selected = doc.Objects.GetSelectedObjects(false, false).Where(o => o.Geometry is Mesh).ToList();
+            // Preselection
+            var selected = doc.Objects.GetSelectedObjects(false, false)
+                                      .Where(o => o.Geometry is Mesh)
+                                      .ToList();
 
             if (selected.Count == 1)
             {
-                mesh = (selected[0].Geometry as Mesh)?.DuplicateMesh();
-                RhinoApp.WriteLine("Preselected mesh used.");
+                var rhObj = selected[0];
+                meshId = rhObj.Id;
+                mesh = (rhObj.Geometry as Mesh)?.DuplicateMesh();
+
+                RhinoApp.WriteLine($"Preselected mesh used. ID = {meshId}");
             }
             else
             {
+                // User selection
                 var gm = new GetObject();
                 gm.SetCommandPrompt("Select a navigation mesh:");
                 gm.GeometryFilter = ObjectType.Mesh;
                 gm.DisablePreSelect();
                 gm.SubObjectSelect = false;
-                gm.Get();
 
+                gm.Get();
                 if (gm.CommandResult() != Result.Success)
                     return Result.Cancel;
 
+                var rhObj = gm.Object(0).Object();
+                meshId = rhObj.Id;
                 mesh = gm.Object(0).Mesh()?.DuplicateMesh();
-                RhinoApp.WriteLine("Navigation Mesh was selected.");
+
+                RhinoApp.WriteLine($"Navigation mesh selected. ID = {meshId}");
             }
 
-            //Set Mesh to
-            LayoutManager.Instance.SetCollisionMesh(mesh);
+            // Store both mesh and ID
+            LayoutManager.Instance.SetCollisionMesh(mesh, meshId);
 
             return Result.Success;
         }

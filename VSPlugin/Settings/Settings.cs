@@ -36,7 +36,7 @@ namespace Daxs
 
             //Walking
             Add("EyeHeight", 1.70, 1,2);
-            Add("MaximalJump", 1.50, 1,2);
+            Add("MaximalJump", 0.40, 1,2);
 
             //Lens
             Add("LensStep", 1, 1,2);
@@ -46,7 +46,6 @@ namespace Daxs
                 Add(a, GAction.Unset);
 
             //Gamepad
-
             foreach (GamepadButton b in Enum.GetValues<GamepadButton>())
                 Add(b, GAction.Unset);
 
@@ -81,7 +80,6 @@ namespace Daxs
             Add("C2_Function", "_ViewCaptureToFile");
             Add("C2_SimulateKeys", true);
 
-
             foreach (GAction c in Enum.GetValues<GAction>())
             {
                 if (c < GAction.C3 || c > GAction.C6)
@@ -102,7 +100,6 @@ namespace Daxs
         private void Add(string name, string defaultValue) =>iValues[name] = new TextValue(defaultValue, name);
         private void Add(string name, GAction defaultValue)=>  iValues[name] = new TextValue(defaultValue.ToString(), name); 
         private void Add(GamepadButton button, GAction defaultValue) => Add(button.ToString(), defaultValue);
-
         private void Add(GamepadAxis axis, GAction defaultValue) => Add(axis.ToString(), defaultValue);
 
         public IValue this[string name] => iValues.TryGetValue(name, out var v)  ? v  : throw new KeyNotFoundException($"No setting with the name '{name}' was found.");
@@ -167,6 +164,8 @@ namespace Daxs
             RhinoApp.WriteLine($"Daxs settings saved.");
         }
 
+
+
         public void LoadSettings()
         {
             Guid id = PlugIn.IdFromName("Daxs");
@@ -185,5 +184,16 @@ namespace Daxs
 
             //RhinoApp.WriteLine($"settings loaded.");
         }
+
+
+        private Guid navMeshId = Guid.Empty;
+
+        public Guid NavMeshId
+        {
+            get { return navMeshId; }
+            set { navMeshId = value; }
+        }
+
+
     }
 }

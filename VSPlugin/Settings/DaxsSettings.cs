@@ -190,6 +190,9 @@ namespace Daxs
             settings.SaveSettings();
 
             Result = true;
+
+            ControllerManager.Instance.Restart();
+
             Close();
             LayoutManager.Instance.SetToPreviousLayout();
         }

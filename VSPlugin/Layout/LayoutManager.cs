@@ -59,10 +59,12 @@ namespace Daxs
             return layout;
         }
 
-        public void SetCollisionMesh(Mesh colMesh)
+
+
+        public void SetCollisionMesh(Mesh colMesh, Guid meshId)
         {
             WalkLayout wLayout = (WalkLayout)Get(Layout.Walk);
-            wLayout.SetNavigationMesh(colMesh);
+            wLayout.SetNavigationMesh(colMesh, meshId);
         }
     }
 }
