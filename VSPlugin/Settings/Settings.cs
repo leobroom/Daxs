@@ -182,16 +182,5 @@ namespace Daxs
 
             //RhinoApp.WriteLine($"settings loaded.");
         }
-
-
-        //private Guid navMeshId = Guid.Empty;
-
-        //public Guid NavMeshId
-        //{
-        //    get { return navMeshId; }
-        //    set { navMeshId = value; }
-        //}
-
-
     }
 }

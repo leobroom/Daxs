@@ -48,13 +48,12 @@ namespace Daxs
 
                 var rhObj = gm.Object(0).Object();
                 meshId = rhObj.Id;
-                mesh = gm.Object(0).Mesh()?.DuplicateMesh();
 
                 RhinoApp.WriteLine($"Navigation mesh selected. ID = {meshId}");
             }
 
             // Store both mesh and ID
-            LayoutManager.Instance.SetCollisionMesh(mesh, meshId);
+            NavigationManager.Instance.SetMeshById(meshId);
 
             return Result.Success;
         }

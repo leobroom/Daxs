@@ -30,6 +30,13 @@ namespace Daxs
             Register(new FlyLayout());
             Register(new WalkLayout());
             Register(new MenuLayout());
+
+            //Navigation
+            NavigationManager navMan = NavigationManager.Instance;
+            navMan.NavigationMeshChanged += (s, mesh) =>
+            {
+                SetCollisionMesh(mesh);
+            };
         }
 
         private void Register(IGamepadLayout layout) => layouts[layout.Name] = layout;
@@ -61,10 +68,10 @@ namespace Daxs
 
 
 
-        public void SetCollisionMesh(Mesh colMesh, Guid meshId)
+        private void SetCollisionMesh(Mesh colMesh)
         {
             WalkLayout wLayout = (WalkLayout)Get(Layout.Walk);
-            wLayout.SetNavigationMesh(colMesh, meshId);
+            wLayout.SetNavigationMesh(colMesh);
         }
     }
 }

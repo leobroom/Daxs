@@ -6,62 +6,56 @@ namespace Daxs
 {
     internal sealed class NavigationManager
     {
-        private static NavigationManager instance = null;
+        private static NavigationManager instance;
         public static NavigationManager Instance => instance ??= new NavigationManager();
 
-        private NavigationMesh navMesh = null;
+        private Guid navMeshId = Guid.Empty;
+        private Mesh navMesh;
 
-        public Guid NavMeshId=> (navMesh == null) ? Guid.Empty : navMesh.Id;
+        public Guid NavMeshId => navMeshId;
+
+        // Always return a copy
+        public Mesh NavMesh => navMesh?.DuplicateMesh();
 
         public event EventHandler<Mesh> NavigationMeshChanged;
 
-        public bool SetMeshById(Guid navMeshId)
+        public bool SetMeshById(Guid meshId)
         {
-            Mesh mesh = FindMeshById(navMeshId);
-            if (mesh == null)
+            if (meshId == Guid.Empty)
             {
                 Clear();
-
-                NavigationMeshChanged?.Invoke(this, null);
                 return false;
             }
 
-            navMesh = new NavigationMesh(mesh, navMeshId);
-            NavigationMeshChanged?.Invoke(this, mesh);
+            var docMesh = FindMeshById(meshId);
+            if (docMesh == null)
+            {
+                Clear();
+                return false;
+            }
 
+            navMeshId = meshId;
+            navMesh = docMesh.DuplicateMesh();
 
+            NavigationMeshChanged?.Invoke(this, navMesh);
             return true;
         }
 
         private void Clear()
         {
+            navMeshId = Guid.Empty;
             navMesh = null;
             NavigationMeshChanged?.Invoke(this, null);
         }
 
-        public static Mesh FindMeshById(Guid id)
+        private static Mesh FindMeshById(Guid id)
         {
-            if(id == Guid.Empty)
+            var doc = RhinoDoc.ActiveDoc;
+            if (doc == null)
                 return null;
 
-            var rhObj = RhinoDoc.ActiveDoc.Objects.Find(id);
-            if (rhObj == null)
-                return null;
-
-            return rhObj.Geometry as Mesh;   // or DuplicateMesh()
-        }
-    }
-
-    internal class NavigationMesh
-    {
-        public Guid Id { get; } = Guid.Empty;
-
-        private readonly Mesh mesh = null;
-
-        public NavigationMesh(Mesh mesh, Guid id)
-        {
-            this.mesh = mesh;
-            this.Id = id;
+            var rhObj = doc.Objects.Find(id);
+            return rhObj?.Geometry as Mesh;
         }
     }
 }

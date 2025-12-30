@@ -10,11 +10,8 @@ namespace Daxs
     {
         public override Layout Name => Layout.Walk;
 
-        //private Mesh navMesh = null;
-        //private Guid navMeshId = Guid.Empty;
+        private Mesh navMesh = null;
         private double eyeHeight, maximalJump;
-
-     //   public Guid NavMeshId => navMeshId;
 
         public WalkLayout() : base()
         {
@@ -74,29 +71,17 @@ namespace Daxs
 
         }
 
-        public void SetNavigationMesh(Mesh nevMesh, Guid meshId)
+        private readonly object navMeshLock = new object();
+
+        public void SetNavigationMesh(Mesh newMesh)
         {
-            if (nevMesh == null)
+            Mesh safeCopy = newMesh?.DuplicateMesh();
+
+            lock (navMeshLock)
             {
-                this.navMesh = null;
-                Settings.Instance.NavMeshId = Guid.Empty;
-                return;
+                navMesh = safeCopy;
             }
-
-
-            lock (this.navMesh)
-            {
-                this.navMesh = nevMesh;
-            }
-
-            this.navMeshId = meshId;
-
-
-            Settings.Instance.NavMeshId = meshId;
-            RhinoApp.WriteLine("Walk layout - Set Navigation Mesh.");
         }
-
-        public void ClearCollider() { navMesh = null; }
 
         //----------Jump
         private void Teleport(ref Point3d pos, Mesh colMsh, InputY teleport)
