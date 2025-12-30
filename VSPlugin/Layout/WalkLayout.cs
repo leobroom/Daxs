@@ -10,11 +10,11 @@ namespace Daxs
     {
         public override Layout Name => Layout.Walk;
 
-        private Mesh navMesh = null;
-        private Guid navMeshId = Guid.Empty;
+        //private Mesh navMesh = null;
+        //private Guid navMeshId = Guid.Empty;
         private double eyeHeight, maximalJump;
 
-        public Guid NavMeshId => navMeshId;
+     //   public Guid NavMeshId => navMeshId;
 
         public WalkLayout() : base()
         {

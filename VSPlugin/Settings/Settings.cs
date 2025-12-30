@@ -164,8 +164,6 @@ namespace Daxs
             RhinoApp.WriteLine($"Daxs settings saved.");
         }
 
-
-
         public void LoadSettings()
         {
             Guid id = PlugIn.IdFromName("Daxs");
@@ -186,13 +184,13 @@ namespace Daxs
         }
 
 
-        private Guid navMeshId = Guid.Empty;
+        //private Guid navMeshId = Guid.Empty;
 
-        public Guid NavMeshId
-        {
-            get { return navMeshId; }
-            set { navMeshId = value; }
-        }
+        //public Guid NavMeshId
+        //{
+        //    get { return navMeshId; }
+        //    set { navMeshId = value; }
+        //}
 
 
     }

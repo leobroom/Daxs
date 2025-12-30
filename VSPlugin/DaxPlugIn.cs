@@ -1,20 +1,19 @@
 ﻿using Rhino;
 using Rhino.Collections;
 using Rhino.FileIO;
-using Rhino.Geometry;
 using Rhino.PlugIns;
 using System;
 
 namespace Daxs
 {
-    public class DaxPlugIn : Rhino.PlugIns.PlugIn
+    public class DaxPlugIn : PlugIn
     {
         public DaxPlugIn()
         {
             Instance = this;
         }
 
-        public override PlugInLoadTime LoadTime=> PlugInLoadTime.AtStartup; 
+        public override PlugInLoadTime LoadTime => PlugInLoadTime.AtStartup;
 
         ///<summary>Gets the only instance of the Dax plug-in.</summary>
         public static DaxPlugIn Instance { get; private set; }
@@ -24,25 +23,11 @@ namespace Daxs
         // and maintain plug-in wide options in a document.
 
         protected override LoadReturnCode OnLoad(ref string errorMessage)
-        {         
+        {
             RhinoApp.Initialized += OnRhinoInitialized;
-            RhinoApp.RdkNewDocument += OnRhinoNewDocument;
-
 
             return base.OnLoad(ref errorMessage);
         }
-
-        private void OnRhinoNewDocument(object sender, EventArgs e)
-        {
-            RhinoApp.WriteLine("OnRhinoNewDocument");
-
-
-
-            RhinoDoc.ActiveDoc.Strings.SetString("Preferences", "Unit", "SI");
-        }
-
-
-
 
         /// <summary>
         /// Starts Dax after Rhino has fully initialized, when autostart is enabled.
@@ -51,23 +36,15 @@ namespace Daxs
         /// <param name="e"></param>
         private void OnRhinoInitialized(object sender, EventArgs e)
         {
-                RhinoApp.Initialized -= OnRhinoInitialized; // Run only once
+            RhinoApp.Initialized -= OnRhinoInitialized; // Run only once
 
-                bool autostartActive = ((BooleanValue)Daxs.Settings.Instance["AutoStart"]).Value;
-
-                if (autostartActive && ControllerManager.Instance.State == DaxStatus.NotInitialized)
-                   ControllerManager.Instance.Toggle();
+            bool autostartActive = ((BooleanValue)Daxs.Settings.Instance["AutoStart"]).Value;
+            if (autostartActive && ControllerManager.Instance.State == DaxStatus.NotInitialized)
+                ControllerManager.Instance.Toggle();
         }
-
-
 
         //Loading from Document
-
-        protected override bool ShouldCallWriteDocument(FileWriteOptions options)
-        {
-            return true;
-        }
-
+        protected override bool ShouldCallWriteDocument(FileWriteOptions options) => true;
 
         //Versioning
         private const int Major = 0, Minor = 0;
@@ -78,14 +55,14 @@ namespace Daxs
         protected override void WriteDocument(RhinoDoc doc, BinaryArchiveWriter archive, FileWriteOptions options)
         {
             RhinoApp.InvokeOnUiThread((Action)(() =>
-            {   
-                RhinoApp.WriteLine($"WriteDocument...");   
+            {
+                RhinoApp.WriteLine($"Write Dax data into Document...");
             }));
 
             archive.Write3dmChunkVersion(Major, Minor);
 
             var dict = new ArchivableDictionary();
-            dict.Set("DaxNavMeshGuid", Daxs.Settings.Instance.NavMeshId);
+            dict.Set("DaxNavMeshGuid", NavigationManager.Instance.NavMeshId);
 
             archive.WriteDictionary(dict);
         }
@@ -96,22 +73,16 @@ namespace Daxs
         /// </summary>
         protected override void ReadDocument(RhinoDoc doc, BinaryArchiveReader archive, FileReadOptions options)
         {
-            archive.Read3dmChunkVersion(out int major, out int minor);
-
+            archive.Read3dmChunkVersion(out int major, out int minor); //no versioning yet
             var dict = archive.ReadDictionary();
 
             try
             {
                 Guid navMeshId = dict.GetGuid("DaxNavMeshGuid");
-                Mesh mesh = GetMeshById(navMeshId);
 
-                if (mesh == null)
-                {
-                    LayoutManager.Instance.SetCollisionMesh(null, Guid.Empty);
+                bool isSuccess = NavigationManager.Instance.SetMeshById(navMeshId);
+                if (!isSuccess)
                     return;
-                }
-
-                LayoutManager.Instance.SetCollisionMesh(mesh, navMeshId);
 
                 RhinoApp.InvokeOnUiThread((Action)(() =>
                 {
@@ -120,23 +91,8 @@ namespace Daxs
             }
             catch (Exception)
             {
-                LayoutManager.Instance.SetCollisionMesh(null, Guid.Empty);
+                NavigationManager.Instance.SetMeshById(Guid.Empty);
             }
-         
-
-
-
-
-  
-        }
-
-        public static Mesh GetMeshById(Guid id)
-        {
-            var rhObj = RhinoDoc.ActiveDoc.Objects.Find(id);
-            if (rhObj == null)
-                return null;
-
-            return rhObj.Geometry as Mesh;   // or DuplicateMesh()
         }
     }
 }
