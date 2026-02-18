@@ -200,6 +200,43 @@ namespace Daxs
         {
             SDL.RumbleGamepad(gamepadID, 30000, 30000, 300);
             SDL.SetGamepadLED(gamepadID, 0, 255, 255);
+
+            string name = GetFriendlyGamepadName(gamepadID);
+
+            HUD.Instance.SetText($"Gamepad connected: {name}",3000);
         }
+
+        private static string GetFriendlyGamepadName(nint gamepadID)
+        {
+            // SDL name (often contains "Xbox", "PS5", etc.)
+            string name = SDL.GetGamepadName(gamepadID);
+            if (string.IsNullOrWhiteSpace(name))
+                name = "Unknown gamepad";
+
+            // Optional: use vendor/product to improve classification
+            ushort vendor = SDL.GetGamepadVendor(gamepadID);
+            ushort product = SDL.GetGamepadProduct(gamepadID);
+
+            string lower = name.ToLowerInvariant();
+
+            // Heuristics first (works well with most mappings)
+            if (lower.Contains("xbox") || lower.Contains("microsoft"))
+                return $"Xbox ({name})";
+            if (lower.Contains("dualshock") || lower.Contains("dualsense") || lower.Contains("playstation") || lower.Contains("ps4") || lower.Contains("ps5") || lower.Contains("sony"))
+                return $"PlayStation ({name})";
+            if (lower.Contains("nintendo") || lower.Contains("switch") || lower.Contains("joy-con") || lower.Contains("pro controller"))
+                return $"Nintendo ({name})";
+
+            // Vendor-based fallback (common vendor IDs)
+            // Microsoft: 0x045E, Sony: 0x054C, Nintendo: 0x057E
+            return vendor switch
+            {
+                0x045E => $"Xbox ({name})",
+                0x054C => $"PlayStation ({name})",
+                0x057E => $"Nintendo ({name})",
+                _ => $"{name} (VID:0x{vendor:X4} PID:0x{product:X4})"
+            };
+        }
+
     }
 }
