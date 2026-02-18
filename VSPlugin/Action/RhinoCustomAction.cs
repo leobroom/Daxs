@@ -22,14 +22,14 @@ namespace Daxs
             simulateKeys = settings.BindBoolean($"{c}_SimulateKeys", v => simulateKeys = v);
         }
      
-        public override string HUD_Name => name;
+        public override string HUD_Text => name;
 
         public override void Execute()
         {
             if (simulateKeys)
                 LayoutManager.Instance.Set(Layout.Menu);
             RhinoApp.RunScript(_function, true);
-            if (simulateKeys && LayoutManager.Instance.Current.Name == Layout.Menu )
+            if (simulateKeys && LayoutManager.Instance.Current.Name == Layout.Menu)
                 LayoutManager.Instance.SetToPreviousLayout();
 
             //Fallback to Fly layout if still in Menu

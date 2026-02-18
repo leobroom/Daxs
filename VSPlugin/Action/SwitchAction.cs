@@ -1,22 +1,21 @@
 ﻿namespace Daxs
 {
-    internal class SwitchAction : BaseState, IAction
+    internal class SwitchAction : BaseState, IAction, ICalculate
     {
         public SwitchAction(InputX Input) : base(  Input) {}
 
-        public override string HUD_Name => LayoutManager.Instance.Current.Name.ToString();
+        public override string HUD_Text => "Mode: " + next.ToString();
 
         public override void Execute() 
         {
-            var current = LayoutManager.Instance.Current;
+            LayoutManager.Instance.Set(next);
+        }
 
-            Layout name = current.Name;
-            if (name == Layout.Fly)
-                name = Layout.Walk;
-            else
-                name = Layout.Fly;
+        Layout next = Layout.Fly;
 
-            LayoutManager.Instance.Set(name);
+        public void Calculate()
+        {
+            next = (LayoutManager.Instance.Current.Name == Layout.Fly) ? Layout.Walk : Layout.Fly;
         }
     }
 }

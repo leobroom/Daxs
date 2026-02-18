@@ -8,7 +8,7 @@
         }
 
         public InputX Input { get; }
-        public abstract string HUD_Name { get; }
+        public abstract string HUD_Text { get; }
 
         public abstract void Execute();
     }

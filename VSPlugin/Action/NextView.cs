@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 namespace Daxs
 {
-    internal class NextView : BaseState
+    internal class NextView : BaseState, ICalculate
     {
         public NextView(InputX Input) : base(Input) { }
 
-        public override string HUD_Name => $"Switch to next View";
+        public override string HUD_Text => $"Switched to {nextName}";
 
         private readonly List<(DefinedViewportProjection proj, string name)> planviews = new List<(DefinedViewportProjection, string)>()
         {
@@ -29,9 +29,25 @@ namespace Daxs
 
         public override void Execute()
         {
-            var doc = RhinoDoc.ActiveDoc;
-            var view = doc?.Views.ActiveView;
-            if (view == null) return;
+            var view = RhinoDoc.ActiveDoc?.Views.ActiveView;
+            if (view == null) 
+                return;
+
+            var vp = view.ActiveViewport;
+
+            vp.SetProjection(nextProjection, nextName, true);
+            view.Redraw();
+        }
+
+
+        DefinedViewportProjection nextProjection = DefinedViewportProjection.Perspective;
+        string nextName = "unset";
+
+        public void Calculate()
+        {
+            var view = RhinoDoc.ActiveDoc.Views.ActiveView;
+            if (view == null) 
+                return;
 
             var vp = view.ActiveViewport;
 
@@ -40,7 +56,6 @@ namespace Daxs
 
             var list = isPlan ? planviews : perspectiveviews;
 
-            // find index by name
             int currentIndex = 0;
             for (int i = 0; i < list.Count; i++)
             {
@@ -51,12 +66,8 @@ namespace Daxs
                 }
             }
 
-            // next projection
             int next = (currentIndex + 1) % list.Count;
-            var (proj, name) = list[next];
-
-            vp.SetProjection(proj, name, true);
-            view.Redraw();
+            (nextProjection, nextName) = list[next];
         }
     }
 }

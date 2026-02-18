@@ -161,7 +161,10 @@ namespace Daxs
 
             while (actionQueue.TryDequeue(out var action))
             {
-                hud.SetText(action.HUD_Name, 2000);
+                if (action is ICalculate)
+                     ((ICalculate)action).Calculate(); 
+
+                hud.SetText(action.HUD_Text, 2000);
                 action.Execute();
             }
         }

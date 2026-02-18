@@ -5,9 +5,9 @@ using System;
 
 namespace Daxs
 {
-    internal class NextDisplaymode : BaseState
+    internal class NextDisplaymode : BaseState ,ICalculate
     {
-        DisplayModeDescription[] modes = new[]
+        private readonly DisplayModeDescription[] modes = new[]
         {
             DisplayModeDescription.GetDisplayMode(DisplayModeDescription.WireframeId),
             DisplayModeDescription.GetDisplayMode(DisplayModeDescription.ShadedId),
@@ -16,9 +16,21 @@ namespace Daxs
 
         public NextDisplaymode(InputX Input) : base(Input) { }
 
-        public override string HUD_Name => $"Switch to next Displaymode";
+        public override string HUD_Text => $"Displaymode: {nextDisplaymode.LocalName}";
+
+        DisplayModeDescription nextDisplaymode = null;
 
         public override void Execute()
+        {
+            var view = RhinoDoc.ActiveDoc.Views.ActiveView;
+            if (view == null || nextDisplaymode == null)
+                return;
+
+            view.ActiveViewport.DisplayMode = nextDisplaymode;
+            view.Redraw();
+        }
+
+        public void Calculate()
         {
             var view = RhinoDoc.ActiveDoc.Views.ActiveView;
             if (view == null)
@@ -27,12 +39,9 @@ namespace Daxs
             var current = view.ActiveViewport.DisplayMode;
             int index = Array.FindIndex(modes, m => m.Id == current.Id);
 
-            // If not in the first 3 display modes → restart at Wireframe (index 0)
             int next = (index == -1) ? 0 : (index + 1) % modes.Length;
 
-            view.ActiveViewport.DisplayMode = modes[next];
-            view.Redraw();
-
+            nextDisplaymode = modes[next];
         }
     }
 }

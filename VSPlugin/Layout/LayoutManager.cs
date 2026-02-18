@@ -33,10 +33,9 @@ namespace Daxs
 
             //Navigation
             NavigationManager navMan = NavigationManager.Instance;
-            navMan.NavigationMeshChanged += (s, mesh) =>
-            {
-                SetCollisionMesh(mesh);
-            };
+            SetCollisionMesh(navMan.NavMesh);
+
+            navMan.NavigationMeshChanged += (s, mesh) => SetCollisionMesh(mesh);
         }
 
         private void Register(IGamepadLayout layout) => layouts[layout.Name] = layout;
@@ -65,8 +64,6 @@ namespace Daxs
                 throw new KeyNotFoundException($"Layout '{name}' not found.");
             return layout;
         }
-
-
 
         private void SetCollisionMesh(Mesh colMesh)
         {
