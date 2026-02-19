@@ -6,6 +6,8 @@
 
         string HUD_Text { get; }
 
+        string HUD_Emoji { get; }
+
         void Execute();
     }
 

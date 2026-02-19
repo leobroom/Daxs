@@ -203,7 +203,7 @@ namespace Daxs
 
             string name = GetFriendlyGamepadName(gamepadID);
 
-            HUD.Instance.SetText($"Gamepad connected: {name}",3000);
+            HUD.Instance.SetText("🎮", $"Gamepad connected: {name}",3000);
         }
 
         private static string GetFriendlyGamepadName(nint gamepadID)

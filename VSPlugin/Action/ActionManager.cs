@@ -164,7 +164,7 @@ namespace Daxs
                 if (action is ICalculate)
                      ((ICalculate)action).Calculate(); 
 
-                hud.SetText(action.HUD_Text, 2000);
+                hud.SetText(action.HUD_Emoji, action.HUD_Text, 2000);
                 action.Execute();
             }
         }

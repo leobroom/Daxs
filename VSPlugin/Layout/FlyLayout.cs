@@ -51,10 +51,10 @@ namespace Daxs
             double rotSpeedMulti = actionManager.RotSpeedmulti;         // rotation speed multiplier
 
             if (speedMulti > 1.00)
-                hud.SetText("Speed X " + speedMulti, 2000);
+                hud.SetText("🎮", "Speed X " + speedMulti, 2000);
 
             if (rotSpeedMulti > 1.00)
-                hud.SetText("Rotation X " + rotSpeedMulti, 2000);
+                hud.SetText("🎮", "Rotation X " + rotSpeedMulti, 2000);
 
             //RhinoApp.WriteLine("TICK / HandleInput");
             double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);

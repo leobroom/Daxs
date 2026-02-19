@@ -10,6 +10,8 @@
         public InputX Input { get; }
         public abstract string HUD_Text { get; }
 
+        public virtual string HUD_Emoji => "🎮";
+
         public abstract void Execute();
     }
 }

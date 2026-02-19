@@ -21,14 +21,14 @@ namespace Daxs
                 //Enter
                 if (state.GetButtonState(GamepadButton.South) == InputX.IsDown)
                 {
-                    hud.SetText("Enter", 2000);
+                    hud.SetText("🎮", "Enter", 2000);
                     SimulateKey(KEY_ENTER);
                 }
 
                 //Escape
                 if (state.GetButtonState(GamepadButton.East) == InputX.IsDown || state.GetButtonState(GamepadButton.Start) == InputX.IsDown)
                 {
-                    hud.SetText("Escape", 2000);
+                    hud.SetText("🎮", "Escape", 2000);
                     SimulateKey(KEY_ESCAPE);
                 }
 
