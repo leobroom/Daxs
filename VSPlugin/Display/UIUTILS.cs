@@ -8,6 +8,9 @@ namespace Daxs
 {
     internal static class UIUtils
     {
+        internal static Color BG_COLOR = Color.FromArgb(200, 0, 0, 0);
+        internal const int FONT_PX = 12; //Default Font Size
+
         internal static GraphicsPath RoundedRect(RectangleF bounds, float radius)
         {
             float d = radius * 2f;

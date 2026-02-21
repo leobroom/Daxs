@@ -1,5 +1,6 @@
 ﻿using Ed.Eto;
 using Rhino;
+using SDL3;
 using System;
 using System.Runtime.InteropServices;
 using static SDL3.SDL;
@@ -45,6 +46,9 @@ namespace Daxs
 
         KnobState _knobState = KnobState.NotInitialized;
 
+        double clMin = 40;
+        double clMax = 360 - 40;
+
         public override void HandleInput(Gamepad state)
         {
             if (!_speedAdjustActive)
@@ -54,12 +58,11 @@ namespace Daxs
 
             var (x, y) = NormalizeStick(state.GetAxisValue(GamepadAxis.RightX), state.GetAxisValue(GamepadAxis.RightY));
 
-            x = -x;
             double length = Math.Sqrt(x * x + y * y);
 
             if (length > deadzone) // deadzone
             {
-                double angleRad = Math.Atan2(x, y);
+                double angleRad = Math.Atan2(x, -y);
                 _angleDeg = angleRad * (180.0 / Math.PI);
 
                 if (_angleDeg < 0)
@@ -78,8 +81,7 @@ namespace Daxs
             {
                 case KnobState.NotInitialized:
                     _knobState = KnobState.Started;
-                    _lastAngle = _angleDeg;
-                    RhinoApp.WriteLine("Started");
+                    ChangeAngle();
                     break;
                 case KnobState.Stopped:
                 default:
@@ -98,28 +100,28 @@ namespace Daxs
                         _knobState = KnobState.MinHit;
                     }
 
-                    _lastAngle = _angleDeg;
+                    ChangeAngle();
                     break;
                 case KnobState.MinHit:
                     if (_angleDeg < MIN)
                     {
-                        _lastAngle = _angleDeg;
+                        ChangeAngle();
                         _knobState = KnobState.Started;
                     }
                     break;
                 case KnobState.MaxHit:
                     if (_angleDeg > MAX)
                     {
-                        _lastAngle = _angleDeg;
+                        ChangeAngle();
                         _knobState = KnobState.Started;
                     }
                     break;
             }
 
-            double val = Math.Clamp((_lastAngle / 360.0) * 10.0, 0.0, 10.0);
-            val = Math.Round(val, 1);
 
-            HUD.Instance.SetText("⚙️", $"Val: {val:0.00}");
+            double val = NormalizeNumber(_lastAngle);
+
+            HUD.Instance.SetDonut("FLIGHT\nSPEED", val, clMin, clMax, 200);
 
             if ((actionManager.HasActions) && sinceLastUi >= uiDt && !_uiUpdatePending)
             {
@@ -132,6 +134,30 @@ namespace Daxs
                     _uiUpdatePending = false;
                 }));
             }
+        }
+
+        double NormalizeNumber(double current) 
+        {
+            double clamped = Math.Clamp(current, clMin, clMax);
+
+            double range = clMax - clMin;
+            double normalized = clamped - clMin;
+
+            double val = (normalized / range) * 10.0;
+
+            return Math.Round(val, 1);
+        }
+
+        void ChangeAngle() 
+        {
+         
+            int last = (int)Math.Floor(NormalizeNumber(_angleDeg));
+            int current = (int)Math.Floor(NormalizeNumber(_lastAngle));
+
+            _lastAngle = _angleDeg;
+          
+            if(current != last)
+                ControllerManager.Instance.RumbleGamepad(0, 30000, 20);
         }
     }
 }

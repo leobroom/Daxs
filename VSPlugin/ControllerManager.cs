@@ -22,6 +22,9 @@ namespace Daxs
     {
         public static ControllerManager Instance { get; } = new ControllerManager();
 
+
+        IntPtr gamepadID;
+
         private ControllerManager()
         {
      
@@ -134,7 +137,7 @@ namespace Daxs
 
             SDL.PumpEvents();
 
-            IntPtr gamepadID = IntPtr.Zero;
+            gamepadID = IntPtr.Zero;
 
             //Whileloop
             while (!token.IsCancellationRequested)
@@ -206,15 +209,22 @@ namespace Daxs
 
         private void SignalConnection(nint gamepadID)
         {
-           // SDL.RumbleGamepad(gamepadID, 30000, 30000, 300);
+           SDL.RumbleGamepad(gamepadID, 30000, 30000, 300);
             SDL.SetGamepadLED(gamepadID, 0, 255, 255);
 
             string name = GetFriendlyGamepadName(gamepadID);
 
             string version = Utils.GetPackageVersion();
+  
 
             hud.SetImageToast(daxsIcon, $"DAXS {version} | {name}", 4000);
         }
+
+        public void RumbleGamepad(ushort lowFrequencyRumble, ushort highFrequencyRumble, uint durationMs) 
+        {
+            SDL.RumbleGamepad(gamepadID, lowFrequencyRumble, highFrequencyRumble, durationMs);
+        }
+
 
         private static string GetFriendlyGamepadName(nint gamepadID)
         {
