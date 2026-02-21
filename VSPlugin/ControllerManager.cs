@@ -1,10 +1,13 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿
 using Rhino;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using SDL3;
-using System;
+using System.Drawing;
+using System.Reflection;
 
 namespace Daxs
 {
@@ -21,6 +24,12 @@ namespace Daxs
 
         private ControllerManager()
         {
+     
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Daxs.Shared.icon.png"))
+            {
+                daxsIcon = new Bitmap(stream);
+            }
+
             RhinoApp.Closing += (sender, e) => { settings.SaveSettings(); };
 
             //INIT SDL3
@@ -44,6 +53,8 @@ namespace Daxs
         private readonly LayoutManager layout = LayoutManager.Instance;
         private readonly Settings settings = Settings.Instance;
         private readonly HUD hud = HUD.Instance;
+        Bitmap daxsIcon = null;
+
 
         //Loop
         private CancellationTokenSource _cts;
@@ -67,8 +78,6 @@ namespace Daxs
             }
         }
 
-
-
         public void Toggle()
         {
             if (status == DaxStatus.NotInitialized || status == DaxStatus.Stopped)
@@ -89,7 +98,6 @@ namespace Daxs
             if (!restart) 
             {
                 layout.Set(Layout.Fly);
-
                 RhinoApp.WriteLine("Daxs started");
             }
         }
@@ -189,7 +197,7 @@ namespace Daxs
                     gamepad.Update();
                     actions.Update(gamepad);
                 
-                    layout.Current.HandleInput(gamepad, delta);  
+                    layout.Current.HandleInputAndDelta(gamepad, delta);  
                 }
 
                 await Task.Delay(1, token);
@@ -198,12 +206,14 @@ namespace Daxs
 
         private void SignalConnection(nint gamepadID)
         {
-            SDL.RumbleGamepad(gamepadID, 30000, 30000, 300);
+           // SDL.RumbleGamepad(gamepadID, 30000, 30000, 300);
             SDL.SetGamepadLED(gamepadID, 0, 255, 255);
 
             string name = GetFriendlyGamepadName(gamepadID);
 
-            HUD.Instance.SetText("🎮", $"Gamepad connected: {name}",3000);
+            string version = Utils.GetPackageVersion();
+
+            hud.SetImageToast(daxsIcon, $"DAXS {version} | {name}", 4000);
         }
 
         private static string GetFriendlyGamepadName(nint gamepadID)

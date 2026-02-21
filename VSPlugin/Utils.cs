@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Rhino.PlugIns;
 
 namespace Daxs
@@ -19,10 +20,25 @@ namespace Daxs
             return PlugIn.GetPlugInInfo(id);
         }
 
-        public static string GetPackageVersion()
+        public static string GetPackageVersion(string format = "#.#.#")
         {
             PlugInInfo packageInfo = GetInfo();
-            return packageInfo.Version;
+            if (packageInfo == null || string.IsNullOrWhiteSpace(packageInfo.Version))
+                return string.Empty;
+
+            if (!Version.TryParse(packageInfo.Version, out var v))
+                return packageInfo.Version; // fallback if parsing fails
+
+            int parts = format.Count(c => c == '#');
+
+            return parts switch
+            {
+                1 => $"{v.Major}",
+                2 => $"{v.Major}.{v.Minor}",
+                3 => $"{v.Major}.{v.Minor}.{v.Build}",
+                4 => $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}",
+                _ => v.ToString()
+            };
         }
 
         public static string GetFile(string fileName)

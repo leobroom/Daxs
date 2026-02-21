@@ -22,6 +22,7 @@
         C3,
         C4,
         C5,
-        C6
+        C6,
+        ChangeSpeed
     }
 }

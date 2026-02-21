@@ -32,6 +32,7 @@ namespace Daxs
             { GAction.NextDisplaymode, "Next DisplayMode" },
             { GAction.NextNamedView, "Next Named View" },
             { GAction.NextView, "Next View" },
+            { GAction.ChangeSpeed, "Change Speed" },
             { GAction.C1, "C1" },
             { GAction.C2, "C2" },
             { GAction.C3, "C3" },
@@ -121,7 +122,7 @@ namespace Daxs
             string[] walk = { "EyeHeight", "MaximalJump" };
             string[] lens = { "LensStep", "LensDefault" };
 
-            Control[] inputRows = 
+            Control[] inputRows =
             {
                 CreateControllerImage(ClientSize.Width - 60),
                 EtoFactory.CreateGroupExpander("Input Response", input, name => CreateControl(name), true),
@@ -153,7 +154,7 @@ namespace Daxs
                 }
             };
 
-            var bottomButtons = EtoFactory.CreateButtonButtons(new[]{("DEFAULT", (Action)OnDefault),(null,null), ("OK", (Action)OnOk)});
+            var bottomButtons = EtoFactory.CreateButtonButtons(new[] { ("DEFAULT", (Action)OnDefault), (null, null), ("OK", (Action)OnOk) });
 
             Content = new TableLayout
             {
@@ -317,7 +318,8 @@ namespace Daxs
                 actionTable[action] = label.Text;
 
                 SyncActionDropDowns();
-            };
+            }
+            ;
 
             boundTextBox.TextChanged += (_, _) =>
             {

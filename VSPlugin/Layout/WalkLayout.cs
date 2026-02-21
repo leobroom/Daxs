@@ -110,7 +110,7 @@ namespace Daxs
             lst.Sort();
             double addZ = (teleport == InputY.Up) ? GetNextUp(lst, eyeHeight) : GetNextDown(lst, eyeHeight);
             if (addZ != 0 && teleport!= InputY.Default)
-                hud.SetText("🎮", "Teleport " + teleport.ToString(),2000);
+                hud.SetText("🎮", "Teleport " + teleport.ToString());
 
             pos.Z += addZ;
         }

@@ -9,7 +9,8 @@ namespace Daxs
     {
         Fly,
         Walk,
-        Menu
+        Menu,
+        Custom
     }
 
     public sealed class LayoutManager
@@ -30,6 +31,7 @@ namespace Daxs
             Register(new FlyLayout());
             Register(new WalkLayout());
             Register(new MenuLayout());
+            Register(new CustomLayout());
 
             //Navigation
             NavigationManager navMan = NavigationManager.Instance;

@@ -34,12 +34,15 @@ namespace Daxs
         private bool _playInAnim;
         private int _stableWidth;
         private bool _idleHooked;
+        private Bitmap _iconGdi;
+        private Size _iconPx = Size.Empty;
 
         // Redraw throttling (avoid spamming redraw)
         private long lastRedrawMs;
         private const int RedrawEveryMs = 33;
 
         private bool textVisible = false;
+        private double testTime = 2000;
 
         //LAYOUT
         private static readonly Color ToastBg = Color.FromArgb(200, 0, 0, 0);
@@ -54,6 +57,7 @@ namespace Daxs
         internal HUD()
         {
             textVisible = settings.BindBoolean("TextVisible", t => textVisible = t);
+            testTime = settings.BindNumeric("TextTime", t => testTime = t);
 
             // Ensure Tick() runs even when gamepad loop isn't active
             if (!_idleHooked)
@@ -90,9 +94,65 @@ namespace Daxs
         private void DisableText()
         {
             message = "";
+            emoji = "🎮";
+
+            DisableIcon();
+
             _stableWidth = 0;
             _playInAnim = false;
             Enabled = false;
+        }
+
+        private void DisableIcon()
+        {
+            _iconGdi = null;
+            _iconPx = Size.Empty;
+
+        }
+
+        /// <summary>
+        /// Like SetText, but uses an icon bitmap instead of an emoji.
+        /// The icon is cloned and owned by the HUD (safe if caller disposes theirs).
+        /// </summary>
+        public void SetImageToast(Bitmap icon, string message, int durationMs, int iconSizePx = 20)
+        {
+            if (!textVisible)
+            {
+                if (Enabled) DisableText();
+                return;
+            }
+
+            this.message = message;
+
+            this.emoji = null;
+            _iconGdi = icon;
+            _iconPx = new Size(iconSizePx, iconSizePx);
+
+            if (Enabled)
+            {
+                long elapsed = sw.ElapsedMilliseconds;
+                this.durationMs = (int)Math.Min(int.MaxValue, elapsed + durationMs);
+
+                _playInAnim = false;
+                _cachedKey = null;
+                lastRedrawMs = 0;
+                RhinoDoc.ActiveDoc?.Views?.Redraw();
+                return;
+            }
+
+            this.durationMs = durationMs;
+            _playInAnim = true;
+            _stableWidth = 0;
+
+            sw.Restart();
+            lastRedrawMs = 0;
+            Enabled = true;
+        }
+
+        public void SetText(string emoji, string message)
+        {
+            int durationMs = (int)Math.Round(testTime);
+            SetText( emoji,  message,  durationMs);
         }
 
         /// <summary>
@@ -102,7 +162,8 @@ namespace Daxs
         {
             if (!textVisible)
             {
-                if (Enabled) DisableText();
+                if (Enabled)
+                    DisableText();
                 return;
             }
 
@@ -132,7 +193,7 @@ namespace Daxs
 
         protected override void DrawForeground(DrawEventArgs e)
         {
-            if (!Enabled || string.IsNullOrWhiteSpace(message) ||RhinoDoc.ActiveDoc == null || e.Viewport.Id != RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewportID)
+            if (!Enabled || string.IsNullOrWhiteSpace(message) || RhinoDoc.ActiveDoc == null || e.Viewport.Id != RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewportID)
                 return;
 
             var vp = e.Viewport.Size;
@@ -167,18 +228,18 @@ namespace Daxs
             if (_cachedGdi == null || _cachedDisplay == null)
                 return;
 
-            int w = _cachedGdi.Width;
-            int h = _cachedGdi.Height;
-
-            int x = vp.Width - margin - w + (int)slide;
-            int y = vp.Height - margin - h;
+            int x = vp.Width - margin - _cachedGdi.Width + (int)slide;
+            int y = vp.Height - margin - _cachedGdi.Height;
 
             e.Display.DrawBitmap(_cachedDisplay, x, y);
         }
 
         private void EnsureBitmap(int fontPx, int innerPad, int gap, float scale)
         {
-            string key = $"{emoji}|{message}|{fontPx}|{innerPad}|{gap}|{scale:0.###}";
+            bool hasIcon = _iconGdi != null;
+
+            string iconKey = hasIcon ? $"{_iconGdi.Width}x{_iconGdi.Height}@{_iconPx.Width}x{_iconPx.Height}" : "noicon";
+            string key = $"{iconKey}|{emoji}|{message}|{fontPx}|{innerPad}|{gap}|{scale:0.###}";
 
             if (_cachedDisplay != null && _cachedFontPx == fontPx && _cachedKey == key)
                 return;
@@ -192,30 +253,58 @@ namespace Daxs
             _cachedGdi?.Dispose();
             _cachedGdi = null;
 
+            // Fonts
             using var font = new Font("Segoe UI", fontPx, FontStyle.Bold, GraphicsUnit.Pixel);
             using var emojiFont = new Font("Segoe UI Emoji", (int)(ToastEmojiFontPx * scale), FontStyle.Bold, GraphicsUnit.Pixel);
-            
-            SizeF emojiSize, msgSize;
-            using (var tmp = new System.Drawing.Bitmap(1, 1))
+
+            // Measure
+            SizeF leftSize;
+            SizeF msgSize;
+
+            using (var tmp = new Bitmap(1, 1))
             using (var g = Graphics.FromImage(tmp))
             {
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-                emojiSize = g.MeasureString(emoji, emojiFont);
-                msgSize = g.MeasureString(message, font);
+
+                msgSize = g.MeasureString(message ?? string.Empty, font);
+
+                if (hasIcon)
+                {
+                    int iconW = Math.Max(1, (int)MathF.Round(_iconPx.Width * scale));
+                    int iconH = Math.Max(1, (int)MathF.Round(_iconPx.Height * scale));
+                    leftSize = new SizeF(iconW, iconH);
+                }
+                else
+                {
+                    leftSize = g.MeasureString(emoji ?? string.Empty, emojiFont);
+                }
             }
 
-            int w = (int)Math.Ceiling(innerPad + emojiSize.Width + gap + msgSize.Width + innerPad);
-            int h = (int)Math.Ceiling(innerPad + Math.Max(emojiSize.Height, msgSize.Height) + innerPad);
+            int w = (int)Math.Ceiling(innerPad + leftSize.Width + gap + msgSize.Width + innerPad);
+            int h = (int)Math.Ceiling(innerPad + Math.Max(leftSize.Height, msgSize.Height) + innerPad);
 
-            // Keep width stable while visible to avoid "jumping" when text changes shorter
+            const int WidthChangeThresholdPx = 10;
+
             if (Enabled)
             {
-                if (_stableWidth <= 0) _stableWidth = w;
-                _stableWidth = Math.Max(_stableWidth, w);
+                if (_stableWidth <= 0)
+                    _stableWidth = w;
+                else
+                {
+                    int diff = w - _stableWidth;
+                    if (Math.Abs(diff) >= WidthChangeThresholdPx)
+                        _stableWidth = w;
+                }
+
                 w = _stableWidth;
             }
+            else
+                _stableWidth = w;
 
-            _cachedGdi = new System.Drawing.Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+            w = Math.Max(1, w);
+            h = Math.Max(1, h);
+
+            _cachedGdi = new Bitmap(w, h, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
 
             using (var g = Graphics.FromImage(_cachedGdi))
             {
@@ -235,19 +324,37 @@ namespace Daxs
                 float x = innerPad;
                 float centerY = h / 2f;
 
-                // Emoji
-                var emojiPt = new PointF(x, centerY - emojiSize.Height / 2f);
-                g.DrawString(emoji, emojiFont, fgBrush, emojiPt);
-                x += emojiSize.Width + gap;
+                if (hasIcon)
+                {
+                    int iconW = Math.Max(1, (int)MathF.Round(_iconPx.Width * scale));
+                    int iconH = Math.Max(1, (int)MathF.Round(_iconPx.Height * scale));
+
+                    var dest = new Rectangle((int)MathF.Round(x), (int)MathF.Round(centerY - iconH / 2f), iconW, iconH);
+
+                    g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                    g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+                    g.DrawImage(_iconGdi, dest);
+
+                    x += iconW + gap;
+                }
+                else
+                {
+                    // Re-measure emoji to vertically center accurately
+                    var eSize = g.MeasureString(emoji ?? string.Empty, emojiFont);
+                    var emojiPt = new PointF(x, centerY - eSize.Height / 2f);
+
+                    g.DrawString(emoji ?? string.Empty, emojiFont, fgBrush, emojiPt);
+
+                    x += eSize.Width + gap;
+                }
 
                 // Message
                 var msgPt = new PointF(x, centerY - msgSize.Height / 2f);
-                g.DrawString(message, font, fgBrush, msgPt);
+                g.DrawString(message ?? string.Empty, font, fgBrush, msgPt);
             }
 
-            _cachedDisplay = new Rhino.Display.DisplayBitmap(_cachedGdi);
+            _cachedDisplay = new DisplayBitmap(_cachedGdi);
         }
-
         protected override void OnEnable(bool enable)
         {
             base.OnEnable(enable);

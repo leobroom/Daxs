@@ -7,7 +7,7 @@ namespace Daxs
     {
         public NextNamedView(InputX Input) : base(Input) { }
 
-        public override string HUD_Text => $"Named view: {nextView.Name}";
+        public override string HUD_Text => $"Named view: {nextView?.Name}";
 
         public override void Execute()
         {

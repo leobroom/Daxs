@@ -2,9 +2,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using Rhino;
 using static SDL3.SDL;
-using System.Runtime.CompilerServices;
 
 namespace Daxs
 {
@@ -13,6 +11,7 @@ namespace Daxs
         private static readonly Lazy<ActionManager> _instance = new(() => new ActionManager());
         public static ActionManager Instance => _instance.Value;
         private readonly Settings settings = Settings.Instance;
+        private readonly InputGate gate = InputGate.Instance;
         public ActionManager()
         {
             speedMulti = settings.BindNumeric(GAction.Speedmulti, v => speedMulti = v);
@@ -72,7 +71,6 @@ namespace Daxs
         readonly Dictionary<GAction, GamepadButton> buttonBindingTable = new ();
         readonly Dictionary<GAction, GamepadAxis> axisBindingTable = new();
 
-
         readonly Dictionary<GAction, IAction> actionTable = new ()
         {
             { GAction.C1,        new RhinoCustomAction(InputX.IsDown,GAction.C1)},
@@ -89,6 +87,7 @@ namespace Daxs
             { GAction.NextViewport, new NextViewport(InputX.IsDown)},
             { GAction.NextDisplaymode, new NextDisplaymode(InputX.IsDown)},
             { GAction.NextNamedView, new NextNamedView(InputX.IsDown)},
+            { GAction.ChangeSpeed, new ChangeSpeedModal(InputX.IsHold)}
         };
 
         private void ResetButtonBinding(GAction action, GamepadButton button) 
@@ -111,26 +110,32 @@ namespace Daxs
 
         private readonly HUD hud = HUD.Instance;
 
-
         private readonly UniqueQueue<IAction> actionQueue = new UniqueQueue<IAction>();
 
-        public bool HasActions=>  actionQueue.HasValues; 
+        public bool HasActions=>  actionQueue.HasValues;
 
-
+        private readonly HashSet<BaseState> activeActions = new();
+        private readonly HashSet<BaseState> frameActiveActions = new();
 
         internal bool QueueActions()    
         {
             bool hasActions = false;
+
+            frameActiveActions.Clear();
 
             foreach (var kvPair in actionToButtonTable) 
             {
                 GamepadButton button = kvPair.Key;
                 GAction actionType = kvPair.Value;
 
-                if (actionTable.TryGetValue(actionType, out IAction action) && gamepad.GetButtonState(button) == action.Input) 
+                if (actionTable.TryGetValue(actionType, out IAction action) && 
+                    gamepad.GetButtonState(button) == action.Input &&
+                    gate.Allows(actionType, action)) 
                 {
                     hasActions = true;
                     actionQueue.Enqueue(action);
+                    if (action is BaseState bs && bs.WantsDeactivateCallback)
+                        frameActiveActions.Add(bs);
                 }
             }
 
@@ -139,17 +144,34 @@ namespace Daxs
                 GamepadAxis axis = kvPair.Key;
                 GAction actionType = kvPair.Value;
 
-                if (!actionTable.TryGetValue(kvPair.Value, out var action))
+                // If no action is registered for this GAction: it's just "activity" (axis moved) detection
+                if (!actionTable.TryGetValue(actionType, out var action))
                 {
                     if (gamepad.GetAxisState(axis) == InputX.IsDown)
                         hasActions = true;
+
+                    continue;
                 }
-                else if(gamepad.GetAxisState(axis) == action.Input)
+
+                if (gamepad.GetAxisState(axis) == action.Input && gate.Allows(actionType, action))
                 {
                     hasActions = true;
                     actionQueue.Enqueue(action);
+
+                    if (action is BaseState bs && bs.WantsDeactivateCallback)
+                        frameActiveActions.Add(bs);
                 }
             }
+
+            // Fire deactivation callbacks for actions that were active but are not anymore
+            foreach (var previouslyActive in activeActions)
+                if (!frameActiveActions.Contains(previouslyActive))
+                    previouslyActive.NotifyDeactivated();
+
+            // Update active set for next frame
+            activeActions.Clear();
+            foreach (var a in frameActiveActions)
+                activeActions.Add(a);
 
             return hasActions;
         }
@@ -164,7 +186,7 @@ namespace Daxs
                 if (action is ICalculate)
                      ((ICalculate)action).Calculate(); 
 
-                hud.SetText(action.HUD_Emoji, action.HUD_Text, 2000);
+                //hud.SetText(action.HUD_Emoji, action.HUD_Text);
                 action.Execute();
             }
         }

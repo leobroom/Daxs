@@ -5,30 +5,29 @@ using static SDL3.SDL;
 
 namespace Daxs
 {
-    public class MenuLayout : IGamepadLayout
+    internal class MenuLayout : BaseLayout
     {
-        public Layout Name => Layout.Menu;
-        private readonly HUD hud = HUD.Instance;
+        public override Layout Name => Layout.Menu;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
         private const byte KEY_UP = 0x26, KEY_DOWN = 0x28, KEY_TAB = 0x09, KEY_SHIFT = 0x10, KEY_ESCAPE = 0x1B, KEY_ENTER = 0x0D, KEY_LEFT = 0x25, KEY_RIGHT = 0x27;
-        public void HandleInput(Gamepad state, double delta)
+        public override void HandleInput(Gamepad state)
         {
             RhinoApp.InvokeOnUiThread((Action)(() =>
             {
                 //Enter
                 if (state.GetButtonState(GamepadButton.South) == InputX.IsDown)
                 {
-                    hud.SetText("🎮", "Enter", 2000);
+                    hud.SetText("🎮", "Enter");
                     SimulateKey(KEY_ENTER);
                 }
 
                 //Escape
                 if (state.GetButtonState(GamepadButton.East) == InputX.IsDown || state.GetButtonState(GamepadButton.Start) == InputX.IsDown)
                 {
-                    hud.SetText("🎮", "Escape", 2000);
+                    hud.SetText("🎮", "Escape");
                     SimulateKey(KEY_ESCAPE);
                 }
 

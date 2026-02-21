@@ -6,55 +6,39 @@ using static SDL3.SDL;
 
 namespace Daxs
 {
-    internal class FlyLayout : IGamepadLayout
+    internal class FlyLayout : BaseLayout
     {
-        public virtual Layout Name => Layout.Fly;
-        protected double moveSpeed, deadzone, yawSensitivity, pitchSensitivity, elevateSpeed;
-        protected RhinoDoc doc = RhinoDoc.ActiveDoc;
-        protected Settings settings;
-        protected ActionManager actionManager = ActionManager.Instance;
+        public override Layout Name => Layout.Fly;
 
-        protected readonly HUD hud = HUD.Instance;
-
-        public FlyLayout()
+        public FlyLayout() : base() 
         {
-            settings = Settings.Instance;
-
             moveSpeed = settings.BindNumeric("MoveSpeed", v => moveSpeed = v);
-            deadzone = settings.BindNumeric("Deadzone", v => deadzone = v);
-            yawSensitivity = settings.BindNumeric("YawSensitivity", v => yawSensitivity = v);
-            pitchSensitivity = settings.BindNumeric("PitchSensitivity", v => pitchSensitivity = v);
+
+
             elevateSpeed = settings.BindNumeric("ElevateSpeed", v => elevateSpeed = v);
 
             hud.Enabled = true;        
         }
 
-        // fields
-        volatile bool _uiUpdatePending = false;
+        protected double moveSpeed, elevateSpeed;
+
         protected Plane camPlane;
 
-        // fields
         double yawAcc = 0.0, pitchAcc = 0.0;
         protected Vector3d zAxis = Vector3d.ZAxis;
-        readonly double rad85 = RhinoMath.ToRadians(89);
+        readonly double rad85 = RhinoMath.ToRadians(85);
 
-        // UI throttle accumulator and target interval (~60 FPS)
-        double sinceLastUi = 0.0;
-        const double uiDt = 1.0 / 60.0;
-
-        public void HandleInput(Gamepad state, double delta)
+        public override void HandleInput(Gamepad state)
         {
-            sinceLastUi += delta;   //  accumulate time for UI throttling
-
             // Inputs
             double speedMulti = actionManager.Speedmulti ;   // planar speed multiplier
             double rotSpeedMulti = actionManager.RotSpeedmulti;         // rotation speed multiplier
 
             if (speedMulti > 1.00)
-                hud.SetText("🎮", "Speed X " + speedMulti, 2000);
+                hud.SetText("🎮", "Speed X " + speedMulti);
 
             if (rotSpeedMulti > 1.00)
-                hud.SetText("🎮", "Rotation X " + rotSpeedMulti, 2000);
+                hud.SetText("🎮", "Rotation X " + rotSpeedMulti);
 
             //RhinoApp.WriteLine("TICK / HandleInput");
             double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
@@ -135,10 +119,6 @@ namespace Daxs
             }
         }
 
-
-        const double MAX_SHORT_VALUE = 32767.0;
-
-
         protected virtual Plane CalculateCamPlane(double cp , double cy, double sy, double sp, double forward, double strafe, double vertical, double speedMulti, double delta, InputY teleport ) 
         {
             var fwd = new Vector3d(cp * cy, cp * sy, sp);
@@ -158,43 +138,6 @@ namespace Daxs
             double normalized = Math.Clamp(raw / MAX_SHORT_VALUE, 0.0, 1.0);
             return Math.Pow(normalized, 2);
         }  
-
-        /// <summary>
-        /// Normalize Stick value and applies deadzone to it
-        /// </summary>
-        protected (double x, double y) NormalizeStick(double nx, double ny)
-        {
-            nx = nx / MAX_SHORT_VALUE;
-            ny = ny / MAX_SHORT_VALUE;
-
-            nx = Math.Clamp(nx, -1.0, 1.0);
-            ny = Math.Clamp(ny, -1.0, 1.0);
-
-            double r2 = nx * nx + ny * ny;
-            double dz2 = deadzone * deadzone;
-
-            if (r2 <= dz2)
-                return (0, 0);
-
-            double r = Math.Sqrt(r2);
-            double invR = 1.0 / r;
-
-            // direction
-            double dirX = -nx * invR;
-            double dirY = -ny * invR;
-
-            // scale from deadzone to 1
-            double scale = (r - deadzone) * (1.0 / Math.Max(1e-6, 1.0 - deadzone));
-
-            scale = Math.Pow(scale, 2);
-
-            double yaw = dirX * scale * yawSensitivity;
-            double pitch =dirY * scale * pitchSensitivity;
-
-            return (yaw, pitch);
-        }
-
-
 
         /// Used for panning over a plan views (example left right bottom etc)
         protected static void ApplyCameraPanControls(RhinoViewport vp, double forward, double strafe, double vertical, double pitch, double speed, double delta)

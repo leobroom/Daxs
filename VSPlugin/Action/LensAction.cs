@@ -23,13 +23,10 @@ namespace Daxs
             if (v.HasValue)
                 actualLens = Math.Round(RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.Camera35mmLensLength);
             else
-            {
                 actualLens = 50;
-            }
         }
 
         public override string HUD_Text => $"Lens: " + actualLens;
-
 
         public override void Execute()
         {
@@ -38,7 +35,6 @@ namespace Daxs
             view.ActiveViewport.Camera35mmLensLength = actualLens;
             view.Redraw();
         }
-
 
         public void Calculate()
         {

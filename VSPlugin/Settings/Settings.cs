@@ -23,8 +23,8 @@ namespace Daxs
             Add("YawSensitivity", 1, 100);
             Add("PitchSensitivity", 1, 100);
             Add("Deadzone", 0.175, 1, 3);
-            Add("MoveSpeed", 150, 1);
-            Add("ElevateSpeed", 150, 1);
+            Add("MoveSpeed", 150, 1,2);
+            Add("ElevateSpeed", 150, 1, 2);
 
             //Multiplicator
             Add(GAction.Speedmulti, 3, 1);
