@@ -20,27 +20,28 @@ namespace Daxs
             Add("AutoStart", true);
 
             //Gamepad
-            Add("YawSensitivity", 1, 100);
-            Add("PitchSensitivity", 1, 100);
-            Add("Deadzone", 0.175, 1, 3);
-            Add("MoveSpeed", 150, 1,2);
-            Add("ElevateSpeed", 150, 1, 2);
+            Add("YawSensitivity", 1, 100,1,1000);
+            Add("PitchSensitivity", 1, 100,1, 1000);
+            Add("Deadzone", 0.175, 1, 0, 1,3);
+            Add("MoveSpeed", 150, 1,0.001, 100000,2);
+            Add("ElevateSpeed", 150, 1, 0.001, 100000, 2);
+            Add("SpeedFactor", 1, 1,0.1,10, 1);
 
             //Multiplicator
-            Add(GAction.Speedmulti, 3, 1);
-            Add(GAction.RotSpeedMulti, 3, 1);
+            Add(GAction.Speedmulti, 3, 1,0,10);
+            Add(GAction.RotSpeedMulti, 3, 1, 0, 10);
 
             //Text
-            Add("TextTime", 2000, 1);
+            Add("TextTime", 2000, 1,0,10000);
             Add("TextVisible", true);
 
             //Walking
-            Add("EyeHeight", 1.70, 1,2);
-            Add("MaximalJump", 0.40, 1,2);
+            Add("EyeHeight", 1.70, 1,0,10000,2);
+            Add("MaximalJump", 0.40, 1, 0, 10000, 2);
 
             //Lens
-            Add("LensStep", 1, 1,2);
-            Add("LensDefault", 35, 1,2);
+            Add("LensStep", 1, 1,1,10,2);
+            Add("LensDefault", 35, 1,1,100,2);
 
             foreach (GamepadAxis a in Enum.GetValues<GamepadAxis>())
                 Add(a, GAction.Unset);
@@ -94,8 +95,8 @@ namespace Daxs
             LoadSettings();
         }
 
-        private void Add(GAction rnum, double defaultValue, double displayFactor) => Add(rnum.ToString(), defaultValue, displayFactor);
-        private void Add(string name, double defaultValue, double displayFactor, int decimalPlaces = 0) => iValues[name] = new NumericValue(defaultValue, displayFactor, name, decimalPlaces); 
+        private void Add(GAction rnum, double defaultValue, double displayFactor, double minValue, double maxValue) => Add(rnum.ToString(), defaultValue, displayFactor,  minValue,  maxValue);
+        private void Add(string name, double defaultValue, double displayFactor, double minValue, double maxValue, int decimalPlaces = 0) => iValues[name] = new NumericValue(defaultValue, displayFactor, name,  minValue,  maxValue, decimalPlaces); 
         private void Add(string name, bool defaultValue)=> iValues[name] = new BooleanValue(defaultValue, name); 
         private void Add(string name, string defaultValue) =>iValues[name] = new TextValue(defaultValue, name);
         private void Add(string name, GAction defaultValue)=>  iValues[name] = new TextValue(defaultValue.ToString(), name); 

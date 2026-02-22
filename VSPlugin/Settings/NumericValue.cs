@@ -16,6 +16,9 @@ namespace Daxs
 
         public int DecimalPlaces { get; private set; } = 0;
 
+        public double MinValue { get; private set; } = 0.001;
+        public double MaxValue { get; private set; } = 100000;
+
         public double Value
         {
             get => _value;
@@ -51,13 +54,15 @@ namespace Daxs
             }
         }
 
-        public NumericValue(double value, double displayFactor, string name, int decimalPlaces = 0)
+        public NumericValue(double value, double displayFactor, string name, double minValue, double maxValue, int decimalPlaces = 0)
         {
             Value = value;
             DisplayFactor = displayFactor;
             Name = name;
             defaultValue = value;
             DecimalPlaces = decimalPlaces;
+            MinValue = minValue;
+            MaxValue = maxValue;
         }
 
         public void Reset() => Value = defaultValue;

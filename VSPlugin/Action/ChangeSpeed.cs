@@ -19,8 +19,8 @@ namespace Daxs
 
             RhinoApp.WriteLine("Change speed");
 
-            // Enter modal: suppress everything else
-            InputGate.Instance.EnterModal(this /*owner*/);
+
+            InputGate.Instance.EnterModal(this);
 
             // Switch layout + notify it
             var lm = LayoutManager.Instance;

@@ -203,7 +203,7 @@ namespace Daxs
                     layout.Current.HandleInputAndDelta(gamepad, delta);  
                 }
 
-                await Task.Delay(1, token);
+                await Task.Delay(100, token);
             }
         }
 

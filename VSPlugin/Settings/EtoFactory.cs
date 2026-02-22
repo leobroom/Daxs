@@ -67,7 +67,6 @@ namespace Daxs
             var row = new TableRow();
             foreach (var (text, onClick) in buttons)
             {
-
                 TableCell tc = (onClick != null) ? new TableCell(new Button { Text = text, Command = new Command((_, _) => onClick()) }, false) : new TableCell { ScaleWidth = true };
 
                 row.Cells.Add(tc);

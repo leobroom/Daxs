@@ -115,7 +115,7 @@ namespace Daxs
                 }
             };
 
-            string[] input = { "YawSensitivity", "PitchSensitivity", "Deadzone", "MoveSpeed", "ElevateSpeed" };
+            string[] input = { "YawSensitivity", "PitchSensitivity", "Deadzone", "MoveSpeed", "ElevateSpeed", "SpeedFactor" };
 
             string[] general = { "AutoStart" };
             string[] hud = { "TextTime", "TextVisible" };
@@ -231,7 +231,9 @@ namespace Daxs
                 var box = new NumericStepper
                 {
                     Value = nv.DisplayValue,
-                    DecimalPlaces = nv.DecimalPlaces
+                    DecimalPlaces = nv.DecimalPlaces,
+                    MinValue = nv.MinValue,
+                    MaxValue = nv.MaxValue,
                 };
                 box.ValueChanged += (s, e) => nv.DisplayValue = box.Value;
                 controlBoxes[nv.Name] = box;

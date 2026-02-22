@@ -22,13 +22,14 @@ namespace Daxs
         protected readonly ActionManager actionManager = ActionManager.Instance;
         protected readonly HUD hud = HUD.Instance;
 
-        protected double deadzone, yawSensitivity, pitchSensitivity;
+        protected double deadzone, yawSensitivity, pitchSensitivity, speedFactor;
 
         public BaseLayout() 
         {
             deadzone = settings.BindNumeric("Deadzone", v => deadzone = v);
             yawSensitivity = settings.BindNumeric("YawSensitivity", v => yawSensitivity = v);
             pitchSensitivity = settings.BindNumeric("PitchSensitivity", v => pitchSensitivity = v);
+            speedFactor = settings.BindNumeric("SpeedFactor", v => speedFactor = v);
         }
 
         public abstract void HandleInput(Gamepad state);

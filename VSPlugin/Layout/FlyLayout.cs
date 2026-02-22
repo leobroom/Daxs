@@ -13,8 +13,6 @@ namespace Daxs
         public FlyLayout() : base() 
         {
             moveSpeed = settings.BindNumeric("MoveSpeed", v => moveSpeed = v);
-
-
             elevateSpeed = settings.BindNumeric("ElevateSpeed", v => elevateSpeed = v);
 
             hud.Enabled = true;        
@@ -84,7 +82,7 @@ namespace Daxs
                 double cp = Math.Cos(pitchAcc);
                 double sp = Math.Sin(pitchAcc);
 
-                camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti * moveSpeed, delta, teleport);
+                camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti * speedFactor * moveSpeed, delta, teleport);
             }
 
             actionManager.QueueActions();
@@ -95,8 +93,10 @@ namespace Daxs
 
                 RhinoApp.InvokeOnUiThread((Action)(() =>
                 {
-                    var view = doc.Views.ActiveView;
-                    var vp = view.ActiveViewport;
+                    var view = doc?.Views?.ActiveView;
+                    var vp = view?.ActiveViewport;
+                    if (vp == null)
+                        return;
 
                     actionManager.ExecuteActionsOnMainThread();
 

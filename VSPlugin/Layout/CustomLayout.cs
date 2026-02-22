@@ -1,5 +1,4 @@
-﻿using Ed.Eto;
-using Rhino;
+﻿using Rhino;
 using SDL3;
 using System;
 using System.Runtime.InteropServices;
@@ -12,14 +11,24 @@ namespace Daxs
         public override Layout Name => Layout.Custom;
 
         private bool _speedAdjustActive;
-        private BaseState _owner; // purely for sanity checks
+        private BaseState _owner;
 
-        public CustomLayout() : base() { }
+        private NumericValue _speedFactor = null;
+        private double _angleDeg = -1;
+        private double _lastAngle = -1;
+
+        public CustomLayout() : base() 
+        {
+            _speedFactor = (NumericValue)settings["SpeedFactor"];
+        }
 
         public void EnterSpeedAdjustMode(BaseState owner)
         {
             _owner = owner;
+
+            _speedFactorVal = _speedFactor.Value;
             _speedAdjustActive = true;
+            RhinoApp.WriteLine("_speedFactorVal: " + _speedFactorVal);
         }
 
         public void ExitSpeedAdjustMode(BaseState owner)
@@ -27,12 +36,15 @@ namespace Daxs
             if (!ReferenceEquals(_owner, owner))
                 return;
 
+            _speedFactor.Value = _speedFactorVal;
+
+            RhinoApp.WriteLine("_speedFactor.Value: " + _speedFactor.Value);
             _speedAdjustActive = false;
             _owner = null;
+            _angleDeg = -1;
+            _lastAngle = -1;
         }
 
-        private double _angleDeg = 0;
-        private double _lastAngle = 0;
 
 
         enum KnobState
@@ -48,6 +60,8 @@ namespace Daxs
 
         double clMin = 40;
         double clMax = 360 - 40;
+
+        private double _speedFactorVal = -1;
 
         public override void HandleInput(Gamepad state)
         {
@@ -67,7 +81,6 @@ namespace Daxs
 
                 if (_angleDeg < 0)
                     _angleDeg += 360.0;
-
             }
             else
             {
@@ -118,10 +131,9 @@ namespace Daxs
                     break;
             }
 
+            _speedFactorVal = (_lastAngle ==-1) ? _speedFactorVal : NormalizeNumber(_lastAngle);
 
-            double val = NormalizeNumber(_lastAngle);
-
-            HUD.Instance.SetDonut("FLIGHT\nSPEED", val, clMin, clMax, 200);
+            HUD.Instance.SetDonut("FLIGHT\nSPEED", _speedFactorVal, clMin, clMax, 200);
 
             if ((actionManager.HasActions) && sinceLastUi >= uiDt && !_uiUpdatePending)
             {
@@ -150,7 +162,6 @@ namespace Daxs
 
         void ChangeAngle() 
         {
-         
             int last = (int)Math.Floor(NormalizeNumber(_angleDeg));
             int current = (int)Math.Floor(NormalizeNumber(_lastAngle));
 
