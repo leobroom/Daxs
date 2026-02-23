@@ -1,7 +1,5 @@
-﻿using Rhino;
-using Rhino.Display;
+﻿using Rhino.Display;
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
@@ -12,12 +10,14 @@ namespace Daxs
         public string Id => "toast";
         public bool Enabled { get; private set; }
 
-        private readonly Stopwatch sw = new();
-
-        // Toast content
+        // Content
         private string _emoji = "🎮";
         private string _message = "";
         private int _durationMs;
+
+        // Timing (single time base: HUD nowMs)
+        private long _startMs;
+        private bool _playInAnim;
 
         // Icon mode
         private Bitmap _iconGdi;
@@ -30,7 +30,6 @@ namespace Daxs
 
         // Layout
         private static readonly Color ToastFg = Color.White;
-
         private const int ToastEmojiFontPx = 14;
 
         private const int ToastMarginPx = 18;
@@ -43,7 +42,6 @@ namespace Daxs
         private DisplayBitmap _cachedDisplay;
         private int _cachedFontPx;
         private string _cachedKey;
-        private bool _playInAnim;
         private int _stableWidth;
 
         public void SetText(string emoji, string message, int durationMs)
@@ -62,33 +60,40 @@ namespace Daxs
             _emoji = null; // icon mode
 
             DisposeIcon();
+            // If you can guarantee 'icon' lifetime, don't clone. Otherwise keep clone.
             _iconGdi = (Bitmap)icon.Clone();
             _iconPx = new Size(iconSizePx, iconSizePx);
 
             StartOrExtend(durationMs);
         }
 
+        /// <summary>
+        /// Starts or extends lifetime. Relies on Tick(nowMs) to provide current time base.
+        /// If called while Enabled, extends from "now" not from original start.
+        /// </summary>
         private void StartOrExtend(int durationMs)
         {
             durationMs = Math.Max(0, durationMs);
+            _durationMs = durationMs;
+
+            // Rebuild bitmap next draw if content changed
+            _cachedKey = null;
 
             if (!Enabled)
             {
-                _durationMs = durationMs;
+                Enabled = true;
                 _playInAnim = true;
                 _stableWidth = 0;
-                _cachedKey = null;
-
-                sw.Restart();
-                Enabled = true;
-                return;
+                // _startMs will be set on next Tick(nowMs) if not set yet
+                _startMs = -1;
             }
-
-            long elapsed = sw.ElapsedMilliseconds;
-            _durationMs = (int)Math.Min(int.MaxValue, elapsed + durationMs);
-
-            _playInAnim = false;
-            _cachedKey = null;
+            else
+            {
+                // If already visible, we "restart" the lifetime from now for predictable expiry
+                // (prevents weird out-animation edge cases when repeatedly extending)
+                _playInAnim = false;
+                _startMs = -1; // force reset on next Tick(nowMs)
+            }
         }
 
         public void Tick(long nowMs)
@@ -96,7 +101,11 @@ namespace Daxs
             if (!Enabled)
                 return;
 
-            if (_durationMs > 0 && sw.ElapsedMilliseconds > _durationMs)
+            if (_startMs < 0)
+                _startMs = nowMs;
+
+            // Expire
+            if (_durationMs > 0 && (nowMs - _startMs) >= _durationMs)
                 Hide();
         }
 
@@ -109,6 +118,7 @@ namespace Daxs
 
             _stableWidth = 0;
             _playInAnim = false;
+            _startMs = -1;
 
             _cachedDisplay?.Dispose();
             _cachedDisplay = null;
@@ -120,12 +130,12 @@ namespace Daxs
             Enabled = false;
         }
 
-        public void Draw(DisplayPipeline dp, RhinoViewport viewport, float uiScale)
+        public void Draw(DisplayPipeline dp, RhinoViewport viewport, float uiScale, long nowMs)
         {
-            // Equivalent of:
-            // if (!Enabled || string.IsNullOrWhiteSpace(message) ... ) return;
             if (!Enabled || string.IsNullOrWhiteSpace(_message))
                 return;
+
+            long elapsed = (_startMs >= 0) ? (nowMs - _startMs) : 0;
 
             var vp = viewport.Size;
 
@@ -137,10 +147,9 @@ namespace Daxs
             int gap = (int)(ToastGapPx * scale);
             float slidePx = SlidePx * scale;
 
-            // Slide animation
-            long elapsed = sw.ElapsedMilliseconds;
             float slide = 0f;
 
+            // Out animation starts at duration - AnimOutMs
             int outStart = Math.Max(0, _durationMs - AnimOutMs);
 
             if (_playInAnim && elapsed < AnimInMs)
@@ -184,11 +193,9 @@ namespace Daxs
             _cachedGdi?.Dispose();
             _cachedGdi = null;
 
-            // Fonts
             using var font = new Font("Segoe UI", fontPx, FontStyle.Bold, GraphicsUnit.Pixel);
             using var emojiFont = new Font("Segoe UI Emoji", (int)(ToastEmojiFontPx * scale), FontStyle.Bold, GraphicsUnit.Pixel);
 
-            // Measure
             SizeF leftSize;
             SizeF msgSize;
 
@@ -196,7 +203,6 @@ namespace Daxs
             using (var g = Graphics.FromImage(tmp))
             {
                 g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-
                 msgSize = g.MeasureString(_message ?? string.Empty, font);
 
                 if (hasIcon)
@@ -216,23 +222,16 @@ namespace Daxs
 
             const int WidthChangeThresholdPx = 10;
 
-            if (Enabled)
-            {
-                if (_stableWidth <= 0)
-                    _stableWidth = w;
-                else
-                {
-                    int diff = w - _stableWidth;
-                    if (Math.Abs(diff) >= WidthChangeThresholdPx)
-                        _stableWidth = w;
-                }
-
-                w = _stableWidth;
-            }
+            if (_stableWidth <= 0)
+                _stableWidth = w;
             else
             {
-                _stableWidth = w;
+                int diff = w - _stableWidth;
+                if (Math.Abs(diff) >= WidthChangeThresholdPx)
+                    _stableWidth = w;
             }
+
+            w = _stableWidth;
 
             w = Math.Max(1, w);
             h = Math.Max(1, h);
@@ -272,17 +271,15 @@ namespace Daxs
                 }
                 else
                 {
-                    // Re-measure emoji to vertically center accurately
                     var eSize = g.MeasureString(_emoji ?? string.Empty, emojiFont);
                     var emojiPt = new PointF(x, centerY - eSize.Height / 2f);
 
                     g.DrawString(_emoji ?? string.Empty, emojiFont, fgBrush, emojiPt);
-
                     x += eSize.Width + gap;
                 }
 
-                // Message
-                var msgPt = new PointF(x, centerY - msgSize.Height / 2f);
+                var msgSize2 = g.MeasureString(_message ?? string.Empty, font);
+                var msgPt = new PointF(x, centerY - msgSize2.Height / 2f);
                 g.DrawString(_message ?? string.Empty, font, fgBrush, msgPt);
             }
 

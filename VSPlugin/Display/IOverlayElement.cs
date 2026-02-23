@@ -1,16 +1,12 @@
-﻿using System;
+﻿using Rhino.Display;
+using System;
 
-namespace Daxs
+internal interface IOverlayElement : IDisposable
 {
-    internal interface IOverlayElement : IDisposable
-    {
-        string Id { get; }
-        bool Enabled { get; }
+    string Id { get; }
+    bool Enabled { get; }
 
-        /// <summary>Let the element update internal timers/animations.</summary>
-        void Tick(long nowMs);
+    void Tick(long nowMs);
 
-        /// <summary>Draw element into Rhino display.</summary>
-        void Draw(Rhino.Display.DisplayPipeline dp, Rhino.Display.RhinoViewport viewport, float uiScale);
-    }
+    void Draw(DisplayPipeline dp, RhinoViewport viewport, float uiScale, long nowMs);
 }

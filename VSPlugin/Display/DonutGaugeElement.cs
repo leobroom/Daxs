@@ -1,6 +1,5 @@
 ﻿using Rhino.Display;
 using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
@@ -11,17 +10,17 @@ namespace Daxs
         public string Id => "donut";
         public bool Enabled { get; private set; }
 
-        private readonly Settings settings =Settings.Instance;
-        private readonly Stopwatch sw = new();
-
         private string _title = "Value";
         private double _value = 0.0;        // 0..10
-        private int _durationMs = 0;         // 0 => infinite
+
+        // Lifetime (HUD timebase)
+        private long _startMs = -1;
+        private long _endMs = 0;            // 0 => infinite
 
         // Layout
-        private const int BaseSizePx = 80;          // diameter before scale
-        private const float RingThicknessPx = 4f;   // before scale
-        private const float PaddingPx = 8f;         // before scale
+        private const int BaseSizePx = 80;
+        private const float RingThicknessPx = 4f;
+        private const float PaddingPx = 8f;
         private const int FONT_TITLEPX = 16;
 
         private float _startDeg = 20f;
@@ -32,29 +31,37 @@ namespace Daxs
         private DisplayBitmap _cachedDisplay;
         private string _cachedKey;
 
-        public DonutGaugeElement() { }
-
-        public void Set(string title, double value0to10, double startDeg, double endDeg,  int durationMs = 0)
+        public void Set(string title, double value0to10, double startDeg, double endDeg, int durationMs = 0)
         {
             _title = title ?? "Value";
             _value = Math.Clamp(value0to10, 0.0, 10.0);
-            _durationMs = Math.Max(0, durationMs);
             _startDeg = (float)startDeg;
             _endDeg = (float)endDeg;
 
+            durationMs = Math.Max(0, durationMs);
+
+            // Invalidate cache on any new Set
+            _cachedKey = null;
+
             if (!Enabled)
             {
-                sw.Restart();
                 Enabled = true;
+                _startMs = -1; // will be initialized on next Tick(nowMs)
+                _endMs = (durationMs > 0) ? -1 : 0; // -1 means "compute when startMs known"
             }
             else
             {
-                // refresh cache
-                _cachedKey = null;
-                if (_durationMs > 0)
+                // Extend/restart expiry predictably from "now"
+                // We don't know nowMs here (API), so we set flags and handle in Tick(nowMs).
+                if (durationMs > 0)
                 {
-                    long elapsed = sw.ElapsedMilliseconds;
-                    _durationMs = (int)Math.Min(int.MaxValue, elapsed + _durationMs);
+                    // mark as "restart from next tick"
+                    _startMs = -1;
+                    _endMs = -durationMs; // encode requested duration
+                }
+                else
+                {
+                    _endMs = 0; // infinite
                 }
             }
         }
@@ -64,19 +71,42 @@ namespace Daxs
             _cachedDisplay?.Dispose(); _cachedDisplay = null;
             _cachedGdi?.Dispose(); _cachedGdi = null;
             _cachedKey = null;
+
+            _startMs = -1;
+            _endMs = 0;
+
             Enabled = false;
         }
 
         public void Tick(long nowMs)
         {
-            if (!Enabled) 
+            if (!Enabled)
                 return;
 
-            if (_durationMs > 0 && sw.ElapsedMilliseconds > _durationMs)
+            // Initialize / restart lifetime when requested
+            if (_startMs < 0)
+            {
+                _startMs = nowMs;
+
+                if (_endMs == -1)
+                {
+                    // first enable with finite duration was requested, but duration value isn't stored in this path
+                    // so treat as infinite unless you prefer otherwise
+                    _endMs = 0;
+                }
+                else if (_endMs < 0)
+                {
+                    // encoded durationMs in negative
+                    int durationMs = (int)Math.Min(int.MaxValue, -_endMs);
+                    _endMs = _startMs + durationMs;
+                }
+            }
+
+            if (_endMs > 0 && nowMs >= _endMs)
                 Hide();
         }
 
-        public void Draw(DisplayPipeline dp, RhinoViewport viewport, float uiScale)
+        public void Draw(DisplayPipeline dp, RhinoViewport viewport, float uiScale, long nowMs)
         {
             if (!Enabled)
                 return;
@@ -89,12 +119,9 @@ namespace Daxs
             var vp = viewport.Size;
 
             int x = (vp.Width - _cachedGdi.Width) / 2;
-
             float bottomPadding = 18f * uiScale;
 
-            int y = vp.Height
-                    - _cachedGdi.Height
-                    - (int)MathF.Round(bottomPadding);
+            int y = vp.Height - _cachedGdi.Height - (int)MathF.Round(bottomPadding);
 
             dp.DrawBitmap(_cachedDisplay, x, y);
         }
@@ -105,8 +132,10 @@ namespace Daxs
             float ring = RingThicknessPx * uiScale;
             float pad = PaddingPx * uiScale;
 
-            // cache key
-            string key = $"{size}|{uiScale:0.###}|{_title}|{_value:0.###}";
+            // quantize to reduce rebuilds
+            double q = Math.Round(_value * 10.0) / 10.0; // 0.1 steps
+
+            string key = $"{size}|{uiScale:0.###}|{_title}|{q:0.0}|{_startDeg:0.###}|{_endDeg:0.###}";
             if (_cachedKey == key && _cachedDisplay != null)
                 return;
 
@@ -122,21 +151,15 @@ namespace Daxs
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             g.Clear(Color.Transparent);
 
-            // Background circle
             using (var bg = new SolidBrush(UIUtils.BG_COLOR))
-            {
                 g.FillEllipse(bg, 0, 0, size - 1, size - 1);
-            }
 
-            // Donut ring (sweep)
             float t = (float)(_value / 10.0); // 0..1
-
             float startDeg = 90f + _startDeg;
-            float sweepDeg = SweepDegrees(_startDeg, _endDeg); // always positive, 0..360
+            float sweepDeg = SweepDegrees(_startDeg, _endDeg);
 
             var ringRect = new RectangleF(pad, pad, size - 2 * pad, size - 2 * pad);
 
-            // Optional track (faint full sweep)
             using (var penTrack = new Pen(Color.FromArgb(70, 255, 255, 255), ring))
             {
                 penTrack.StartCap = LineCap.Round;
@@ -144,7 +167,6 @@ namespace Daxs
                 g.DrawArc(penTrack, ringRect, startDeg, sweepDeg);
             }
 
-            // Value arc
             using (var penFg = new Pen(Color.White, ring))
             {
                 penFg.StartCap = LineCap.Round;
@@ -154,73 +176,48 @@ namespace Daxs
                 g.DrawArc(penFg, ringRect, startDeg, valueSweep);
             }
 
-            // Center text
-            string valueText = _value.ToString("0.0");
-            using var fontValue = new Font("Segoe UI", (int)FONT_TITLEPX * uiScale, FontStyle.Bold, GraphicsUnit.Pixel);
-            using var fontTitle = new Font("Segoe UI", (int)UIUtils.FONT_PX * uiScale, FontStyle.Bold, GraphicsUnit.Pixel);
+            string valueText = q.ToString("0.0");
+            using var fontValue = new Font("Segoe UI", (int)(FONT_TITLEPX * uiScale), FontStyle.Bold, GraphicsUnit.Pixel);
+            using var fontTitle = new Font("Segoe UI", (int)(UIUtils.FONT_PX * uiScale), FontStyle.Bold, GraphicsUnit.Pixel);
             using var brush = new SolidBrush(Color.White);
-
-            var valueSize = g.MeasureString(valueText, fontValue);
-            var titleSize = g.MeasureString(_title, fontTitle);
 
             float centerX = size / 2f;
             float centerY = size / 2f;
 
-            // Title slightly above value
             string titleText = _title ?? "";
 
             using var format = new StringFormat()
             {
                 Alignment = StringAlignment.Center,
-                LineAlignment = StringAlignment.Near, 
+                LineAlignment = StringAlignment.Near,
                 Trimming = StringTrimming.EllipsisWord
             };
-
             format.FormatFlags &= ~StringFormatFlags.NoWrap;
 
-
             float titleMaxHeight = (float)Math.Ceiling(fontTitle.GetHeight(g) * 2.2f);
-
-
             SizeF titleMeasured = g.MeasureString(titleText, fontTitle, size, format);
-
-
             float titleH = Math.Min(titleMeasured.Height, titleMaxHeight);
 
-
-            var titleRect = new RectangleF(
-                0,
-                centerY - titleH / 2f,
-                size,
-                titleH
-            );
-
-            // Draw
+            var titleRect = new RectangleF(0, centerY - titleH / 2f, size, titleH);
             g.DrawString(titleText, fontTitle, brush, titleRect, format);
 
-            float bottomMargin = 4f * uiScale; // 1px scaled
+            var valueSize = g.MeasureString(valueText, fontValue);
 
-            // Value
+            float bottomMargin = 4f * uiScale;
             g.DrawString(valueText, fontValue, brush,
                 centerX - valueSize.Width / 2f,
-                 size - valueSize.Height - bottomMargin);
+                size - valueSize.Height - bottomMargin);
 
             _cachedDisplay = new DisplayBitmap(_cachedGdi);
         }
 
         private static float SweepDegrees(float startDeg, float endDeg)
         {
-            // normalize to [0, 360)
             startDeg = Mod360(startDeg);
             endDeg = Mod360(endDeg);
 
             float sweep = endDeg - startDeg;
-            if (sweep < 0)
-                sweep += 360f;
-
-            // If you ever want "full ring" when start==end:
-            // return sweep == 0 ? 360f : sweep;
-
+            if (sweep < 0) sweep += 360f;
             return sweep;
         }
 

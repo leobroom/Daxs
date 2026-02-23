@@ -32,6 +32,7 @@ namespace Daxs
             double speedMulti = actionManager.Speedmulti ;   // planar speed multiplier
             double rotSpeedMulti = actionManager.RotSpeedmulti;         // rotation speed multiplier
 
+
             if (speedMulti > 1.00)
                 hud.SetText("🎮", "Speed X " + speedMulti);
 
@@ -110,6 +111,8 @@ namespace Daxs
                         }
                         else
                             ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
+
+       
 
                         view.Redraw();
                     }

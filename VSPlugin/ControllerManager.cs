@@ -23,7 +23,7 @@ namespace Daxs
         public static ControllerManager Instance { get; } = new ControllerManager();
 
 
-        IntPtr gamepadID;
+        private IntPtr _gamepadID;
 
         private ControllerManager()
         {
@@ -61,9 +61,9 @@ namespace Daxs
 
         //Loop
         private CancellationTokenSource _cts;
-        private DaxStatus status = DaxStatus.NotInitialized;
+        private DaxStatus _status = DaxStatus.NotInitialized;
 
-        public DaxStatus State => status;
+        public DaxStatus State => _status;
 
         //Gamepad
         Gamepad gamepad = null;
@@ -75,28 +75,26 @@ namespace Daxs
             get 
             {
                 lock (_lock)
-                {
                     return gamepad;
-                }
             }
         }
 
         public void Toggle()
         {
-            if (status == DaxStatus.NotInitialized || status == DaxStatus.Stopped)
+            if (_status == DaxStatus.NotInitialized || _status == DaxStatus.Stopped)
                 Start();
-            else if (status == DaxStatus.Started)
+            else if (_status == DaxStatus.Started)
                 Stop();
         }
 
         public void Start(bool restart = false)
         {
-            if (status == DaxStatus.Started)
+            if (_status == DaxStatus.Started)
                 return;
 
             _cts = new CancellationTokenSource();
             _ = Task.Run(() => Loop(_cts.Token), _cts.Token);
-            status = DaxStatus.Started;
+            _status = DaxStatus.Started;
 
             if (!restart) 
             {
@@ -107,7 +105,7 @@ namespace Daxs
 
         public void Restart()
         {
-            if (status == DaxStatus.Started)
+            if (_status == DaxStatus.Started)
                 return;
 
             Stop(true);
@@ -116,95 +114,168 @@ namespace Daxs
 
         public void Stop(bool restart = false)
         {
-            if (status == DaxStatus.NotInitialized || status == DaxStatus.Stopped)
+            if (_status == DaxStatus.NotInitialized || _status == DaxStatus.Stopped)
                  return;
 
             _cts.Cancel();
-            status = DaxStatus.Stopped;
+            _status = DaxStatus.Stopped;
 
             if (!restart)
                 RhinoApp.WriteLine("Daxs stopped");
         }
 
+        private static readonly TimeSpan ScanDisconnectedDelay = TimeSpan.FromSeconds(5); // when no pad
+        private static readonly TimeSpan ScanFailedOpenDelay = TimeSpan.FromSeconds(2);
+        private static readonly TimeSpan MinLoopSleep = TimeSpan.FromMilliseconds(1);
+
+
+        private bool IsConnectedNoLock()=> _gamepadID != IntPtr.Zero && SDL.GamepadConnected(_gamepadID);
+
+        private bool IsConnected()
+        {
+            lock (_lock)
+                return IsConnectedNoLock();
+        }
+
+        private void DisconnectAndDispose()
+        {
+            lock (_lock)
+            {
+                try { gamepad?.Dispose(); }
+                catch { /* swallow: SDL close can fail on teardown */ }
+
+                gamepad = null;
+                _gamepadID = IntPtr.Zero;
+            }
+        }
+
+        private bool TryOpenFirstGamepad(out IntPtr openedId)
+        {
+            openedId = IntPtr.Zero;
+
+            uint[] ids = SDL.GetGamepads(out int count);
+            if (count <= 0 || ids == null || ids.Length == 0)
+                return false;
+
+            lock (_lock)
+            {
+                try 
+                { gamepad?.Dispose(); } 
+                catch { }
+                gamepad = new Gamepad(ids[0]);
+                _gamepadID = gamepad.GamepadID;
+                openedId = _gamepadID;
+            }
+
+            return openedId != IntPtr.Zero;
+        }
+
+        const double TickHz = 250.0;
+        const double TickDt = 1.0 / TickHz;
+
+        private async Task<bool> EnsureConnectedAsync(CancellationToken token)
+        {
+            // Fast path: already connected
+            if (IsConnected())
+                return true;
+
+            // If we had an old handle, clean it up
+            DisconnectAndDispose();
+
+            // Pump once before scanning
+            SDL.PumpEvents();
+
+            // Try to open something
+            if (!TryOpenFirstGamepad(out IntPtr openedId))
+            {
+                // nothing connected -> slow down loop
+                await Task.Delay(ScanDisconnectedDelay, token);
+                return false;
+            }
+
+            // Validate
+            if (!SDL.GamepadConnected(openedId))
+            {
+                RhinoApp.WriteLine($"Failed to open gamepad: {SDL.GetError()}");
+                DisconnectAndDispose();
+                await Task.Delay(ScanFailedOpenDelay, token);
+                return false;
+            }
+
+            // Signal once on connect
+            SignalConnection(openedId);
+            return true;
+        }
+
         async Task Loop(CancellationToken token)
         {
-            //dalta
             var sw = Stopwatch.StartNew();
-            long prevTicks = sw.ElapsedTicks;
             double tickToSec = 1.0 / Stopwatch.Frequency;
 
-            //SDL
+            double accumulator = 0;
+            long prevTicks = sw.ElapsedTicks;
 
             SDL.PumpEvents();
 
-            gamepadID = IntPtr.Zero;
-
-            //Whileloop
             while (!token.IsCancellationRequested)
             {
+                long nowTicks = sw.ElapsedTicks;
+                double frameDt = (nowTicks - prevTicks) * tickToSec;
+                prevTicks = nowTicks;
+
+                // clamp big breaks
+                if (frameDt < 0) 
+                    frameDt = 0;
+                if (frameDt > 0.1) 
+                    frameDt = 0.1;
+
+                bool connected = await EnsureConnectedAsync(token);
+                if (!connected)
+                {
+                    accumulator = 0;
+                    continue;
+                }
+
+                accumulator += frameDt;
+
                 SDL.PumpEvents();
 
-                // If no gamepad or disconnected - try to (re)connect
-                if (gamepadID == IntPtr.Zero || !SDL.GamepadConnected(gamepadID))
+                // Process at a stable cadence
+                while (accumulator >= TickDt)
                 {
-                    // Try to find the first available controller
-                    uint[] ids = SDL.GetGamepads(out int count);
-                    if (count == 0)
-                    {
-                        if (gamepad!= null)
-                        {
-                            lock (_lock)
-                            {
-                                gamepad?.Dispose();
-                                gamepad = null;
-                            }
+                    accumulator -= TickDt;
 
-                            gamepadID = IntPtr.Zero;
-                        }
+                    //hud.TickUiThread();
 
-                        //RhinoApp.WriteLine("No gamepad connected.");
-                        await Task.Delay(5000, token);
-                        continue;
-                    }
+                    Gamepad gp;
+                    IntPtr id;
                     lock (_lock)
                     {
-                        gamepad = new Gamepad(ids[0]);
+                        gp = gamepad;
+                        id = _gamepadID;
                     }
-                    gamepadID = gamepad.GamepadID;
-           
-                    if (gamepadID == IntPtr.Zero)
+
+                    // If it got disconnected mid-tick, jump out
+                    if (gp == null || id == IntPtr.Zero || !SDL.GamepadConnected(id))
                     {
-                        RhinoApp.WriteLine($"Failed to open gamepad: {SDL.GetError()}");
-                        await Task.Delay(5000, token);
-                        continue;
+                        DisconnectAndDispose();
+                        break;
                     }
 
-                    SignalConnection(gamepadID);
+                    gp.Update();
+                    actions.Update(gp);
+                    layout.Current.HandleInputAndDelta(gp, TickDt);
+
                 }
 
-                long now = sw.ElapsedTicks;
-                double delta = (now - prevTicks) * tickToSec;
+                double remaining = TickDt - accumulator;
+                int sleepMs = (remaining > 0) ? (int)(remaining * 1000.0) : 0;
+                if (sleepMs < 1) sleepMs = 1;
 
-                // clamp to avoid huge jumps 
-                if (delta < 1e-5)
-                    delta = 1e-5;   // min ~0.01 ms
-                if (delta > 0.05)
-                    delta = 0.05;   // max 50 ms (~20 FPS)
-
-                prevTicks = now;
-
-                hud.Tick();
-
-                if (SDL.GamepadConnected(gamepadID))
-                {
-                    gamepad.Update();
-                    actions.Update(gamepad);
-                
-                    layout.Current.HandleInputAndDelta(gamepad, delta);  
-                }
-
-                await Task.Delay(100, token);
+                await Task.Delay(TimeSpan.FromMilliseconds(sleepMs), token);
             }
+
+            DisconnectAndDispose();
         }
 
         private void SignalConnection(nint gamepadID)
@@ -222,7 +293,7 @@ namespace Daxs
 
         public void RumbleGamepad(ushort lowFrequencyRumble, ushort highFrequencyRumble, uint durationMs) 
         {
-            SDL.RumbleGamepad(gamepadID, lowFrequencyRumble, highFrequencyRumble, durationMs);
+            SDL.RumbleGamepad(_gamepadID, lowFrequencyRumble, highFrequencyRumble, durationMs);
         }
 
 
