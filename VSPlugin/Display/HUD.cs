@@ -1,7 +1,6 @@
 ﻿using Rhino;
 using Rhino.Display;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -27,14 +26,66 @@ namespace Daxs
         // Elements
         private readonly Dictionary<string, IOverlayElement> _elements = new();
 
-        // Thread-safe command queue (SetText etc can come from any thread)
-        private readonly ConcurrentQueue<Action> _uiCommands = new();
-
         // Coalesced flush scheduling
         private int _flushScheduled; // 0/1
 
         // UI timer for animations/timeouts (UI thread)
         private readonly UITimer _uiTimer;
+
+        // -------------------- Latest-wins mailboxes --------------------
+        private readonly object _pendingLock = new();
+
+        private ToastRequest? _pendingToast;
+        private DonutRequest? _pendingDonut;
+        private bool _pendingHideDonut;
+
+        private readonly struct ToastRequest
+        {
+            public readonly bool IsIcon;
+            public readonly string Emoji;
+            public readonly string Message;
+            public readonly int DurationMs;
+            public readonly Bitmap Icon;
+            public readonly int IconSizePx;
+
+            public ToastRequest(string emoji, string message, int durationMs)
+            {
+                IsIcon = false;
+                Emoji = emoji;
+                Message = message;
+                DurationMs = durationMs;
+                Icon = null;
+                IconSizePx = 0;
+            }
+
+            public ToastRequest(Bitmap icon, string message, int durationMs, int iconSizePx)
+            {
+                IsIcon = true;
+                Emoji = null;
+                Message = message;
+                DurationMs = durationMs;
+                Icon = icon;
+                IconSizePx = iconSizePx;
+            }
+        }
+
+        private readonly struct DonutRequest
+        {
+            public readonly string Title;
+            public readonly double Value0to10;
+            public readonly double StartDeg;
+            public readonly double EndDeg;
+            public readonly int DurationMs;
+
+            public DonutRequest(string title, double value0to10, double startDeg, double endDeg, int durationMs)
+            {
+                Title = title;
+                Value0to10 = value0to10;
+                StartDeg = startDeg;
+                EndDeg = endDeg;
+                DurationMs = durationMs;
+            }
+        }
 
         private HUD()
         {
@@ -44,84 +95,52 @@ namespace Daxs
             _elements["donut"] = new DonutGaugeElement();
 
             // 30 Hz UI timer
-            _uiTimer = new UITimer
-            {
-                Interval = 0.033 // seconds
-            };
+            _uiTimer = new UITimer { Interval = 0.033 };
             _uiTimer.Elapsed += (_, __) => TickUiThread();
         }
 
         // --------------------------------------------------------------------
-        // Public API (thread-safe)
+        // Public API (thread-safe, latest-wins)
         // --------------------------------------------------------------------
 
         public void SetText(string emoji, string message, int durationMs = 2000)
         {
-            _uiCommands.Enqueue(() =>
+            lock (_pendingLock)
             {
-                if (!_textVisible)
-                {
-                    HideAllUiThread();
-                    return;
-                }
-
-                if (_elements.TryGetValue("toast", out var el) && el is ToastElement toast)
-                {
-                    toast.SetText(emoji, message, durationMs);
-                    EnsureEnabledUiThread();
-                }
-            });
-
+                _pendingToast = new ToastRequest(emoji, message, durationMs);
+            }
             ScheduleFlush();
         }
 
         public void SetImageToast(Bitmap icon, string message, int durationMs, int iconSizePx = 20)
         {
-            _uiCommands.Enqueue(() =>
+            if (icon == null)
+                return;
+
+            lock (_pendingLock)
             {
-                if (!_textVisible)
-                    return;
-
-                if (_elements.TryGetValue("toast", out var el) && el is ToastElement toast)
-                {
-                    toast.SetIcon(icon, message, durationMs, iconSizePx);
-                    EnsureEnabledUiThread();
-                }
-            });
-
+                _pendingToast = new ToastRequest(icon, message, durationMs, iconSizePx);
+            }
             ScheduleFlush();
         }
 
         public void SetDonut(string title, double value0to10, double startDeg, double endDeg, int durationMs = 0)
         {
-            _uiCommands.Enqueue(() =>
+            lock (_pendingLock)
             {
-                if (!_textVisible)
-                {
-                    HideAllUiThread();
-                    return;
-                }
-
-                if (_elements.TryGetValue("donut", out var el) && el is DonutGaugeElement donut)
-                {
-                    donut.Set(title, value0to10, startDeg, endDeg, durationMs);
-                    EnsureEnabledUiThread();
-                }
-            });
-
+                _pendingDonut = new DonutRequest(title, value0to10, startDeg, endDeg, durationMs);
+                _pendingHideDonut = false; // show beats hide
+            }
             ScheduleFlush();
         }
 
         public void HideDonut()
         {
-            _uiCommands.Enqueue(() =>
+            lock (_pendingLock)
             {
-                if (_elements.TryGetValue("donut", out var el) && el is DonutGaugeElement donut)
-                    donut.Hide();
-
-                DisableIfNoElementsUiThread();
-            });
-
+                _pendingHideDonut = true;
+                _pendingDonut = null;
+            }
             ScheduleFlush();
         }
 
@@ -138,6 +157,7 @@ namespace Daxs
             RhinoApp.InvokeOnUiThread((Action)(() =>
             {
                 _flushScheduled = 0;
+
                 FlushUiThread();
 
                 // Immediate redraw so updates appear ASAP (not waiting for timer tick)
@@ -147,12 +167,54 @@ namespace Daxs
 
         private void FlushUiThread()
         {
-            // Apply queued commands (UI thread)
-            while (_uiCommands.TryDequeue(out var cmd))
+            ToastRequest? toastReq;
+            DonutRequest? donutReq;
+            bool hideDonut;
+
+            lock (_pendingLock)
             {
-                try { cmd(); }
-                catch (Exception ex) { RhinoApp.WriteLine($"HUD command failed: {ex.Message}"); }
+                toastReq = _pendingToast;
+                donutReq = _pendingDonut;
+                hideDonut = _pendingHideDonut;
+
+                _pendingToast = null;
+                _pendingDonut = null;
+                _pendingHideDonut = false;
             }
+
+            if (!_textVisible)
+            {
+                HideAllUiThread();
+                return;
+            }
+
+            // Toast: latest wins
+            if (toastReq.HasValue && _elements.TryGetValue("toast", out var tEl) && tEl is ToastElement toast)
+            {
+                var r = toastReq.Value;
+
+                if (!r.IsIcon)
+                    toast.SetText(r.Emoji, r.Message, r.DurationMs);
+                else
+                    toast.SetIcon(r.Icon, r.Message, r.DurationMs, r.IconSizePx);
+
+                EnsureEnabledUiThread();
+            }
+
+            // Donut: hide or latest show
+            if (hideDonut)
+            {
+                if (_elements.TryGetValue("donut", out var dEl) && dEl is DonutGaugeElement donut)
+                    donut.Hide();
+            }
+            else if (donutReq.HasValue && _elements.TryGetValue("donut", out var dEl2) && dEl2 is DonutGaugeElement donut2)
+            {
+                var r = donutReq.Value;
+                donut2.Set(r.Title, r.Value0to10, r.StartDeg, r.EndDeg, r.DurationMs);
+                EnsureEnabledUiThread();
+            }
+
+            DisableIfNoElementsUiThread();
         }
 
         // --------------------------------------------------------------------
@@ -186,10 +248,7 @@ namespace Daxs
             }
         }
 
-        private static void RequestRedrawUiThread()
-        {
-            RhinoDoc.ActiveDoc?.Views?.ActiveView?.Redraw();
-        }
+        private static void RequestRedrawUiThread()=>  RhinoDoc.ActiveDoc?.Views?.ActiveView?.Redraw();
 
         // --------------------------------------------------------------------
         // DisplayConduit
@@ -222,6 +281,8 @@ namespace Daxs
                 _lastRedrawMs = 0;
                 _sw.Restart();
 
+                // Eto note:
+                // Some builds use _uiTimer.IsRunning instead of Started.
                 if (!_uiTimer.Started)
                     _uiTimer.Start();
             }
@@ -260,7 +321,6 @@ namespace Daxs
 
         private void HideAllUiThread()
         {
-            // Keep elements registered; just hide/clear their state
             foreach (var e in _elements.Values)
                 e.Dispose();
 

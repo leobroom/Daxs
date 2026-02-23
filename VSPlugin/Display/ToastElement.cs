@@ -1,4 +1,5 @@
-﻿using Rhino.Display;
+﻿using Rhino;
+using Rhino.Display;
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -18,6 +19,11 @@ namespace Daxs
         // Timing (single time base: HUD nowMs)
         private long _startMs;
         private bool _playInAnim;
+        private long _endMs;        // start + duration (absolute end moment)
+
+
+        // Optional: keep visible a hair longer so the last out frame renders
+        private const int HideGraceMs = 34; // ~1 frame @30fps (or 17 for ~60fps)
 
         // Icon mode
         private Bitmap _iconGdi;
@@ -76,7 +82,6 @@ namespace Daxs
             durationMs = Math.Max(0, durationMs);
             _durationMs = durationMs;
 
-            // Rebuild bitmap next draw if content changed
             _cachedKey = null;
 
             if (!Enabled)
@@ -84,15 +89,17 @@ namespace Daxs
                 Enabled = true;
                 _playInAnim = true;
                 _stableWidth = 0;
-                // _startMs will be set on next Tick(nowMs) if not set yet
+
                 _startMs = -1;
+                _endMs = -1;
             }
             else
             {
-                // If already visible, we "restart" the lifetime from now for predictable expiry
-                // (prevents weird out-animation edge cases when repeatedly extending)
+                // restart lifetime from "now" (we'll set start/end on next Tick)
                 _playInAnim = false;
-                _startMs = -1; // force reset on next Tick(nowMs)
+
+                _startMs = -1;
+                _endMs = -1;
             }
         }
 
@@ -119,6 +126,7 @@ namespace Daxs
             _stableWidth = 0;
             _playInAnim = false;
             _startMs = -1;
+
 
             _cachedDisplay?.Dispose();
             _cachedDisplay = null;
