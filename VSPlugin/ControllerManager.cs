@@ -27,7 +27,7 @@ namespace Daxs
 
         private ControllerManager()
         {
-     
+
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Daxs.Shared.icon.png"))
             {
                 daxsIcon = new Bitmap(stream);
@@ -47,7 +47,7 @@ namespace Daxs
             //else
             //    RhinoApp.WriteLine($"SDL init success! {SDL.GetVersion()}");
 
-            string dbpth = Utils.GetSharedFile("gamecontrollerdb.txt");       
+            string dbpth = Utils.GetSharedFile("gamecontrollerdb.txt");
             int added = SDL.AddGamepadMappingsFromFile(dbpth);
             //RhinoApp.WriteLine($"Loaded {added} SDL Gamepad mappings");
         }
@@ -72,7 +72,7 @@ namespace Daxs
 
         public Gamepad CurrentGamepad
         {
-            get 
+            get
             {
                 lock (_lock)
                     return gamepad;
@@ -96,7 +96,7 @@ namespace Daxs
             _ = Task.Run(() => Loop(_cts.Token), _cts.Token);
             _status = DaxStatus.Started;
 
-            if (!restart) 
+            if (!restart)
             {
                 layout.Set(Layout.Fly);
                 RhinoApp.WriteLine("Daxs started");
@@ -115,7 +115,7 @@ namespace Daxs
         public void Stop(bool restart = false)
         {
             if (_status == DaxStatus.NotInitialized || _status == DaxStatus.Stopped)
-                 return;
+                return;
 
             _cts.Cancel();
             _status = DaxStatus.Stopped;
@@ -129,7 +129,7 @@ namespace Daxs
         private static readonly TimeSpan MinLoopSleep = TimeSpan.FromMilliseconds(1);
 
 
-        private bool IsConnectedNoLock()=> _gamepadID != IntPtr.Zero && SDL.GamepadConnected(_gamepadID);
+        private bool IsConnectedNoLock() => _gamepadID != IntPtr.Zero && SDL.GamepadConnected(_gamepadID);
 
         private bool IsConnected()
         {
@@ -159,8 +159,8 @@ namespace Daxs
 
             lock (_lock)
             {
-                try 
-                { gamepad?.Dispose(); } 
+                try
+                { gamepad?.Dispose(); }
                 catch { }
                 gamepad = new Gamepad(ids[0]);
                 _gamepadID = gamepad.GamepadID;
@@ -202,7 +202,7 @@ namespace Daxs
                 return false;
             }
 
-            // Signal once on connect
+
             SignalConnection(openedId);
             return true;
         }
@@ -224,9 +224,9 @@ namespace Daxs
                 prevTicks = nowTicks;
 
                 // clamp big breaks
-                if (frameDt < 0) 
+                if (frameDt < 0)
                     frameDt = 0;
-                if (frameDt > 0.1) 
+                if (frameDt > 0.1)
                     frameDt = 0.1;
 
                 bool connected = await EnsureConnectedAsync(token);
@@ -245,7 +245,7 @@ namespace Daxs
                 {
                     accumulator -= TickDt;
 
-                    //hud.TickUiThread();
+      
 
                     Gamepad gp;
                     IntPtr id;
@@ -264,13 +264,14 @@ namespace Daxs
 
                     gp.Update();
                     actions.Update(gp);
+                    hud.Tick(TickDt);
                     layout.Current.HandleInputAndDelta(gp, TickDt);
-
                 }
 
                 double remaining = TickDt - accumulator;
                 int sleepMs = (remaining > 0) ? (int)(remaining * 1000.0) : 0;
-                if (sleepMs < 1) sleepMs = 1;
+                if (sleepMs < 1) 
+                    sleepMs = 1;
 
                 await Task.Delay(TimeSpan.FromMilliseconds(sleepMs), token);
             }
@@ -278,28 +279,25 @@ namespace Daxs
             DisconnectAndDispose();
         }
 
+        /// <summary>
+        /// Signal once on connect
+        /// </summary>
         private void SignalConnection(nint gamepadID)
         {
-           SDL.RumbleGamepad(gamepadID, 30000, 30000, 300);
+            SDL.RumbleGamepad(gamepadID, 30000, 30000, 300);
             SDL.SetGamepadLED(gamepadID, 0, 255, 255);
 
-            string name = GetFriendlyGamepadName(gamepadID);
+            string name = GetGamepadName(gamepadID);
 
             string version = Utils.GetPackageVersion();
-  
 
             hud.SetImageToast(daxsIcon, $"DAXS {version} | {name}", 4000);
         }
 
-        public void RumbleGamepad(ushort lowFrequencyRumble, ushort highFrequencyRumble, uint durationMs) 
-        {
-            SDL.RumbleGamepad(_gamepadID, lowFrequencyRumble, highFrequencyRumble, durationMs);
-        }
+        public void RumbleGamepad(ushort lowFrequencyRumble, ushort highFrequencyRumble, uint durationMs) => SDL.RumbleGamepad(_gamepadID, lowFrequencyRumble, highFrequencyRumble, durationMs);
 
-
-        private static string GetFriendlyGamepadName(nint gamepadID)
+        private static string GetGamepadName(nint gamepadID)
         {
-            // SDL name (often contains "Xbox", "PS5", etc.)
             string name = SDL.GetGamepadName(gamepadID);
             if (string.IsNullOrWhiteSpace(name))
                 name = "Unknown gamepad";
@@ -307,7 +305,6 @@ namespace Daxs
             // Optional: use vendor/product to improve classification
             ushort vendor = SDL.GetGamepadVendor(gamepadID);
             ushort product = SDL.GetGamepadProduct(gamepadID);
-
             string lower = name.ToLowerInvariant();
 
             // Heuristics first (works well with most mappings)
@@ -318,8 +315,6 @@ namespace Daxs
             if (lower.Contains("nintendo") || lower.Contains("switch") || lower.Contains("joy-con") || lower.Contains("pro controller"))
                 return $"Nintendo ({name})";
 
-            // Vendor-based fallback (common vendor IDs)
-            // Microsoft: 0x045E, Sony: 0x054C, Nintendo: 0x057E
             return vendor switch
             {
                 0x045E => $"Xbox ({name})",
@@ -328,6 +323,5 @@ namespace Daxs
                 _ => $"{name} (VID:0x{vendor:X4} PID:0x{product:X4})"
             };
         }
-
     }
 }

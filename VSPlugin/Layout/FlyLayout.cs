@@ -32,12 +32,14 @@ namespace Daxs
             double speedMulti = actionManager.Speedmulti ;   // planar speed multiplier
             double rotSpeedMulti = actionManager.RotSpeedmulti;         // rotation speed multiplier
 
+            bool hasSMulti = speedMulti != 1;
+            bool hasRSMulti = rotSpeedMulti != 1;
 
-            if (speedMulti > 1.00)
+            if (hasSMulti )
                 hud.SetText("🎮", "Speed X " + speedMulti);
 
-            if (rotSpeedMulti > 1.00)
-                hud.SetText("🎮", "Rotation X " + rotSpeedMulti);
+            if (hasRSMulti)
+                hud.SetText( "🎮", "Rotation X " + rotSpeedMulti);
 
             //RhinoApp.WriteLine("TICK / HandleInput");
             double vertical = GetNonLinearTrigger(actionManager.ElevateUp) - GetNonLinearTrigger(actionManager.ElevateDown);
@@ -55,7 +57,7 @@ namespace Daxs
                 if (vp == null)
                     return;
 
-                Vector3d camDir = vp.CameraDirection; // Read current viewport camera
+                Vector3d camDir = vp.CameraDirection;
                 Vector3d right = Vector3d.CrossProduct(zAxis, camDir); // Turntable basis (use world up to remove roll)
 
                 if (!right.Unitize())
@@ -112,11 +114,10 @@ namespace Daxs
                         else
                             ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
 
-       
-
                         view.Redraw();
                     }
 
+                    sinceLastUi = 0.0; 
                     _uiUpdatePending = false;
                 }));
             }

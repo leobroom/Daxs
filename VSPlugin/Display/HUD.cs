@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
-using Eto.Forms;
 
 namespace Daxs
 {
@@ -19,18 +18,12 @@ namespace Daxs
 
         private bool _textVisible;
 
-        // Redraw pacing
+        // Redraw pacing (UI thread)
         private long _lastRedrawMs;
         private const int RedrawEveryMs = 33; // ~30 fps
 
-        // Elements
+        // Elements (UI thread only)
         private readonly Dictionary<string, IOverlayElement> _elements = new();
-
-        // Coalesced flush scheduling
-        private int _flushScheduled; // 0/1
-
-        // UI timer for animations/timeouts (UI thread)
-        private readonly UITimer _uiTimer;
 
         // -------------------- Latest-wins mailboxes --------------------
         private readonly object _pendingLock = new();
@@ -38,6 +31,17 @@ namespace Daxs
         private ToastRequest? _pendingToast;
         private DonutRequest? _pendingDonut;
         private bool _pendingHideDonut;
+
+        // Coalesced flush scheduling (UI invocation)
+        private int _flushScheduled; // 0/1
+
+        // Coalesced UI-frame scheduling (UI invocation)
+        private int _uiFrameScheduled;             // 0/1
+        private volatile bool _uiWorkRequested;    // set when API enqueues requests (toast/donut)
+
+        // Background-thread time accumulator for UI cadence
+        private double _sinceLastUi;
+        private const double UiDt = 1.0 / 30.0; // 30 fps UI cadence
 
         private readonly struct ToastRequest
         {
@@ -93,10 +97,6 @@ namespace Daxs
 
             _elements["toast"] = new ToastElement();
             _elements["donut"] = new DonutGaugeElement();
-
-            // 30 Hz UI timer
-            _uiTimer = new UITimer { Interval = 0.033 };
-            _uiTimer.Elapsed += (_, __) => TickUiThread();
         }
 
         // --------------------------------------------------------------------
@@ -109,6 +109,7 @@ namespace Daxs
             {
                 _pendingToast = new ToastRequest(emoji, message, durationMs);
             }
+            _uiWorkRequested = true;
             ScheduleFlush();
         }
 
@@ -121,6 +122,7 @@ namespace Daxs
             {
                 _pendingToast = new ToastRequest(icon, message, durationMs, iconSizePx);
             }
+            _uiWorkRequested = true;
             ScheduleFlush();
         }
 
@@ -131,6 +133,7 @@ namespace Daxs
                 _pendingDonut = new DonutRequest(title, value0to10, startDeg, endDeg, durationMs);
                 _pendingHideDonut = false; // show beats hide
             }
+            _uiWorkRequested = true;
             ScheduleFlush();
         }
 
@@ -141,6 +144,7 @@ namespace Daxs
                 _pendingHideDonut = true;
                 _pendingDonut = null;
             }
+            _uiWorkRequested = true;
             ScheduleFlush();
         }
 
@@ -160,13 +164,14 @@ namespace Daxs
 
                 FlushUiThread();
 
-                // Immediate redraw so updates appear ASAP (not waiting for timer tick)
+                // Make it visible immediately (don’t wait for next UI cadence)
                 RequestRedrawUiThread();
             }));
         }
 
         private void FlushUiThread()
         {
+            // UI thread only
             ToastRequest? toastReq;
             DonutRequest? donutReq;
             bool hideDonut;
@@ -189,7 +194,9 @@ namespace Daxs
             }
 
             // Toast: latest wins
-            if (toastReq.HasValue && _elements.TryGetValue("toast", out var tEl) && tEl is ToastElement toast)
+            if (toastReq.HasValue &&
+                _elements.TryGetValue("toast", out var tEl) &&
+                tEl is ToastElement toast)
             {
                 var r = toastReq.Value;
 
@@ -207,20 +214,67 @@ namespace Daxs
                 if (_elements.TryGetValue("donut", out var dEl) && dEl is DonutGaugeElement donut)
                     donut.Hide();
             }
-            else if (donutReq.HasValue && _elements.TryGetValue("donut", out var dEl2) && dEl2 is DonutGaugeElement donut2)
+            else if (donutReq.HasValue &&
+                     _elements.TryGetValue("donut", out var dEl2) &&
+                     dEl2 is DonutGaugeElement donut2)
             {
                 var r = donutReq.Value;
                 donut2.Set(r.Title, r.Value0to10, r.StartDeg, r.EndDeg, r.DurationMs);
                 EnsureEnabledUiThread();
             }
 
+            // If we flushed requests but nothing remains enabled -> disable conduit.
             DisableIfNoElementsUiThread();
         }
 
         // --------------------------------------------------------------------
-        // Tick / redraw (UI thread only)
+        // Tick / redraw
         // --------------------------------------------------------------------
 
+        /// <summary>
+        /// Called by ControllerManager with delta seconds (any thread).
+        /// This method MUST NOT touch Rhino views or overlay elements directly.
+        /// It only schedules UI work.
+        /// </summary>
+        public void Tick(double delta)
+        {
+            if (!_textVisible)
+                return;
+
+            // If HUD isn’t enabled and no new work is requested, don’t schedule UI frames.
+            // (Truth is decided on UI thread; this is just a cheap early-out.)
+            if (!Enabled && !_uiWorkRequested)
+                return;
+
+            _sinceLastUi += delta;
+            if (_sinceLastUi < UiDt)
+                return;
+
+            _sinceLastUi = 0.0;
+
+            // Coalesce UI-frame execution
+            if (Interlocked.Exchange(ref _uiFrameScheduled, 1) == 1)
+                return;
+
+            RhinoApp.InvokeOnUiThread((Action)(() =>
+            {
+                _uiFrameScheduled = 0;
+
+                // Apply pending requests first
+                FlushUiThread();
+
+                // Advance animations/timeouts + redraw throttling
+                TickUiThread();
+
+                // We processed a UI frame; clear the “requested” flag.
+                // (If new requests come in, public API sets it again.)
+                _uiWorkRequested = false;
+            }));
+        }
+
+        /// <summary>
+        /// UI thread only "frame": ticks elements and redraws at ~30fps, auto-disables when idle.
+        /// </summary>
         private void TickUiThread()
         {
             if (!Enabled)
@@ -232,12 +286,13 @@ namespace Daxs
             foreach (var el in _elements.Values)
             {
                 el.Tick(now);
-                if (el.Enabled) anyEnabled = true;
+                if (el.Enabled)
+                    anyEnabled = true;
             }
 
             if (!anyEnabled)
             {
-                Enabled = false;
+                Enabled = false; // stops drawing + stopwatch in OnEnable
                 return;
             }
 
@@ -248,7 +303,8 @@ namespace Daxs
             }
         }
 
-        private static void RequestRedrawUiThread()=>  RhinoDoc.ActiveDoc?.Views?.ActiveView?.Redraw();
+        private static void RequestRedrawUiThread() =>
+            RhinoDoc.ActiveDoc?.Views?.ActiveView?.Redraw();
 
         // --------------------------------------------------------------------
         // DisplayConduit
@@ -280,19 +336,9 @@ namespace Daxs
             {
                 _lastRedrawMs = 0;
                 _sw.Restart();
-
-                // Eto note:
-                // Some builds use _uiTimer.IsRunning instead of Started.
-                if (!_uiTimer.Started)
-                    _uiTimer.Start();
             }
             else
-            {
                 _sw.Stop();
-
-                if (_uiTimer.Started)
-                    _uiTimer.Stop();
-            }
 
             RequestRedrawUiThread();
         }
@@ -306,7 +352,7 @@ namespace Daxs
             if (!Enabled)
             {
                 _lastRedrawMs = 0;
-                Enabled = true; // starts timer in OnEnable
+                Enabled = true; // triggers OnEnable(true)
             }
         }
 

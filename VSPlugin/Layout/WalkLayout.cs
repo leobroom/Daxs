@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Rhino;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
