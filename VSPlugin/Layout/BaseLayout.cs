@@ -19,8 +19,8 @@ namespace Daxs
 
         protected readonly RhinoDoc doc = RhinoDoc.ActiveDoc;
         protected readonly Settings settings = Settings.Instance;
-        protected readonly ActionManager actionManager = ActionManager.Instance;
-        protected readonly HUD hud = HUD.Instance;
+        protected readonly ActionSystem actionManager = ActionSystem.Instance;
+        protected readonly OverlayRenderer hud = OverlayRenderer.Instance;
 
         protected double deadzone, yawSensitivity, pitchSensitivity, speedFactor;
 

@@ -1,5 +1,4 @@
-﻿using Rhino;
-using Rhino.Display;
+﻿using Rhino.Display;
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -111,11 +110,13 @@ namespace Daxs
             if (_startMs < 0)
                 _startMs = nowMs;
 
-            // Expire
             if (_durationMs > 0 && (nowMs - _startMs) >= _durationMs)
                 Hide();
         }
 
+        /// <summary>
+        /// Expire element
+        /// </summary>
         public void Hide()
         {
             _message = "";

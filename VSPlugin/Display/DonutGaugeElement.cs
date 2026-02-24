@@ -1,7 +1,8 @@
-﻿using Rhino.Display;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+
+using Rhino.Display;
 
 namespace Daxs
 {

@@ -31,7 +31,7 @@ namespace Daxs
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
             RhinoApp.WriteLine(GetWindowsScale().ToString());
-            HUD.Instance.SetText("🎮", "DaxsToastTestCmd", 5000);
+            OverlayRenderer.Instance.SetText("🎮", "DaxsToastTestCmd", 5000);
 
             return Result.Success;
         }

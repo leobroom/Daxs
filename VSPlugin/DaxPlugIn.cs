@@ -29,8 +29,8 @@ namespace Daxs
             RhinoApp.Initialized -= OnRhinoInitialized; // Run only once
 
             bool autostartActive = ((BooleanValue)Daxs.Settings.Instance["AutoStart"]).Value;
-            if (autostartActive && ControllerManager.Instance.State == DaxStatus.NotInitialized)
-                ControllerManager.Instance.Toggle();
+            if (autostartActive && GamepadRuntime.Instance.State == DaxStatus.NotInitialized)
+                GamepadRuntime.Instance.Toggle();
         }
 
         protected override bool ShouldCallWriteDocument(FileWriteOptions options) => true;

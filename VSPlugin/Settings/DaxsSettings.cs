@@ -60,7 +60,7 @@ namespace Daxs
                 if (e.Key == Keys.Escape)
                 {
                     this.Close(false);
-                    LayoutManager.Instance.SetToPreviousLayout();
+                    LayoutSystem.Instance.SetToPreviousLayout();
 
                     e.Handled = true;
                 }
@@ -72,16 +72,16 @@ namespace Daxs
             // --- Start/Stop button ---
             var toggleSwitch = new ToggleSwitch
             {
-                IsOn = ControllerManager.Instance.State == DaxStatus.Started,
+                IsOn = GamepadRuntime.Instance.State == DaxStatus.Started,
                 Width = 65,
             };
 
             toggleSwitch.Toggled += (s, isOn) =>
             {
-                ControllerManager.Instance.Toggle();
-                LayoutManager.Instance.Set(Layout.Menu);
+                GamepadRuntime.Instance.Toggle();
+                LayoutSystem.Instance.Set(Layout.Menu);
 
-                toggleSwitch.IsOn = ControllerManager.Instance.State == DaxStatus.Started;
+                toggleSwitch.IsOn = GamepadRuntime.Instance.State == DaxStatus.Started;
             };
 
             //Checkbox Autostart
@@ -168,7 +168,7 @@ namespace Daxs
                 }
             };
 
-            SetGamepadType(ControllerManager.Instance.CurrentGamepad);
+            SetGamepadType(GamepadRuntime.Instance.CurrentGamepad);
         }
 
         private void SetGamepadType(Gamepad gamepad)
@@ -192,10 +192,10 @@ namespace Daxs
 
             Result = true;
 
-            ControllerManager.Instance.Restart();
+            GamepadRuntime.Instance.Restart();
 
             Close();
-            LayoutManager.Instance.SetToPreviousLayout();
+            LayoutSystem.Instance.SetToPreviousLayout();
         }
 
         void OnDefault()

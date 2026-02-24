@@ -18,22 +18,19 @@ namespace Daxs
         Stopped = 2
     }
 
-    public sealed class ControllerManager
+    public sealed class GamepadRuntime
     {
-        public static ControllerManager Instance { get; } = new ControllerManager();
+        public static GamepadRuntime Instance { get; } = new GamepadRuntime();
 
-
-        private IntPtr _gamepadID;
-
-        private ControllerManager()
+        private GamepadRuntime()
         {
 
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Daxs.Shared.icon.png"))
             {
-                daxsIcon = new Bitmap(stream);
+                _daxsIcon = new Bitmap(stream);
             }
 
-            RhinoApp.Closing += (sender, e) => { settings.SaveSettings(); };
+            RhinoApp.Closing += (sender, e) => { _settings.SaveSettings(); };
 
             //INIT SDL3
             string sdl3pth = Utils.GetSharedFile("SDL3.dll");
@@ -52,18 +49,18 @@ namespace Daxs
             //RhinoApp.WriteLine($"Loaded {added} SDL Gamepad mappings");
         }
 
-        private readonly ActionManager actions = ActionManager.Instance;
-        private readonly LayoutManager layout = LayoutManager.Instance;
-        private readonly Settings settings = Settings.Instance;
-        private readonly HUD hud = HUD.Instance;
-        Bitmap daxsIcon = null;
+        private readonly ActionSystem _actions = ActionSystem.Instance;
+        private readonly LayoutSystem _layout = LayoutSystem.Instance;
+        private readonly Settings _settings = Settings.Instance;
+        private readonly OverlayRenderer _hud = OverlayRenderer.Instance;
+        private readonly Bitmap _daxsIcon = null;
 
 
         //Loop
         private CancellationTokenSource _cts;
-        private DaxStatus _status = DaxStatus.NotInitialized;
+        public DaxStatus State { get; private set; } = DaxStatus.NotInitialized;
 
-        public DaxStatus State => _status;
+        private IntPtr _gamepadID;
 
         //Gamepad
         Gamepad gamepad = null;
@@ -72,40 +69,36 @@ namespace Daxs
 
         public Gamepad CurrentGamepad
         {
-            get
-            {
-                lock (_lock)
-                    return gamepad;
-            }
+            get { lock (_lock) return gamepad;}
         }
 
         public void Toggle()
         {
-            if (_status == DaxStatus.NotInitialized || _status == DaxStatus.Stopped)
+            if (State == DaxStatus.NotInitialized || State == DaxStatus.Stopped)
                 Start();
-            else if (_status == DaxStatus.Started)
+            else if (State == DaxStatus.Started)
                 Stop();
         }
 
         public void Start(bool restart = false)
         {
-            if (_status == DaxStatus.Started)
+            if (State == DaxStatus.Started)
                 return;
 
             _cts = new CancellationTokenSource();
             _ = Task.Run(() => Loop(_cts.Token), _cts.Token);
-            _status = DaxStatus.Started;
+            State = DaxStatus.Started;
 
             if (!restart)
             {
-                layout.Set(Layout.Fly);
+                _layout.Set(Layout.Fly);
                 RhinoApp.WriteLine("Daxs started");
             }
         }
 
         public void Restart()
         {
-            if (_status == DaxStatus.Started)
+            if (State == DaxStatus.Started)
                 return;
 
             Stop(true);
@@ -114,11 +107,11 @@ namespace Daxs
 
         public void Stop(bool restart = false)
         {
-            if (_status == DaxStatus.NotInitialized || _status == DaxStatus.Stopped)
+            if (State == DaxStatus.NotInitialized || State == DaxStatus.Stopped)
                 return;
 
             _cts.Cancel();
-            _status = DaxStatus.Stopped;
+            State = DaxStatus.Stopped;
 
             if (!restart)
                 RhinoApp.WriteLine("Daxs stopped");
@@ -126,8 +119,6 @@ namespace Daxs
 
         private static readonly TimeSpan ScanDisconnectedDelay = TimeSpan.FromSeconds(5); // when no pad
         private static readonly TimeSpan ScanFailedOpenDelay = TimeSpan.FromSeconds(2);
-        private static readonly TimeSpan MinLoopSleep = TimeSpan.FromMilliseconds(1);
-
 
         private bool IsConnectedNoLock() => _gamepadID != IntPtr.Zero && SDL.GamepadConnected(_gamepadID);
 
@@ -142,7 +133,7 @@ namespace Daxs
             lock (_lock)
             {
                 try { gamepad?.Dispose(); }
-                catch { /* swallow: SDL close can fail on teardown */ }
+                catch { }
 
                 gamepad = null;
                 _gamepadID = IntPtr.Zero;
@@ -162,6 +153,7 @@ namespace Daxs
                 try
                 { gamepad?.Dispose(); }
                 catch { }
+
                 gamepad = new Gamepad(ids[0]);
                 _gamepadID = gamepad.GamepadID;
                 openedId = _gamepadID;
@@ -175,14 +167,12 @@ namespace Daxs
 
         private async Task<bool> EnsureConnectedAsync(CancellationToken token)
         {
-            // Fast path: already connected
             if (IsConnected())
                 return true;
 
             // If we had an old handle, clean it up
             DisconnectAndDispose();
 
-            // Pump once before scanning
             SDL.PumpEvents();
 
             // Try to open something
@@ -201,7 +191,6 @@ namespace Daxs
                 await Task.Delay(ScanFailedOpenDelay, token);
                 return false;
             }
-
 
             SignalConnection(openedId);
             return true;
@@ -245,8 +234,6 @@ namespace Daxs
                 {
                     accumulator -= TickDt;
 
-      
-
                     Gamepad gp;
                     IntPtr id;
                     lock (_lock)
@@ -263,9 +250,9 @@ namespace Daxs
                     }
 
                     gp.Update();
-                    actions.Update(gp);
-                    hud.Tick(TickDt);
-                    layout.Current.HandleInputAndDelta(gp, TickDt);
+                    _actions.Update(gp);
+                    _hud.Tick(TickDt);
+                    _layout.Current.HandleInputAndDelta(gp, TickDt);
                 }
 
                 double remaining = TickDt - accumulator;
@@ -291,7 +278,7 @@ namespace Daxs
 
             string version = Utils.GetPackageVersion();
 
-            hud.SetImageToast(daxsIcon, $"DAXS {version} | {name}", 4000);
+            _hud.SetImageToast(_daxsIcon, $"DAXS {version} | {name}", 4000);
         }
 
         public void RumbleGamepad(ushort lowFrequencyRumble, ushort highFrequencyRumble, uint durationMs) => SDL.RumbleGamepad(_gamepadID, lowFrequencyRumble, highFrequencyRumble, durationMs);

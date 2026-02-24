@@ -23,7 +23,7 @@ namespace Daxs
             InputGate.Instance.EnterModal(this);
 
             // Switch layout + notify it
-            var lm = LayoutManager.Instance;
+            var lm = LayoutSystem.Instance;
             lm.Set(Layout.Custom);
 
             if (lm.Current is CustomLayout cl)
@@ -35,7 +35,7 @@ namespace Daxs
             RhinoApp.WriteLine("Change speed STOP");
 
             // Layout cleanup
-            var lm = LayoutManager.Instance;
+            var lm = LayoutSystem.Instance;
 
             if (lm.Current is CustomLayout cl)
                 cl.ExitSpeedAdjustMode(this);

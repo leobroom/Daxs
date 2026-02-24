@@ -8,14 +8,14 @@
 
         public override void Execute() 
         {
-            LayoutManager.Instance.Set(next);
+            LayoutSystem.Instance.Set(next);
         }
 
         Layout next = Layout.Fly;
 
         public void Calculate()
         {
-            next = (LayoutManager.Instance.Current.Name == Layout.Fly) ? Layout.Walk : Layout.Fly;
+            next = (LayoutSystem.Instance.Current.Name == Layout.Fly) ? Layout.Walk : Layout.Fly;
         }
     }
 }

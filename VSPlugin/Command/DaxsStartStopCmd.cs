@@ -13,7 +13,7 @@ namespace Daxs
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
-            ControllerManager.Instance.Toggle();
+            GamepadRuntime.Instance.Toggle();
             return Result.Success;
         }
     }

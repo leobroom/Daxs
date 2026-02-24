@@ -27,14 +27,14 @@ namespace Daxs
         public override void Execute()
         {
             if (simulateKeys)
-                LayoutManager.Instance.Set(Layout.Menu);
+                LayoutSystem.Instance.Set(Layout.Menu);
             RhinoApp.RunScript(_function, true);
-            if (simulateKeys && LayoutManager.Instance.Current.Name == Layout.Menu)
-                LayoutManager.Instance.SetToPreviousLayout();
+            if (simulateKeys && LayoutSystem.Instance.Current.Name == Layout.Menu)
+                LayoutSystem.Instance.SetToPreviousLayout();
 
             //Fallback to Fly layout if still in Menu
-            if (LayoutManager.Instance.Current.Name == Layout.Menu)
-                LayoutManager.Instance.Set(Layout.Fly);
+            if (LayoutSystem.Instance.Current.Name == Layout.Menu)
+                LayoutSystem.Instance.Set(Layout.Fly);
         }
     }
 }

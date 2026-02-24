@@ -133,7 +133,7 @@ namespace Daxs
 
             _speedFactorVal = (_lastAngle ==-1) ? _speedFactorVal : NormalizeNumber(_lastAngle);
 
-            HUD.Instance.SetDonut("FLIGHT\nSPEED", _speedFactorVal, clMin, clMax, 200);
+            OverlayRenderer.Instance.SetDonut("FLIGHT\nSPEED", _speedFactorVal, clMin, clMax, 200);
 
             if ((actionManager.HasActions) && sinceLastUi >= uiDt && !_uiUpdatePending)
             {
@@ -168,7 +168,7 @@ namespace Daxs
             _lastAngle = _angleDeg;
           
             if(current != last)
-                ControllerManager.Instance.RumbleGamepad(0, 30000, 20);
+                GamepadRuntime.Instance.RumbleGamepad(0, 30000, 20);
         }
     }
 }

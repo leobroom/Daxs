@@ -13,7 +13,7 @@ namespace Daxs
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
-            LayoutManager.Instance.Set(Layout.Fly);
+            LayoutSystem.Instance.Set(Layout.Fly);
             return Result.Success;
         }
     }

@@ -6,13 +6,13 @@ using static SDL3.SDL;
 
 namespace Daxs
 {
-    internal class ActionManager
+    internal class ActionSystem
     {
-        private static readonly Lazy<ActionManager> _instance = new(() => new ActionManager());
-        public static ActionManager Instance => _instance.Value;
+        private static readonly Lazy<ActionSystem> _instance = new(() => new ActionSystem());
+        public static ActionSystem Instance => _instance.Value;
         private readonly Settings settings = Settings.Instance;
         private readonly InputGate gate = InputGate.Instance;
-        public ActionManager()
+        public ActionSystem()
         {
             speedMulti = settings.BindNumeric(GAction.Speedmulti, v => speedMulti = v);
             rotSpeedmulti = settings.BindNumeric(GAction.RotSpeedMulti, v => rotSpeedmulti = v);
@@ -108,7 +108,7 @@ namespace Daxs
 
         private Gamepad gamepad = null;
 
-        private readonly HUD hud = HUD.Instance;
+        private readonly OverlayRenderer hud = OverlayRenderer.Instance;
 
         private readonly UniqueQueue<IAction> actionQueue = new UniqueQueue<IAction>();
 

@@ -1,48 +1,45 @@
-﻿using Rhino;
-using Rhino.Display;
+﻿
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
 
+using Rhino;
+using Rhino.Display;
+
 namespace Daxs
 {
-    internal sealed class HUD : DisplayConduit
+    internal sealed class OverlayRenderer : DisplayConduit
     {
-        private static readonly Lazy<HUD> _instance = new(() => new HUD());
-        public static HUD Instance => _instance.Value;
+        private static readonly Lazy<OverlayRenderer> _instance = new(() => new OverlayRenderer());
+        public static OverlayRenderer Instance => _instance.Value;
 
         private readonly Settings _settings = Settings.Instance;
         private readonly Stopwatch _sw = new();
 
         private bool _textVisible;
 
-        // Redraw pacing (UI thread)
-        private long _lastRedrawMs;
-        private const int RedrawEveryMs = 33; // ~30 fps
+        private readonly Dictionary<string, IOverlayElement> _elements = new();         // (UI thread only)
 
-        // Elements (UI thread only)
-        private readonly Dictionary<string, IOverlayElement> _elements = new();
-
-        // -------------------- Latest-wins mailboxes --------------------
         private readonly object _pendingLock = new();
 
         private ToastRequest? _pendingToast;
         private DonutRequest? _pendingDonut;
         private bool _pendingHideDonut;
 
-        // Coalesced flush scheduling (UI invocation)
-        private int _flushScheduled; // 0/1
-
-        // Coalesced UI-frame scheduling (UI invocation)
-        private int _uiFrameScheduled;             // 0/1
-        private volatile bool _uiWorkRequested;    // set when API enqueues requests (toast/donut)
+        private int _flushScheduled; 
+        private int _uiFrameScheduled;           
+        private volatile bool _uiWorkRequested;  
 
         // Background-thread time accumulator for UI cadence
         private double _sinceLastUi;
-        private const double UiDt = 1.0 / 30.0; // 30 fps UI cadence
+        private long _lastRedrawMs;
+        private const int TargetFps = 30;
+        private const double UiDt = 1.0 / TargetFps;
+        private const int RedrawEveryMs = 1000 / TargetFps;
 
+        #region Requests
         private readonly struct ToastRequest
         {
             public readonly bool IsIcon;
@@ -91,7 +88,9 @@ namespace Daxs
             }
         }
 
-        private HUD()
+        #endregion
+
+        private OverlayRenderer()
         {
             _textVisible = _settings.BindBoolean("TextVisible", v => _textVisible = v);
 
@@ -99,10 +98,8 @@ namespace Daxs
             _elements["donut"] = new DonutGaugeElement();
         }
 
-        // --------------------------------------------------------------------
-        // Public API (thread-safe, latest-wins)
-        // --------------------------------------------------------------------
-
+        #region Public API (thread-safe, latest-wins)
+     
         public void SetText(string emoji, string message, int durationMs = 2000)
         {
             lock (_pendingLock)
@@ -147,10 +144,9 @@ namespace Daxs
             _uiWorkRequested = true;
             ScheduleFlush();
         }
+        #endregion
 
-        // --------------------------------------------------------------------
-        // UI scheduling
-        // --------------------------------------------------------------------
+        #region UI scheduling
 
         private void ScheduleFlush()
         {
@@ -163,15 +159,12 @@ namespace Daxs
                 _flushScheduled = 0;
 
                 FlushUiThread();
-
-                // Make it visible immediately (don’t wait for next UI cadence)
                 RequestRedrawUiThread();
             }));
         }
 
         private void FlushUiThread()
         {
-            // UI thread only
             ToastRequest? toastReq;
             DonutRequest? donutReq;
             bool hideDonut;
@@ -193,10 +186,8 @@ namespace Daxs
                 return;
             }
 
-            // Toast: latest wins
-            if (toastReq.HasValue &&
-                _elements.TryGetValue("toast", out var tEl) &&
-                tEl is ToastElement toast)
+            // Toast: latest values
+            if (toastReq.HasValue &&_elements.TryGetValue("toast", out var tEl) && tEl is ToastElement toast)
             {
                 var r = toastReq.Value;
 
@@ -214,22 +205,19 @@ namespace Daxs
                 if (_elements.TryGetValue("donut", out var dEl) && dEl is DonutGaugeElement donut)
                     donut.Hide();
             }
-            else if (donutReq.HasValue &&
-                     _elements.TryGetValue("donut", out var dEl2) &&
-                     dEl2 is DonutGaugeElement donut2)
+            else if (donutReq.HasValue && _elements.TryGetValue("donut", out var dEl2) && dEl2 is DonutGaugeElement donut2)
             {
                 var r = donutReq.Value;
                 donut2.Set(r.Title, r.Value0to10, r.StartDeg, r.EndDeg, r.DurationMs);
                 EnsureEnabledUiThread();
             }
 
-            // If we flushed requests but nothing remains enabled -> disable conduit.
             DisableIfNoElementsUiThread();
         }
 
-        // --------------------------------------------------------------------
-        // Tick / redraw
-        // --------------------------------------------------------------------
+        #endregion
+
+        #region Tick / redraw
 
         /// <summary>
         /// Called by ControllerManager with delta seconds (any thread).
@@ -303,12 +291,14 @@ namespace Daxs
             }
         }
 
+        /// <summary>
+        /// ake it visible immediately (don’t wait for next UI cadence)
+        /// </summary>
         private static void RequestRedrawUiThread() =>
             RhinoDoc.ActiveDoc?.Views?.ActiveView?.Redraw();
+        #endregion
 
-        // --------------------------------------------------------------------
-        // DisplayConduit
-        // --------------------------------------------------------------------
+        #region DisplayConduit
 
         protected override void DrawForeground(DrawEventArgs e)
         {
@@ -343,9 +333,9 @@ namespace Daxs
             RequestRedrawUiThread();
         }
 
-        // --------------------------------------------------------------------
-        // Helpers (UI thread)
-        // --------------------------------------------------------------------
+        #endregion
+
+        #region Helpers
 
         private void EnsureEnabledUiThread()
         {
@@ -356,6 +346,9 @@ namespace Daxs
             }
         }
 
+        /// <summary>
+        /// When requests were flushed but nothing remains enabled -> disable conduit.
+        /// </summary>
         private void DisableIfNoElementsUiThread()
         {
             foreach (var el in _elements.Values)
@@ -372,5 +365,7 @@ namespace Daxs
 
             Enabled = false;
         }
+
+        #endregion
     }
 }

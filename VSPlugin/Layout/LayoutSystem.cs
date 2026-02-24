@@ -13,10 +13,10 @@ namespace Daxs
         Custom
     }
 
-    public sealed class LayoutManager
+    public sealed class LayoutSystem
     {
-        private static readonly Lazy<LayoutManager> _instance = new(() => new LayoutManager());
-        public static LayoutManager Instance => _instance.Value;
+        private static readonly Lazy<LayoutSystem> _instance = new(() => new LayoutSystem());
+        public static LayoutSystem Instance => _instance.Value;
 
         public IGamepadLayout Current => currentLayout;
         private IGamepadLayout currentLayout;
@@ -26,7 +26,7 @@ namespace Daxs
 
         private readonly Dictionary<Layout, IGamepadLayout> layouts = new();
         
-        private LayoutManager()
+        private LayoutSystem()
         {
             Register(new FlyLayout());
             Register(new WalkLayout());
