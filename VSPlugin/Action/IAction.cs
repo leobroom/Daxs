@@ -10,12 +10,4 @@
 
         void Execute();
     }
-
-    /// <summary>
-    /// Does the Action has to be calculated
-    /// </summary>
-    interface ICalculate : IAction
-    {
-        void Calculate();
-    }
 }

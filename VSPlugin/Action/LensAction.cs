@@ -4,16 +4,16 @@ using System;
 
 namespace Daxs
 {
-    internal class LensAction : BaseState , ICalculate
+    internal class LensAction : BaseState
     {
-        private InputY mode;
+        private InputY _mode;
         private double strength, defaultLens, actualLens;
         private readonly Settings settings;
 
         public LensAction( InputX Input, InputY mode) :base( Input)
         {
             settings = Settings.Instance;
-            this.mode = mode;
+            this._mode = mode;
 
             strength = settings.BindNumeric("LensStep", v => strength = v);
             defaultLens = settings.BindNumeric("LensDefault", v => defaultLens = v);
@@ -30,17 +30,9 @@ namespace Daxs
 
         public override void Execute()
         {
-            RhinoView view = RhinoDoc.ActiveDoc.Views.ActiveView;
-
-            view.ActiveViewport.Camera35mmLensLength = actualLens;
-            view.Redraw();
-        }
-
-        public void Calculate()
-        {
             actualLens = RhinoDoc.ActiveDoc.Views.ActiveView.ActiveViewport.Camera35mmLensLength;
 
-            switch (mode)
+            switch (_mode)
             {
                 case InputY.Up:
                     actualLens += strength;
@@ -54,6 +46,13 @@ namespace Daxs
             }
 
             actualLens = Math.Round(actualLens);
+
+            _hud.SetText(HUD_Emoji, HUD_Text);
+
+            RhinoView view = RhinoDoc.ActiveDoc.Views.ActiveView;
+
+            view.ActiveViewport.Camera35mmLensLength = actualLens;
+            view.Redraw();
         }
     }
 }

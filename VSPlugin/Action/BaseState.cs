@@ -2,6 +2,9 @@
 {
     internal abstract class BaseState : IAction
     {
+
+        protected OverlayRenderer _hud = OverlayRenderer.Instance;
+
         public BaseState(InputX Input)
         {
             this.Input = Input;

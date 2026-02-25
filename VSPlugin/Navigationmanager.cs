@@ -9,13 +9,13 @@ namespace Daxs
         private static NavigationManager instance;
         public static NavigationManager Instance => instance ??= new NavigationManager();
 
-        private Guid navMeshId = Guid.Empty;
-        private Mesh navMesh;
+        private Guid _navMeshId = Guid.Empty;
+        private Mesh _navMesh;
 
-        public Guid NavMeshId => navMeshId;
+        public Guid NavMeshId => _navMeshId;
 
         // Always return a copy
-        public Mesh NavMesh => navMesh?.DuplicateMesh();
+        public Mesh NavMesh => _navMesh?.DuplicateMesh();
 
         public event EventHandler<Mesh> NavigationMeshChanged;
 
@@ -34,17 +34,17 @@ namespace Daxs
                 return false;
             }
 
-            navMeshId = meshId;
-            navMesh = docMesh.DuplicateMesh();
+            _navMeshId = meshId;
+            _navMesh = docMesh.DuplicateMesh();
 
-            NavigationMeshChanged?.Invoke(this, navMesh);
+            NavigationMeshChanged?.Invoke(this, _navMesh);
             return true;
         }
 
         private void Clear()
         {
-            navMeshId = Guid.Empty;
-            navMesh = null;
+            _navMeshId = Guid.Empty;
+            _navMesh = null;
             NavigationMeshChanged?.Invoke(this, null);
         }
 

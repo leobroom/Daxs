@@ -6,9 +6,9 @@ namespace Daxs
     internal class RhinoCustomAction : BaseState, IAction
     {
         private string _function;
-        private string name;
-        private bool simulateKeys;
-        private readonly Settings settings = Settings.Instance;
+        private string _name;
+        private bool _simulateKeys;
+        private readonly Settings _settings = Settings.Instance;
 
         public RhinoCustomAction(InputX Input, GAction cNumber) : base(Input)
         {
@@ -17,19 +17,19 @@ namespace Daxs
 
             string c = cNumber.ToString();
 
-            _function = settings.BindText($"{c}_Function", v => _function = v);
-            name = settings.BindText($"{c}_Name", v => name = v);
-            simulateKeys = settings.BindBoolean($"{c}_SimulateKeys", v => simulateKeys = v);
+            _function = _settings.BindText($"{c}_Function", v => _function = v);
+            _name = _settings.BindText($"{c}_Name", v => _name = v);
+            _simulateKeys = _settings.BindBoolean($"{c}_SimulateKeys", v => _simulateKeys = v);
         }
      
-        public override string HUD_Text => name;
+        public override string HUD_Text => _name;
 
         public override void Execute()
         {
-            if (simulateKeys)
+            if (_simulateKeys)
                 LayoutSystem.Instance.Set(Layout.Menu);
             RhinoApp.RunScript(_function, true);
-            if (simulateKeys && LayoutSystem.Instance.Current.Name == Layout.Menu)
+            if (_simulateKeys && LayoutSystem.Instance.Current.Name == Layout.Menu)
                 LayoutSystem.Instance.SetToPreviousLayout();
 
             //Fallback to Fly layout if still in Menu

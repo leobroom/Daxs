@@ -3,26 +3,16 @@ using Rhino.DocObjects;
 
 namespace Daxs
 {
-    internal class NextNamedView : BaseState, ICalculate
+    internal class NextNamedView : BaseState
     {
         public NextNamedView(InputX Input) : base(Input) { }
 
-        public override string HUD_Text => $"Named view: {nextView?.Name}";
+        public override string HUD_Text => $"Named view: {_nextView?.Name}";
+
+
+        private ViewInfo _nextView = null;
 
         public override void Execute()
-        {
-            var doc = RhinoDoc.ActiveDoc;
-            var view = doc.Views.ActiveView;
-            if (view == null || nextView == null)
-                return;
-
-            view.ActiveViewport.PushViewInfo(nextView, false);
-            view.Redraw();
-        }
-
-        ViewInfo nextView = null;
-
-        public void Calculate()
         {
             var doc = RhinoDoc.ActiveDoc;
             var view = doc.Views.ActiveView;
@@ -34,7 +24,7 @@ namespace Daxs
             if (count == 0)
                 return;
 
-            string activeName = view.ActiveViewport.Name; 
+            string activeName = view.ActiveViewport.Name;
             int index = -1;
 
             for (int i = 0; i < count; i++)
@@ -47,7 +37,14 @@ namespace Daxs
             }
             int next = (index == -1) ? 0 : (index + 1) % count;
 
-            nextView = namedViews[next];
+            _nextView = namedViews[next];
+            if ( _nextView == null)
+                return;
+
+            _hud.SetText(HUD_Emoji, HUD_Text);
+
+            view.ActiveViewport.PushViewInfo(_nextView, false);
+            view.Redraw();
         }
     }
 }
