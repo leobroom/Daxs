@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Daxs
+namespace Daxs.Settings
 {
     public class BooleanValue : IValue
     {

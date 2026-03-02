@@ -3,7 +3,7 @@ using Eto.Forms;
 using System;
 using System.IO;
 
-namespace Daxs
+namespace Daxs.Settings
 {
     internal static class EtoFactory
     {

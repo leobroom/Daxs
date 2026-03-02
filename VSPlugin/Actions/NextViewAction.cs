@@ -1,13 +1,14 @@
 ﻿using Rhino;
 using Rhino.Display;
+
 using System;
 using System.Collections.Generic;
 
-namespace Daxs
+namespace Daxs.Actions
 {
-    internal class NextView : BaseState
+    internal class NextViewAction : ActionBase
     {
-        public NextView(InputX Input) : base(Input) { }
+        public NextViewAction(InputX Input) : base(Input) { }
 
         public override string HUD_Text => $"Switched to {_nextName}";
 

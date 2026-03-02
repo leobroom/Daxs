@@ -1,7 +1,6 @@
-﻿using Rhino;
-using System;
+﻿using System;
 
-namespace Daxs
+namespace Daxs.Settings
 {
     public class TextValue : IValue
     {

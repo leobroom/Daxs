@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
+using Daxs.Settings;
 using Rhino;
 using Rhino.Geometry;
 using Rhino.Geometry.Intersect;
 
-namespace Daxs
+namespace Daxs.Layout
 {
     internal class WalkLayout : FlyLayout
     {
-        public override Layout Name => Layout.Walk;
+        public override LayoutType Name => LayoutType.Walk;
 
         private Mesh navMesh = null;
         private double eyeHeight, maximalJump;

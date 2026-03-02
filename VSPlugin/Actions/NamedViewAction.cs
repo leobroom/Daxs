@@ -1,11 +1,11 @@
 ﻿using Rhino;
 using Rhino.DocObjects;
 
-namespace Daxs
+namespace Daxs.Actions
 {
-    internal class NextNamedView : BaseState
+    internal class NamedViewAction : ActionBase
     {
-        public NextNamedView(InputX Input) : base(Input) { }
+        public NamedViewAction(InputX Input) : base(Input) { }
 
         public override string HUD_Text => $"Named view: {_nextView?.Name}";
 

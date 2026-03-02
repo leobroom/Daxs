@@ -1,6 +1,6 @@
-﻿namespace Daxs
+﻿namespace Daxs.Actions
 {
-    public enum GAction
+    public enum BindingId
     {
         Unset,
         LensPlus,
@@ -17,12 +17,12 @@
         NextViewport,
         NextDisplaymode,
         NextNamedView,
-        C1,
-        C2,
-        C3,
-        C4,
-        C5,
-        C6,
+        Macro1,
+        Macro2,
+        Macro3,
+        Macro4,
+        Macro5,
+        Macro6,
         ChangeSpeed
     }
 }

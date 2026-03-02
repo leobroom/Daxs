@@ -1,6 +1,8 @@
-﻿namespace Daxs
+﻿using Daxs.Layout;
+
+namespace Daxs.Actions
 {
-    internal class SwitchAction : BaseState, IAction
+    internal class SwitchAction : ActionBase, IAction
     {
         public SwitchAction(InputX Input) : base(  Input) {}
 
@@ -8,11 +10,11 @@
 
         public override void Execute() 
         {
-            next = (LayoutSystem.Instance.Current.Name == Layout.Fly) ? Layout.Walk : Layout.Fly;
+            next = (LayoutSystem.Instance.Current.Name == LayoutType.Fly) ? LayoutType.Walk : LayoutType.Fly;
             LayoutSystem.Instance.Set(next);
             _hud.SetText(HUD_Emoji, HUD_Text);
         }
 
-        Layout next = Layout.Fly;
+        LayoutType next = LayoutType.Fly;
     }
 }

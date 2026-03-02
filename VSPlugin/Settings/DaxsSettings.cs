@@ -5,40 +5,42 @@ using Eto.Forms;
 using Eto.Drawing;
 using System.Reflection;
 using static SDL3.SDL;
+using Daxs.Actions;
+using Daxs.Layout;
 
-namespace Daxs
+namespace Daxs.Settings
 {
     public class DaxsSettings : Dialog<bool>
     {
-        private readonly Settings settings = Settings.Instance;
+        private readonly DaxsConfig settings = DaxsConfig.Instance;
 
         private readonly Dictionary<string, Control> controlBoxes = new();
 
         private readonly SortedDictionary<GamepadButton, Tuple<Label, DropDown>> inputActions = new SortedDictionary<GamepadButton, Tuple<Label, DropDown>>();
-        private readonly SortedDictionary<GAction, string> actionTable = new SortedDictionary<GAction, string>()
+        private readonly SortedDictionary<BindingId, string> actionTable = new SortedDictionary<BindingId, string>()
         {
-            { GAction.Unset, "Unset" },
-            { GAction.LensPlus, "Lens +" },
-            { GAction.LensMinus, "Lens -" },
-            { GAction.LensDefault, "Lens Default" },
-            { GAction.TeleportPlus, "Teleport +" },
-            { GAction.TeleportMinus, "Teleport -" },
-            { GAction.Speedmulti, "Speed Multi" },
-            { GAction.RotSpeedMulti, "Rotation Multi" },
-            { GAction.ElevatePlus, "Elevate +" },
-            { GAction.ElevateMinus, "Elevate -" },
-            { GAction.SwitchMode, "Switch Mode" },
-            { GAction.NextViewport, "Next Viewport" },
-            { GAction.NextDisplaymode, "Next DisplayMode" },
-            { GAction.NextNamedView, "Next Named View" },
-            { GAction.NextView, "Next View" },
-            { GAction.ChangeSpeed, "Change Speed" },
-            { GAction.C1, "C1" },
-            { GAction.C2, "C2" },
-            { GAction.C3, "C3" },
-            { GAction.C4, "C4" },
-            { GAction.C5, "C5" },
-            { GAction.C6, "C6" }
+            { BindingId.Unset, "Unset" },
+            { BindingId.LensPlus, "Lens +" },
+            { BindingId.LensMinus, "Lens -" },
+            { BindingId.LensDefault, "Lens Default" },
+            { BindingId.TeleportPlus, "Teleport +" },
+            { BindingId.TeleportMinus, "Teleport -" },
+            { BindingId.Speedmulti, "Speed Multi" },
+            { BindingId.RotSpeedMulti, "Rotation Multi" },
+            { BindingId.ElevatePlus, "Elevate +" },
+            { BindingId.ElevateMinus, "Elevate -" },
+            { BindingId.SwitchMode, "Switch Mode" },
+            { BindingId.NextViewport, "Next Viewport" },
+            { BindingId.NextDisplaymode, "Next DisplayMode" },
+            { BindingId.NextNamedView, "Next Named View" },
+            { BindingId.NextView, "Next View" },
+            { BindingId.ChangeSpeed, "Change Speed" },
+            { BindingId.Macro1, "C1" },
+            { BindingId.Macro2, "C2" },
+            { BindingId.Macro3, "C3" },
+            { BindingId.Macro4, "C4" },
+            { BindingId.Macro5, "C5" },
+            { BindingId.Macro6, "C6" }
         };
 
         private Label controllerInfoLabel = new();
@@ -72,16 +74,16 @@ namespace Daxs
             // --- Start/Stop button ---
             var toggleSwitch = new ToggleSwitch
             {
-                IsOn = GamepadRuntime.Instance.State == DaxStatus.Started,
+                IsOn = DaxsRuntime.Instance.State == DaxStatus.Started,
                 Width = 65,
             };
 
             toggleSwitch.Toggled += (s, isOn) =>
             {
-                GamepadRuntime.Instance.Toggle();
-                LayoutSystem.Instance.Set(Layout.Menu);
+                DaxsRuntime.Instance.Toggle();
+                LayoutSystem.Instance.Set(LayoutType.Menu);
 
-                toggleSwitch.IsOn = GamepadRuntime.Instance.State == DaxStatus.Started;
+                toggleSwitch.IsOn = DaxsRuntime.Instance.State == DaxStatus.Started;
             };
 
             //Checkbox Autostart
@@ -168,7 +170,7 @@ namespace Daxs
                 }
             };
 
-            SetGamepadType(GamepadRuntime.Instance.CurrentGamepad);
+            SetGamepadType(DaxsRuntime.Instance.CurrentGamepad);
         }
 
         private void SetGamepadType(Gamepad gamepad)
@@ -192,7 +194,7 @@ namespace Daxs
 
             Result = true;
 
-            GamepadRuntime.Instance.Restart();
+            DaxsRuntime.Instance.Restart();
 
             Close();
             LayoutSystem.Instance.SetToPreviousLayout();
@@ -316,7 +318,7 @@ namespace Daxs
             void SyncCustomNames()
             {
                 string tag = (string)label.Tag;
-                GAction action = Enum.Parse<GAction>(tag);
+                BindingId action = Enum.Parse<BindingId>(tag);
                 actionTable[action] = label.Text;
 
                 SyncActionDropDowns();
@@ -368,18 +370,18 @@ namespace Daxs
             var actionToText = actionTable;
 
             // Collect taken actions per other dropdowns
-            var takenByDropdown = new Dictionary<DropDown, HashSet<GAction>>();
+            var takenByDropdown = new Dictionary<DropDown, HashSet<BindingId>>();
             foreach (var kvA in inputActions)
             {
                 DropDown dropdownA = kvA.Value.Item2;
-                HashSet<GAction> set = new();
+                HashSet<BindingId> set = new();
                 foreach (var kvB in inputActions)
                 {
                     var dropdownB = kvB.Value.Item2;
                     if (dropdownB == dropdownA) // exclude self
                         continue;
 
-                    if (Enum.TryParse<GAction>(dropdownB.SelectedKey, out var a2) && a2 != GAction.Unset)
+                    if (Enum.TryParse<BindingId>(dropdownB.SelectedKey, out var a2) && a2 != BindingId.Unset)
                         set.Add(a2);
                 }
                 takenByDropdown[dropdownA] = set;
@@ -390,14 +392,14 @@ namespace Daxs
             {
                 GamepadButton button = kv.Key;
                 DropDown dropdown = kv.Value.Item2;
-                GAction originalKey = Enum.TryParse(dropdown.SelectedKey, out GAction myAction) ? myAction : GAction.Unset;
+                BindingId originalKey = Enum.TryParse(dropdown.SelectedKey, out BindingId myAction) ? myAction : BindingId.Unset;
 
                 dropdown.DataStore = null;
                 dropdown.Items.Clear();
 
                 foreach (var action in masterOrder)
                 {
-                    if (action == GAction.Unset)
+                    if (action == BindingId.Unset)
                     {
                         dropdown.Items.Add(new ListItem { Key = action.ToString(), Text = actionToText[action] });
                         continue;
@@ -431,7 +433,7 @@ namespace Daxs
 
             string selectedKey = tVal.Value;
 
-            if (!Enum.TryParse<GAction>(selectedKey, out var selectedAction))
+            if (!Enum.TryParse<BindingId>(selectedKey, out var selectedAction))
                 throw new Exception("Faulty ActionEnum: " + selectedKey);
 
             DropDown dropdown = new() { };

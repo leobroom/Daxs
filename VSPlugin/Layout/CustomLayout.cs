@@ -1,17 +1,18 @@
-﻿using Rhino;
-using SDL3;
-using System;
-using System.Runtime.InteropServices;
+﻿using System;
+using Rhino;
+using Daxs.Actions;
+using Daxs.GUI;
 using static SDL3.SDL;
+using Daxs.Settings;
 
-namespace Daxs
+namespace Daxs.Layout
 {
     internal class CustomLayout : BaseLayout
     {
-        public override Layout Name => Layout.Custom;
+        public override LayoutType Name => LayoutType.Custom;
 
         private bool _speedAdjustActive;
-        private BaseState _owner;
+        private ActionBase _owner;
 
         private NumericValue _speedFactor = null;
         private double _angleDeg = -1;
@@ -22,7 +23,7 @@ namespace Daxs
             _speedFactor = (NumericValue)settings["SpeedFactor"];
         }
 
-        public void EnterSpeedAdjustMode(BaseState owner)
+        public void EnterSpeedAdjustMode(ActionBase owner)
         {
             _owner = owner;
 
@@ -31,7 +32,7 @@ namespace Daxs
             RhinoApp.WriteLine("_speedFactorVal: " + _speedFactorVal);
         }
 
-        public void ExitSpeedAdjustMode(BaseState owner)
+        public void ExitSpeedAdjustMode(ActionBase owner)
         {
             if (!ReferenceEquals(_owner, owner))
                 return;
@@ -168,7 +169,7 @@ namespace Daxs
             _lastAngle = _angleDeg;
           
             if(current != last)
-                GamepadRuntime.Instance.RumbleGamepad(0, 30000, 20);
+                DaxsRuntime.Instance.RumbleGamepad(0, 30000, 20);
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Daxs
+namespace Daxs.GUI
 {
     public class DisplayEventArgs : EventArgs
     {

@@ -1,7 +1,8 @@
-﻿using Rhino;
+﻿using Daxs.Layout;
+using Rhino;
 using Rhino.Commands;
 
-namespace Daxs
+namespace Daxs.Commands
 {
     public class DaxsRunCmdCmd : Command
     {
@@ -14,7 +15,7 @@ namespace Daxs
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
             using var helper = new RunScriptHelper(doc.RuntimeSerialNumber);
-            LayoutSystem.Instance.Set(Layout.Menu);
+            LayoutSystem.Instance.Set(LayoutType.Menu);
 
             helper.RunScript("_ViewCaptureToFile", true);
 

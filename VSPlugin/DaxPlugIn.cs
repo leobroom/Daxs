@@ -1,4 +1,5 @@
-﻿using Rhino;
+﻿using Daxs.Settings;
+using Rhino;
 using Rhino.Collections;
 using Rhino.FileIO;
 using Rhino.PlugIns;
@@ -28,15 +29,15 @@ namespace Daxs
         {
             RhinoApp.Initialized -= OnRhinoInitialized; // Run only once
 
-            bool autostartActive = ((BooleanValue)Daxs.Settings.Instance["AutoStart"]).Value;
-            if (autostartActive && GamepadRuntime.Instance.State == DaxStatus.NotInitialized)
-                GamepadRuntime.Instance.Toggle();
+            bool autostartActive = ((BooleanValue)DaxsConfig.Instance["AutoStart"]).Value;
+            if (autostartActive && DaxsRuntime.Instance.State == DaxStatus.NotInitialized)
+                DaxsRuntime.Instance.Toggle();
         }
 
         protected override bool ShouldCallWriteDocument(FileWriteOptions options) => true;
 
         //Versioning -> check  archive.Write3dmChunkVersion(Major, Minor);
-        private const int Major = 0, Minor = 0;
+        private const int Major = 0, Minor = 1;
 
         /// <summary>
         /// Called when Rhino is saving a .3dm file to allow the plug-in to save document user data.

@@ -1,13 +1,13 @@
-﻿using Rhino;
-using System;
+﻿using Daxs.Layout;
+using Rhino;
 
-namespace Daxs
+namespace Daxs.Actions
 {
-    internal class ChangeSpeedModal : BaseState, IAction
+    internal class ChangeSpeedAction : ActionBase, IAction
     {
         private bool _entered;
 
-        public ChangeSpeedModal(InputX Input) : base(Input) { }
+        public ChangeSpeedAction(InputX Input) : base(Input) { }
 
         public override string HUD_Text => "Change speed";
         public override string HUD_Emoji => "⚡";
@@ -20,11 +20,11 @@ namespace Daxs
             RhinoApp.WriteLine("Change speed");
 
 
-            InputGate.Instance.EnterModal(this);
+            ActionGate.Instance.EnterModal(this);
 
             // Switch layout + notify it
             var lm = LayoutSystem.Instance;
-            lm.Set(Layout.Custom);
+            lm.Set(LayoutType.Custom);
 
             if (lm.Current is CustomLayout cl)
                 cl.EnterSpeedAdjustMode(this);
@@ -41,7 +41,7 @@ namespace Daxs
                 cl.ExitSpeedAdjustMode(this);
 
             // Exit modal suppression
-            InputGate.Instance.ExitModal(this);
+            ActionGate.Instance.ExitModal(this);
 
             _entered = false;
 

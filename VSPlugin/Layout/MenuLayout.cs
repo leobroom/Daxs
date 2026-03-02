@@ -3,11 +3,11 @@ using System;
 using System.Runtime.InteropServices;
 using static SDL3.SDL;
 
-namespace Daxs
+namespace Daxs.Layout
 {
     internal class MenuLayout : BaseLayout
     {
-        public override Layout Name => Layout.Menu;
+        public override LayoutType Name => LayoutType.Menu;
 
         [DllImport("user32.dll", SetLastError = true)]
         private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);

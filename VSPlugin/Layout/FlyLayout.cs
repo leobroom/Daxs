@@ -4,11 +4,11 @@ using Rhino.Geometry;
 using Rhino.Display;
 using static SDL3.SDL;
 
-namespace Daxs
+namespace Daxs.Layout
 {
     internal class FlyLayout : BaseLayout
     {
-        public override Layout Name => Layout.Fly;
+        public override LayoutType Name => LayoutType.Fly;
 
         public FlyLayout() : base() 
         {

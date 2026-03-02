@@ -1,8 +1,11 @@
-﻿using Rhino;
+﻿using Daxs.Actions;
+using Daxs.GUI;
+using Daxs.Settings;
+using Rhino;
 using System;
 using static SDL3.SDL;
 
-namespace Daxs
+namespace Daxs.Layout
 {
     internal abstract class BaseLayout : IGamepadLayout
     {
@@ -15,11 +18,11 @@ namespace Daxs
 
         protected const double MAX_SHORT_VALUE = 32767.0;
 
-        public abstract Layout Name { get; }
+        public abstract LayoutType Name { get; }
 
         protected readonly RhinoDoc doc = RhinoDoc.ActiveDoc;
-        protected readonly Settings settings = Settings.Instance;
-        protected readonly ActionSystem actionManager = ActionSystem.Instance;
+        protected readonly DaxsConfig settings = DaxsConfig.Instance;
+        protected readonly ActionDispatcher actionManager = ActionDispatcher.Instance;
         protected readonly OverlayRenderer hud = OverlayRenderer.Instance;
 
         protected double deadzone, yawSensitivity, pitchSensitivity, speedFactor;

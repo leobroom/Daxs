@@ -1,4 +1,4 @@
-﻿namespace Daxs
+﻿namespace Daxs.Settings
 {
     public interface IValue
     {

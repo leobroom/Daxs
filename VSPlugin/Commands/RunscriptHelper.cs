@@ -2,7 +2,7 @@
 using Rhino.Commands;
 using System;
 
-namespace Daxs
+namespace Daxs.Commands
 {
     /// <summary>
     /// RunScriptHelper helper class

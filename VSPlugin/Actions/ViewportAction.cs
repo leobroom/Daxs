@@ -4,11 +4,11 @@ using Rhino.DocObjects.Tables;
 using System;
 using System.Linq;
 
-namespace Daxs
+namespace Daxs.Actions
 {
-    internal class NextViewport : BaseState
+    internal class ViewportAction : ActionBase
     {
-        public NextViewport(InputX Input) : base(Input){}
+        public ViewportAction(InputX Input) : base(Input){}
 
         public override string HUD_Text => $"Switch to Viewport: {next.ActiveViewportID}";
 

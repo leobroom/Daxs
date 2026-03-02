@@ -1,18 +1,20 @@
-﻿using Rhino;
-using System;
+﻿using System;
+using Rhino;
+using Daxs.Layout;
+using Daxs.Settings;
 
-namespace Daxs
+namespace Daxs.Actions
 {
-    internal class RhinoCustomAction : BaseState, IAction
+    internal class RhinoMacroAction : ActionBase, IAction
     {
         private string _function;
         private string _name;
         private bool _simulateKeys;
-        private readonly Settings _settings = Settings.Instance;
+        private readonly DaxsConfig  _settings = DaxsConfig.Instance;
 
-        public RhinoCustomAction(InputX Input, GAction cNumber) : base(Input)
+        public RhinoMacroAction(InputX Input, BindingId cNumber) : base(Input)
         {
-            if (cNumber < GAction.C1 || cNumber > GAction.C6)
+            if (cNumber < BindingId.Macro1 || cNumber > BindingId.Macro6)
                 throw new ArgumentOutOfRangeException(nameof(cNumber), "Invalid ActionEnum type");
 
             string c = cNumber.ToString();
@@ -27,14 +29,14 @@ namespace Daxs
         public override void Execute()
         {
             if (_simulateKeys)
-                LayoutSystem.Instance.Set(Layout.Menu);
+                LayoutSystem.Instance.Set(LayoutType.Menu);
             RhinoApp.RunScript(_function, true);
-            if (_simulateKeys && LayoutSystem.Instance.Current.Name == Layout.Menu)
+            if (_simulateKeys && LayoutSystem.Instance.Current.Name == LayoutType.Menu)
                 LayoutSystem.Instance.SetToPreviousLayout();
 
             //Fallback to Fly layout if still in Menu
-            if (LayoutSystem.Instance.Current.Name == Layout.Menu)
-                LayoutSystem.Instance.Set(Layout.Fly);
+            if (LayoutSystem.Instance.Current.Name == LayoutType.Menu)
+                LayoutSystem.Instance.Set(LayoutType.Fly);
         }
     }
 }

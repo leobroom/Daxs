@@ -1,18 +1,19 @@
-﻿using Rhino;
+﻿using Daxs.Settings;
+using Rhino;
 using Rhino.Display;
 using System;
 
-namespace Daxs
+namespace Daxs.Actions
 {
-    internal class LensAction : BaseState
+    internal class LensAction : ActionBase
     {
         private InputY _mode;
         private double strength, defaultLens, actualLens;
-        private readonly Settings settings;
+        private readonly DaxsConfig settings;
 
         public LensAction( InputX Input, InputY mode) :base( Input)
         {
-            settings = Settings.Instance;
+            settings = DaxsConfig.Instance;
             this._mode = mode;
 
             strength = settings.BindNumeric("LensStep", v => strength = v);

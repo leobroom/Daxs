@@ -3,9 +3,9 @@ using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 
-namespace Daxs
+namespace Daxs.Layout
 {
-    public enum Layout
+    public enum LayoutType
     {
         Fly,
         Walk,
@@ -24,7 +24,7 @@ namespace Daxs
         public IGamepadLayout PreviousLayout => previousLayout;
         private IGamepadLayout previousLayout;
 
-        private readonly Dictionary<Layout, IGamepadLayout> layouts = new();
+        private readonly Dictionary<LayoutType, IGamepadLayout> layouts = new();
         
         private LayoutSystem()
         {
@@ -42,7 +42,7 @@ namespace Daxs
 
         private void Register(IGamepadLayout layout) => layouts[layout.Name] = layout;
 
-        public void Set(Layout name)
+        public void Set(LayoutType name)
         {
             if (layouts.TryGetValue(name, out var layout))
             {
@@ -54,13 +54,13 @@ namespace Daxs
 
         public void SetToPreviousLayout() 
         {   
-            Layout mode = (previousLayout == null || currentLayout == null) ? Layout .Fly: previousLayout.Name;
+            LayoutType mode = (previousLayout == null || currentLayout == null) ? LayoutType .Fly: previousLayout.Name;
 
             RhinoApp.WriteLine("SetToPreviousLayout: " + mode);
             Set(mode);
         }
 
-        public IGamepadLayout Get(Layout name)
+        public IGamepadLayout Get(LayoutType name)
         {
             if (!layouts.TryGetValue(name, out var layout))
                 throw new KeyNotFoundException($"Layout '{name}' not found.");
@@ -69,7 +69,7 @@ namespace Daxs
 
         private void SetCollisionMesh(Mesh colMesh)
         {
-            WalkLayout wLayout = (WalkLayout)Get(Layout.Walk);
+            WalkLayout wLayout = (WalkLayout)Get(LayoutType.Walk);
             wLayout.SetNavigationMesh(colMesh);
         }
     }

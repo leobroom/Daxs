@@ -175,6 +175,7 @@
 
 
 
+using Daxs.Settings;
 using SDL3;
 using System;
 using static SDL3.SDL;
@@ -220,7 +221,7 @@ namespace Daxs
         //Current
         public Gamepad(uint idx)
         {
-            _deadzone = Settings.Instance.BindNumeric("Deadzone", v => UpdateDeadzone(v));
+            _deadzone = DaxsConfig.Instance.BindNumeric("Deadzone", v => UpdateDeadzone(v));
 
             // initialize once
             UpdateDeadzone(_deadzone);

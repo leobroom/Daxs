@@ -1,7 +1,7 @@
 ﻿using Rhino;
 using Rhino.Commands;
 
-namespace Daxs
+namespace Daxs.Commands
 {
     public class DaxsStartStopCmd : Command
     {
@@ -13,7 +13,7 @@ namespace Daxs
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
-            GamepadRuntime.Instance.Toggle();
+            DaxsRuntime.Instance.Toggle();
             return Result.Success;
         }
     }

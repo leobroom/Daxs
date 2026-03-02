@@ -1,8 +1,8 @@
-﻿namespace Daxs
+﻿namespace Daxs.Layout
 {
     public interface IGamepadLayout
     {
-        Layout Name { get; }
+        LayoutType Name { get; }
         void HandleInput(Gamepad state);
         void HandleInputAndDelta(Gamepad gamepad, double delta);
     }

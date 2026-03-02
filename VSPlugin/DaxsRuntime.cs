@@ -1,13 +1,18 @@
 ﻿
-using Rhino;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
-using SDL3;
 using System.Drawing;
 using System.Reflection;
+using Rhino;
+using SDL3;
+
+using Daxs.Actions;
+using Daxs.GUI;
+using Daxs.Layout;
+using Daxs.Settings;
 
 namespace Daxs
 {
@@ -18,19 +23,18 @@ namespace Daxs
         Stopped = 2
     }
 
-    public sealed class GamepadRuntime
+    public sealed class DaxsRuntime
     {
-        public static GamepadRuntime Instance { get; } = new GamepadRuntime();
+        public static DaxsRuntime Instance { get; } = new DaxsRuntime();
 
-        private GamepadRuntime()
+        private DaxsRuntime()
         {
-
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Daxs.Shared.icon.png"))
             {
                 _daxsIcon = new Bitmap(stream);
             }
 
-            RhinoApp.Closing += (sender, e) => { _settings.SaveSettings(); };
+            RhinoApp.Closing += (sender, e) => { DaxsConfig.Instance.SaveSettings(); };
 
             //INIT SDL3
             string sdl3pth = Utils.GetSharedFile("SDL3.dll");
@@ -49,27 +53,32 @@ namespace Daxs
             //RhinoApp.WriteLine($"Loaded {added} SDL Gamepad mappings");
         }
 
-        private readonly ActionSystem _actions = ActionSystem.Instance;
+        private readonly ActionDispatcher _actions = ActionDispatcher.Instance;
         private readonly LayoutSystem _layout = LayoutSystem.Instance;
-        private readonly Settings _settings = Settings.Instance;
         private readonly OverlayRenderer _hud = OverlayRenderer.Instance;
         private readonly Bitmap _daxsIcon = null;
-
 
         //Loop
         private CancellationTokenSource _cts;
         public DaxStatus State { get; private set; } = DaxStatus.NotInitialized;
 
-        private IntPtr _gamepadID;
+        private IntPtr _gpId;
 
         //Gamepad
-        Gamepad gamepad = null;
+        private Gamepad _gp = null;
 
         private readonly object _lock = new();
 
+        // tick timespan
+        private const double _tickHz = 250.0;
+        private const double _tickDt = 1.0 / _tickHz;
+
+        private static readonly TimeSpan _disconnectedDelay = TimeSpan.FromSeconds(5); // when no pad
+        private static readonly TimeSpan _failedDelay = TimeSpan.FromSeconds(2);
+
         public Gamepad CurrentGamepad
         {
-            get { lock (_lock) return gamepad;}
+            get { lock (_lock) return _gp; }
         }
 
         public void Toggle()
@@ -91,7 +100,7 @@ namespace Daxs
 
             if (!restart)
             {
-                _layout.Set(Layout.Fly);
+                _layout.Set(LayoutType.Fly);
                 RhinoApp.WriteLine("Daxs started");
             }
         }
@@ -117,10 +126,7 @@ namespace Daxs
                 RhinoApp.WriteLine("Daxs stopped");
         }
 
-        private static readonly TimeSpan ScanDisconnectedDelay = TimeSpan.FromSeconds(5); // when no pad
-        private static readonly TimeSpan ScanFailedOpenDelay = TimeSpan.FromSeconds(2);
-
-        private bool IsConnectedNoLock() => _gamepadID != IntPtr.Zero && SDL.GamepadConnected(_gamepadID);
+        private bool IsConnectedNoLock() => _gpId != IntPtr.Zero && SDL.GamepadConnected(_gpId);
 
         private bool IsConnected()
         {
@@ -132,11 +138,11 @@ namespace Daxs
         {
             lock (_lock)
             {
-                try { gamepad?.Dispose(); }
+                try { _gp?.Dispose(); }
                 catch { }
 
-                gamepad = null;
-                _gamepadID = IntPtr.Zero;
+                _gp = null;
+                _gpId = IntPtr.Zero;
             }
         }
 
@@ -151,19 +157,17 @@ namespace Daxs
             lock (_lock)
             {
                 try
-                { gamepad?.Dispose(); }
+                { _gp?.Dispose(); }
                 catch { }
 
-                gamepad = new Gamepad(ids[0]);
-                _gamepadID = gamepad.GamepadID;
-                openedId = _gamepadID;
+                _gp = new Gamepad(ids[0]);
+                _gpId = _gp.GamepadID;
+                openedId = _gpId;
             }
 
             return openedId != IntPtr.Zero;
         }
 
-        const double TickHz = 250.0;
-        const double TickDt = 1.0 / TickHz;
 
         private async Task<bool> EnsureConnectedAsync(CancellationToken token)
         {
@@ -179,7 +183,7 @@ namespace Daxs
             if (!TryOpenFirstGamepad(out IntPtr openedId))
             {
                 // nothing connected -> slow down loop
-                await Task.Delay(ScanDisconnectedDelay, token);
+                await Task.Delay(_disconnectedDelay, token);
                 return false;
             }
 
@@ -188,7 +192,7 @@ namespace Daxs
             {
                 RhinoApp.WriteLine($"Failed to open gamepad: {SDL.GetError()}");
                 DisconnectAndDispose();
-                await Task.Delay(ScanFailedOpenDelay, token);
+                await Task.Delay(_failedDelay, token);
                 return false;
             }
 
@@ -230,16 +234,16 @@ namespace Daxs
                 SDL.PumpEvents();
 
                 // Process at a stable cadence
-                while (accumulator >= TickDt)
+                while (accumulator >= _tickDt)
                 {
-                    accumulator -= TickDt;
+                    accumulator -= _tickDt;
 
                     Gamepad gp;
                     IntPtr id;
                     lock (_lock)
                     {
-                        gp = gamepad;
-                        id = _gamepadID;
+                        gp = _gp;
+                        id = _gpId;
                     }
 
                     // If it got disconnected mid-tick, jump out
@@ -251,13 +255,13 @@ namespace Daxs
 
                     gp.Update();
                     _actions.Update(gp);
-                    _hud.Tick(TickDt);
-                    _layout.Current.HandleInputAndDelta(gp, TickDt);
+                    _hud.Tick(_tickDt);
+                    _layout.Current.HandleInputAndDelta(gp, _tickDt);
                 }
 
-                double remaining = TickDt - accumulator;
+                double remaining = _tickDt - accumulator;
                 int sleepMs = (remaining > 0) ? (int)(remaining * 1000.0) : 0;
-                if (sleepMs < 1) 
+                if (sleepMs < 1)
                     sleepMs = 1;
 
                 await Task.Delay(TimeSpan.FromMilliseconds(sleepMs), token);
@@ -266,6 +270,7 @@ namespace Daxs
             DisconnectAndDispose();
         }
 
+        #region Helpers
         /// <summary>
         /// Signal once on connect
         /// </summary>
@@ -275,13 +280,12 @@ namespace Daxs
             SDL.SetGamepadLED(gamepadID, 0, 255, 255);
 
             string name = GetGamepadName(gamepadID);
-
             string version = Utils.GetPackageVersion();
 
             _hud.SetImageToast(_daxsIcon, $"DAXS {version} | {name}", 4000);
         }
 
-        public void RumbleGamepad(ushort lowFrequencyRumble, ushort highFrequencyRumble, uint durationMs) => SDL.RumbleGamepad(_gamepadID, lowFrequencyRumble, highFrequencyRumble, durationMs);
+        public void RumbleGamepad(ushort lowFrequencyRumble, ushort highFrequencyRumble, uint durationMs) => SDL.RumbleGamepad(_gpId, lowFrequencyRumble, highFrequencyRumble, durationMs);
 
         private static string GetGamepadName(nint gamepadID)
         {
@@ -310,5 +314,6 @@ namespace Daxs
                 _ => $"{name} (VID:0x{vendor:X4} PID:0x{product:X4})"
             };
         }
+        #endregion
     }
 }

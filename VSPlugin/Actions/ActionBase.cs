@@ -1,11 +1,14 @@
-﻿namespace Daxs
+﻿using Daxs.GUI;
+using Daxs.Layout;
+
+namespace Daxs.Actions
 {
-    internal abstract class BaseState : IAction
+    internal abstract class ActionBase : IAction
     {
 
         protected OverlayRenderer _hud = OverlayRenderer.Instance;
 
-        public BaseState(InputX Input)
+        public ActionBase(InputX Input)
         {
             this.Input = Input;
         }

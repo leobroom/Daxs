@@ -1,8 +1,9 @@
-﻿using Rhino;
+﻿using Daxs.Settings;
+using Rhino;
 using Rhino.Commands;
 using Rhino.UI;
 
-namespace Daxs
+namespace Daxs.Commands
 {
     public class DaxsSettingsCmd : Command
     {

@@ -1,10 +1,10 @@
-﻿using Eto.Drawing;
+﻿using System;
+using Eto.Drawing;
 using Eto.Forms;
 using Rhino.ApplicationSettings;
 using Rhino.UI;
-using System;
 
-namespace Daxs
+namespace Daxs.Settings
 {
     public class ToggleSwitch : Drawable
     {

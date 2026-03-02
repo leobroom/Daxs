@@ -1,7 +1,8 @@
-﻿using Rhino;
+﻿using Daxs.Layout;
+using Rhino;
 using Rhino.Commands;
 
-namespace Daxs
+namespace Daxs.Commands
 {
     public class WalkCmd : Command
     {
@@ -13,7 +14,7 @@ namespace Daxs
 
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
-            LayoutSystem.Instance.Set(Layout.Walk);
+            LayoutSystem.Instance.Set(LayoutType.Walk);
             return Result.Success;
         }
     }

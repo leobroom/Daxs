@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Daxs
+namespace Daxs.Settings
 {
     /// <summary>
     /// Static helper class to retrieve theme colors, making it accessible 

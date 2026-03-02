@@ -4,7 +4,7 @@ using System.Drawing.Drawing2D;
 
 using Rhino.Display;
 
-namespace Daxs
+namespace Daxs.GUI
 {
     internal sealed class DonutGaugeElement : IOverlayElement
     {
@@ -152,7 +152,7 @@ namespace Daxs
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
             g.Clear(Color.Transparent);
 
-            using (var bg = new SolidBrush(UIUtils.BG_COLOR))
+            using (var bg = new SolidBrush(GUI_Utils.BG_COLOR))
                 g.FillEllipse(bg, 0, 0, size - 1, size - 1);
 
             float t = (float)(_value / 10.0); // 0..1
@@ -179,7 +179,7 @@ namespace Daxs
 
             string valueText = q.ToString("0.0");
             using var fontValue = new Font("Segoe UI", (int)(FONT_TITLEPX * uiScale), FontStyle.Bold, GraphicsUnit.Pixel);
-            using var fontTitle = new Font("Segoe UI", (int)(UIUtils.FONT_PX * uiScale), FontStyle.Bold, GraphicsUnit.Pixel);
+            using var fontTitle = new Font("Segoe UI", (int)(GUI_Utils.FONT_PX * uiScale), FontStyle.Bold, GraphicsUnit.Pixel);
             using var brush = new SolidBrush(Color.White);
 
             float centerX = size / 2f;

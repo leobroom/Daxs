@@ -2,10 +2,9 @@
 using Rhino.Display;
 using System;
 
-
-namespace Daxs
+namespace Daxs.Actions
 {
-    internal class NextDisplaymode : BaseState
+    internal class DisplaymodeAction : ActionBase
     {
         private readonly DisplayModeDescription[] _modes = new[]
         {
@@ -14,7 +13,7 @@ namespace Daxs
             DisplayModeDescription.GetDisplayMode(DisplayModeDescription.RenderedId)
         };
 
-        public NextDisplaymode(InputX Input) : base(Input) { }
+        public DisplaymodeAction(InputX Input) : base(Input) { }
 
         public override string HUD_Text => $"Displaymode: {_nextDisplaymode.LocalName}";
 

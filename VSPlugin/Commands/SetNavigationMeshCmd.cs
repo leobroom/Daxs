@@ -6,7 +6,7 @@ using Rhino.Geometry;
 using System.Linq;
 using System;
 
-namespace Daxs
+namespace Daxs.Commands
 {
     public class SetNavigationMeshCmd : Command
     {
@@ -21,9 +21,7 @@ namespace Daxs
             Guid meshId = Guid.Empty;
 
             // Preselection
-            var selected = doc.Objects.GetSelectedObjects(false, false)
-                                      .Where(o => o.Geometry is Mesh)
-                                      .ToList();
+            var selected = doc.Objects.GetSelectedObjects(false, false).Where(o => o.Geometry is Mesh).ToList();
 
             if (selected.Count == 1)
             {

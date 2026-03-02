@@ -4,18 +4,18 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
-
 using Rhino;
 using Rhino.Display;
+using Daxs.Settings;
 
-namespace Daxs
+namespace Daxs.GUI
 {
     internal sealed class OverlayRenderer : DisplayConduit
     {
         private static readonly Lazy<OverlayRenderer> _instance = new(() => new OverlayRenderer());
         public static OverlayRenderer Instance => _instance.Value;
 
-        private readonly Settings _settings = Settings.Instance;
+        private readonly DaxsConfig  _settings = DaxsConfig.Instance;
         private readonly Stopwatch _sw = new();
 
         private bool _textVisible;
@@ -311,7 +311,7 @@ namespace Daxs
                 return;
 
             long now = _sw.ElapsedMilliseconds;
-            float uiScale = UIUtils.GetWindowsScale();
+            float uiScale = GUI_Utils.GetWindowsScale();
 
             foreach (var element in _elements.Values)
                 if (element.Enabled)

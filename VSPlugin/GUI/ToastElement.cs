@@ -3,7 +3,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 
-namespace Daxs
+namespace Daxs.GUI
 {
     internal sealed class ToastElement : IOverlayElement
     {
@@ -150,7 +150,7 @@ namespace Daxs
 
             float scale = uiScale;
 
-            int fontPx = (int)(UIUtils.FONT_PX * scale);
+            int fontPx = (int)(GUI_Utils.FONT_PX * scale);
             int margin = (int)(ToastMarginPx * scale);
             int innerPad = (int)(ToastInnerPadPx * scale);
             int gap = (int)(ToastGapPx * scale);
@@ -163,13 +163,13 @@ namespace Daxs
 
             if (_playInAnim && elapsed < AnimInMs)
             {
-                float t = UIUtils.Clamp01(elapsed / (float)AnimInMs);
-                slide = (1f - UIUtils.EaseOutCubic(t)) * slidePx;
+                float t = GUI_Utils.Clamp01(elapsed / (float)AnimInMs);
+                slide = (1f - GUI_Utils.EaseOutCubic(t)) * slidePx;
             }
             else if (_durationMs > 0 && elapsed > outStart)
             {
-                float t = UIUtils.Clamp01((elapsed - outStart) / (float)AnimOutMs);
-                slide = UIUtils.EaseInCubic(t) * slidePx;
+                float t = GUI_Utils.Clamp01((elapsed - outStart) / (float)AnimOutMs);
+                slide = GUI_Utils.EaseInCubic(t) * slidePx;
             }
 
             EnsureBitmap(fontPx, innerPad, gap, scale);
@@ -256,8 +256,8 @@ namespace Daxs
                 var rect = new RectangleF(0, 0, w, h);
                 float radius = ToastRadiusPx * scale;
 
-                using var path = UIUtils.RoundedRect(rect, radius);
-                using var bgBrush = new SolidBrush(UIUtils.BG_COLOR);
+                using var path = GUI_Utils.RoundedRect(rect, radius);
+                using var bgBrush = new SolidBrush(GUI_Utils.BG_COLOR);
                 using var fgBrush = new SolidBrush(ToastFg);
 
                 g.FillPath(bgBrush, path);
