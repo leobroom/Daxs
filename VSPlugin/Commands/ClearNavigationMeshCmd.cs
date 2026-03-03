@@ -17,7 +17,7 @@ namespace Daxs.Commands
         {
             string msg = "Navigation mesh does not exists!";
 
-            if (_navManager.NavMesh != null|| _navManager.NavMeshId == Guid.Empty)
+            if (_navManager.NavMesh != null&& _navManager.NavMeshId != Guid.Empty)
             {
                 msg = $"Navigation mesh with id: {_navManager.NavMeshId} cleared ";
                 _navManager.Clear();
