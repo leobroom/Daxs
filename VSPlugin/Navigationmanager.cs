@@ -41,7 +41,10 @@ namespace Daxs
             return true;
         }
 
-        private void Clear()
+        /// <summary>
+        /// Clears the Navigation Mesh
+        /// </summary>
+        public void Clear()
         {
             _navMeshId = Guid.Empty;
             _navMesh = null;
