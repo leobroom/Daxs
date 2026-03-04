@@ -35,12 +35,12 @@ namespace Daxs.Settings
             { BindingId.NextNamedView, "Next Named View" },
             { BindingId.NextView, "Next View" },
             { BindingId.ChangeSpeed, "Change Speed" },
-            { BindingId.Macro1, "C1" },
-            { BindingId.Macro2, "C2" },
-            { BindingId.Macro3, "C3" },
-            { BindingId.Macro4, "C4" },
-            { BindingId.Macro5, "C5" },
-            { BindingId.Macro6, "C6" }
+            { BindingId.Macro1, "Macro1" },
+            { BindingId.Macro2, "Macro2" },
+            { BindingId.Macro3, "Macro3" },
+            { BindingId.Macro4, "Macro4" },
+            { BindingId.Macro5, "Macro5" },
+            { BindingId.Macro6, "Macro6" }
         };
 
         private Label controllerInfoLabel = new();
