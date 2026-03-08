@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- Select the framework(s) you wish to target.
-        Rhino 6: net45
-        Rhino 7: net48
+    <!-- 
         Rhino 8 Windows: net48, net7.0, net7.0-windows, net7.0-windows10.0.22000.0, etc
         Rhino 8 Mac: net7.0, net7.0-macos, net7.0-macos12.0, etc
     -->
@@ -12,18 +10,33 @@
     <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>0.1.828</Version>
+    <Version>0.1.832</Version>
     <Title>Daxs</Title>
     <Company>Leon Brohmann</Company>
-    <Description>Daxs is a Rhino package that enables support for gamepad input, making it easier to integrate Xbox and PlayStation 4 controllers into your Rhino workflows or plugins.</Description>
+    <Description>Daxs is a Rhino App that enables support for gamepad input, making it easier to integrate Xbox and PlayStation 4 controllers into your Rhino workflows or plugins.</Description>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="Shared\icon.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Shared\DaxsGamepadLayout.png">
+    <!-- GAMEPAD LAYOUTS -->
+    <EmbeddedResource Include="Shared\DaxsGPLayout_PS.png">
+      <!-- PS3/4/5 -->
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <EmbeddedResource Include="Shared\DaxsGPLayout_Steam.png">
+      <!-- Steam Gamepad -->
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\DaxsGPLayout_Switch.png">
+      <!-- Nintendo Switch/2 Gamepad -->
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\DaxsGPLayout_xBox.png">
+      <!-- XBOX/ Default Gamepad -->
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <!-- GAMEPAD LAYOUTS END-->
     <EmbeddedResource Include="Shared\SDL3.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>

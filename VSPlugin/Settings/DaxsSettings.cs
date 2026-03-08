@@ -1,23 +1,26 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using Eto.Forms;
-using Eto.Drawing;
 using System.Reflection;
+
 using static SDL3.SDL;
+
 using Daxs.Actions;
 using Daxs.Layout;
+
+using Eto.Forms;
+using Eto.Drawing;
 
 namespace Daxs.Settings
 {
     public class DaxsSettings : Dialog<bool>
     {
-        private readonly DaxsConfig settings = DaxsConfig.Instance;
+        private readonly DaxsConfig _settings = DaxsConfig.Instance;
 
-        private readonly Dictionary<string, Control> controlBoxes = new();
+        private readonly Dictionary<string, Control> _controlBoxes = new();
 
-        private readonly SortedDictionary<GamepadButton, Tuple<Label, DropDown>> inputActions = new SortedDictionary<GamepadButton, Tuple<Label, DropDown>>();
-        private readonly SortedDictionary<BindingId, string> actionTable = new SortedDictionary<BindingId, string>()
+        private readonly SortedDictionary<GamepadButton, Tuple<Label, DropDown>> _inputActions = new SortedDictionary<GamepadButton, Tuple<Label, DropDown>>();
+        private readonly SortedDictionary<BindingId, string> _actionTable = new SortedDictionary<BindingId, string>()
         {
             { BindingId.Unset, "Unset" },
             { BindingId.LensPlus, "Lens +" },
@@ -43,7 +46,16 @@ namespace Daxs.Settings
             { BindingId.Macro6, "Macro6" }
         };
 
-        private Label controllerInfoLabel = new();
+        // Gamepad Daxs Info
+        private Label _gamepadInfoLabel = new();
+        private ImageView _gpImageView;
+        private readonly string _gpDefaultResName = "DaxsGPLayout_xBox.png"; 
+        private readonly GpResource[] _gpResources = new GpResource[]
+        {
+            new ("DaxsGPLayout_PS.png","ps3","ps4","ps5"),
+            new ("DaxsGPLayout_Steam.png", "steam"),
+            new ("DaxsGPLayout_Switch.png", "switch")
+        };
 
         public DaxsSettings()
         {
@@ -95,7 +107,7 @@ namespace Daxs.Settings
             };
 
             // --- Controller info label ---
-            controllerInfoLabel = new Label
+            _gamepadInfoLabel = new Label
             {
                 TextAlignment = TextAlignment.Left,
                 TextColor = Colors.Gray,
@@ -112,7 +124,7 @@ namespace Daxs.Settings
                     new TableRow
                     (
                         new TableCell(toggleSwitch, false),
-                        controllerInfoLabel
+                        _gamepadInfoLabel
                     ),
                 }
             };
@@ -124,9 +136,11 @@ namespace Daxs.Settings
             string[] walk = { "EyeHeight", "MaximalJump" };
             string[] lens = { "LensStep", "LensDefault" };
 
+            _gpImageView = CreateGamepadImageView(ClientSize.Width - 60);
+
             Control[] inputRows =
             {
-                CreateControllerImage(ClientSize.Width - 60),
+                _gpImageView,
                 EtoFactory.CreateGroupExpander("Input Response", input, name => CreateControl(name), true),
                 EtoFactory.CreateContentExpander("Input Layout", AddButtonDropdowns(), true)
             };
@@ -139,10 +153,7 @@ namespace Daxs.Settings
                 EtoFactory.CreateGroupExpander("Lens+-", lens, name => CreateControl(name), true)
             };
 
-            Control[] customRows =
-            {
-                CreateCustom()
-            };
+            Control[] customRows = { CreateMacro() };
 
             TabControl tabs = new()
             {
@@ -173,59 +184,9 @@ namespace Daxs.Settings
             SetGamepadType(DaxsRuntime.Instance.CurrentGamepad);
         }
 
-        private void SetGamepadType(Gamepad gamepad)
-        {
-            controllerInfoLabel.Text = (gamepad != null) ? $"🎮 {gamepad.GpType}, {gamepad.Name} (VID:{gamepad.VendorID}, PID:{gamepad.ProductID})" : "⚠️ No Gamepad detected.";
-
-            foreach (GamepadButton button in inputActions.Keys)
-            {
-                Label label = inputActions[button].Item1;
-                bool hasButton = gamepad != null && gamepad.HasGamepadButton(button);
-
-                label.Enabled = hasButton;
-                label.Text = hasButton ? (gamepad.GetButtonLabel(button) is "Unknown" ? button.ToString() : gamepad.GetButtonLabel(button)) : button.ToString();
-            }
-        }
-
-        void OnOk()
-        {
-            // Persist
-            settings.SaveSettings();
-
-            Result = true;
-
-            DaxsRuntime.Instance.Restart();
-
-            Close();
-            LayoutSystem.Instance.SetToPreviousLayout();
-        }
-
-        void OnDefault()
-        {
-            foreach (IValue iv in settings)
-            {
-                iv.Reset();
-                string name = iv.Name;
-
-                controlBoxes.TryGetValue(name, out Control box);
-
-                if (iv is NumericValue nv && box is NumericStepper stepper)
-                    stepper.Value = nv.DisplayValue;
-                else if (iv is BooleanValue bv && box is CheckBox checkB)
-                    checkB.Checked = bv.Value;
-                else if (iv is TextValue tv)
-                {
-                    if (Enum.TryParse(name, out GamepadButton button) && inputActions.TryGetValue(button, out var abox))
-                        abox.Item2.SelectedKey = tv.Value;
-                    else if (box is TextBox textBox)
-                        textBox.Text = tv.Value;
-                }
-            }
-        }
-
         TableRow CreateControl(string settingsName, string labelName = "")
         {
-            IValue val = settings[settingsName];
+            IValue val = _settings[settingsName];
             Control control = null;
 
             if (val is NumericValue nv)
@@ -238,21 +199,21 @@ namespace Daxs.Settings
                     MaxValue = nv.MaxValue,
                 };
                 box.ValueChanged += (s, e) => nv.DisplayValue = box.Value;
-                controlBoxes[nv.Name] = box;
+                _controlBoxes[nv.Name] = box;
                 control = box;
             }
             else if (val is BooleanValue bv)
             {
                 var box = new CheckBox { Checked = bv.Value };
                 box.CheckedChanged += (s, e) => bv.Value = (bool)box.Checked;
-                controlBoxes[bv.Name] = box;
+                _controlBoxes[bv.Name] = box;
                 control = box;
             }
             else if (val is TextValue tv)
             {
                 var box = new TextBox { Text = tv.Value, PlaceholderText = "Enter Text..." };
                 box.TextChanged += (s, e) => tv.Value = box.Text;
-                controlBoxes[tv.Name] = box;
+                _controlBoxes[tv.Name] = box;
                 control = box;
             }
 
@@ -261,27 +222,115 @@ namespace Daxs.Settings
             return EtoFactory.CreateControlRow(labelName, control);
         }
 
-        static ImageView CreateControllerImage(int targetWidth)
+        void OnOk()
         {
-            Bitmap bmp;
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Daxs.Shared.DaxsGamepadLayout.png"))
-            {
-                bmp = new Bitmap(stream);
-            }
+            _settings.SaveSettings();
 
-            // preserve aspect ratio
+            Result = true;
+
+            DaxsRuntime.Instance.Restart();
+
+            Close();
+            LayoutSystem.Instance.SetToPreviousLayout();
+        }
+
+        void OnDefault()
+        {
+            foreach (IValue iv in _settings)
+            {
+                iv.Reset();
+                string name = iv.Name;
+
+                _controlBoxes.TryGetValue(name, out Control box);
+
+                if (iv is NumericValue nv && box is NumericStepper stepper)
+                    stepper.Value = nv.DisplayValue;
+                else if (iv is BooleanValue bv && box is CheckBox checkB)
+                    checkB.Checked = bv.Value;
+                else if (iv is TextValue tv)
+                {
+                    if (Enum.TryParse(name, out GamepadButton button) && _inputActions.TryGetValue(button, out var abox))
+                        abox.Item2.SelectedKey = tv.Value;
+                    else if (box is TextBox textBox)
+                        textBox.Text = tv.Value;
+                }
+            }
+        }
+
+        #region Daxs Info
+        private ImageView CreateGamepadImageView(int targetWidth)
+        {
+            var bmp = LoadGamepadBitmap(null); // default = Xbox
+
             double aspect = (double)bmp.Width / bmp.Height;
             int w = Math.Max(1, targetWidth);
             int h = (int)Math.Round(w / aspect);
 
-            return new ImageView
-            {
-                Image = bmp,
-                Size = new Size(w, h) // ImageView scales image to control size
-            };
+            return new ImageView { Image = bmp, Size = new Size(w, h) };
         }
 
-        TableRow CreateCustom()
+        private string GetControllerResourceName(Gamepad gamepad)
+        {
+            if (gamepad == null)
+                return _gpDefaultResName;
+
+            string type = gamepad.GpType.ToLowerInvariant();
+
+            //string name = gamepad.Name.ToLowerInvariant();
+            //RhinoApp.WriteLine("Type: " +type + ", Name: " + name);
+
+            foreach (GpResource res in _gpResources)
+            {
+                foreach (string filter in res.Filters)
+                    if (type.Contains(filter))
+                        return res.Name;
+            }
+
+            // Default xBox fallback
+            return _gpDefaultResName;
+        }
+
+        private Bitmap LoadGamepadBitmap(Gamepad gamepad)
+        {
+            string resourceName = GetControllerResourceName(gamepad);
+
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+            if (stream == null)
+                throw new Exception($"Embedded resource not found: {resourceName}");
+
+            return new Bitmap(stream);
+        }
+
+        private void SetGamepadType(Gamepad gamepad)
+        {
+            _gamepadInfoLabel.Text = (gamepad != null) ? $"🎮 {gamepad.GpType}, {gamepad.Name} (VID:{gamepad.VendorID}, PID:{gamepad.ProductID})" : "⚠️ No Gamepad detected.";
+
+            // Update controller image
+            if (_gpImageView != null)
+            {
+                var bmp = LoadGamepadBitmap(gamepad);
+
+                double aspect = (double)bmp.Width / bmp.Height;
+                int w = Math.Max(1, ClientSize.Width - 60);
+                int h = (int)Math.Round(w / aspect);
+
+                _gpImageView.Image = bmp;
+                _gpImageView.Size = new Size(w, h);
+            }
+
+            foreach (GamepadButton button in _inputActions.Keys)
+            {
+                Label label = _inputActions[button].Item1;
+                bool hasButton = gamepad != null && gamepad.HasGamepadButton(button);
+
+                label.Enabled = hasButton;
+                label.Text = hasButton ? (gamepad.GetButtonLabel(button) is "Unknown" ? button.ToString() : gamepad.GetButtonLabel(button)) : button.ToString();
+            }
+        }
+        #endregion
+
+        #region Macros
+        TableRow CreateMacro()
         {
             int cCount = 6;
             var innerLayout = EtoFactory.CreateLayout();
@@ -290,13 +339,13 @@ namespace Daxs.Settings
             {
                 var layout = EtoFactory.CreateLayout();
 
-                TableRow nameRow = CreateControl($"C{i}_Name", "Name");
+                TableRow nameRow = CreateControl($"Macro{i}_Name", "Name");
                 layout.Add(nameRow);
-                layout.Add(CreateControl($"C{i}_Function", "RhinoScript"));
-                layout.Add(CreateControl($"C{i}_SimulateKeys", "Simulate keys"));
+                layout.Add(CreateControl($"Macro{i}_Function", "RhinoScript"));
+                layout.Add(CreateControl($"Macro{i}_SimulateKeys", "Simulate keys"));
 
                 var textBox = (TextBox)nameRow.Cells[1].Control;
-                var subExpander = CreateCustomExpander($"Custom {i}", $"C{i}", layout, textBox);
+                var subExpander = CreateMacroExpander($"Macro {i}", $"Macro{i}", layout, textBox);
 
                 innerLayout.Add(subExpander);
             }
@@ -306,7 +355,7 @@ namespace Daxs.Settings
             return new TableRow(mainExpander);
         }
 
-        internal Expander CreateCustomExpander(string header, string tag, DynamicLayout content, TextBox boundTextBox)
+        internal Expander CreateMacroExpander(string header, string tag, DynamicLayout content, TextBox boundTextBox)
         {
             Label label = new();
             string MakeHeader() => $"{header}{(string.IsNullOrEmpty(boundTextBox.Text) ? "" : " - ")}{boundTextBox.Text}";
@@ -319,7 +368,7 @@ namespace Daxs.Settings
             {
                 string tag = (string)label.Tag;
                 BindingId action = Enum.Parse<BindingId>(tag);
-                actionTable[action] = label.Text;
+                _actionTable[action] = label.Text;
 
                 SyncActionDropDowns();
             }
@@ -339,6 +388,8 @@ namespace Daxs.Settings
                 Padding = new Padding(0, 0, 0, 0)
             };
         }
+
+        #endregion
 
         #region Dropdown
 
@@ -366,16 +417,16 @@ namespace Daxs.Settings
             _syncDropwon = true;
 
             // Master order to respect (SortedDictionary already provides a stable order)
-            var masterOrder = actionTable.Keys.ToList();
-            var actionToText = actionTable;
+            var masterOrder = _actionTable.Keys.ToList();
+            var actionToText = _actionTable;
 
             // Collect taken actions per other dropdowns
             var takenByDropdown = new Dictionary<DropDown, HashSet<BindingId>>();
-            foreach (var kvA in inputActions)
+            foreach (var kvA in _inputActions)
             {
                 DropDown dropdownA = kvA.Value.Item2;
                 HashSet<BindingId> set = new();
-                foreach (var kvB in inputActions)
+                foreach (var kvB in _inputActions)
                 {
                     var dropdownB = kvB.Value.Item2;
                     if (dropdownB == dropdownA) // exclude self
@@ -388,7 +439,7 @@ namespace Daxs.Settings
             }
 
             // Rebuild each dropdown in the same order
-            foreach (var kv in inputActions)
+            foreach (var kv in _inputActions)
             {
                 GamepadButton button = kv.Key;
                 DropDown dropdown = kv.Value.Item2;
@@ -413,7 +464,7 @@ namespace Daxs.Settings
 
                 dropdown.SelectedKey = myAction.ToString();
 
-                if (settings[button.ToString()] is TextValue tVal)
+                if (_settings[button.ToString()] is TextValue tVal)
                     tVal.Value = dropdown.SelectedKey;
             }
 
@@ -429,7 +480,7 @@ namespace Daxs.Settings
 
             string buttonName = button.ToString();
 
-            TextValue tVal = (TextValue)settings[buttonName];
+            TextValue tVal = (TextValue)_settings[buttonName];
 
             string selectedKey = tVal.Value;
 
@@ -438,9 +489,9 @@ namespace Daxs.Settings
 
             DropDown dropdown = new() { };
 
-            foreach (var key in actionTable.Keys)
+            foreach (var key in _actionTable.Keys)
             {
-                string text = actionTable[key];
+                string text = _actionTable[key];
                 dropdown.Items.Add(text, key.ToString());
             }
 
@@ -456,7 +507,7 @@ namespace Daxs.Settings
             TableRow tr = EtoFactory.CreateControlRow(buttonName, dropdown);
             Label label = (Label)tr.Cells[0].Control;
 
-            inputActions.Add(button, new Tuple<Label, DropDown>(label, dropdown));
+            _inputActions.Add(button, new Tuple<Label, DropDown>(label, dropdown));
             return tr;
         }
 
