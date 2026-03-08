@@ -1,6 +1,6 @@
 # Daxs
 
-**Daxs** is a Rhino plugin/package that brings full, modern gamepad support to Rhino.
+**Daxs** is a Rhino plugin/package/app that brings gamepad support to Rhino.
 
 It is built on top of SDL 3 (via a SDL3-CS wrapper) and supports hundreds of gamepad models and variants out of the box — automatically using SDL’s unified input layer.
 
