@@ -4,7 +4,7 @@
 
 It is built on top of SDL 3 (via a SDL3-CS wrapper) and supports hundreds of gamepad models and variants out of the box — automatically using SDL’s unified input layer.
 
-Daxs is designed to give Rhino a stable gamepad interface with ergonomic APIs and customizable mappings
+Daxs is designed to give Rhino a stable gamepad interface and customizable mappings
 
 ## Key Features
 
