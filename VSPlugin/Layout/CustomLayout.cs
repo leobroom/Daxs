@@ -2,8 +2,9 @@
 using Rhino;
 using Daxs.Actions;
 using Daxs.GUI;
-using static SDL3.SDL;
 using Daxs.Settings;
+
+using static SDL3.SDL;
 
 namespace Daxs.Layout
 {
@@ -18,7 +19,7 @@ namespace Daxs.Layout
         private double _angleDeg = -1;
         private double _lastAngle = -1;
 
-        public CustomLayout() : base() 
+        public CustomLayout() : base()
         {
             _speedFactor = (NumericValue)settings["SpeedFactor"];
         }
@@ -45,8 +46,6 @@ namespace Daxs.Layout
             _angleDeg = -1;
             _lastAngle = -1;
         }
-
-
 
         enum KnobState
         {
@@ -132,9 +131,9 @@ namespace Daxs.Layout
                     break;
             }
 
-            _speedFactorVal = (_lastAngle ==-1) ? _speedFactorVal : NormalizeNumber(_lastAngle);
+            _speedFactorVal = (_lastAngle == -1) ? _speedFactorVal : NormalizeNumber(_lastAngle);
 
-            OverlayRenderer.Instance.SetDonut("FLIGHT\nSPEED", _speedFactorVal, clMin, clMax, 200);
+            OverlayRenderer.Instance.SetDonut("CHANGE\nSPEED", _speedFactorVal, clMin, clMax, 200);
 
             if ((actionManager.HasActions) && sinceLastUi >= uiDt && !_uiUpdatePending)
             {
@@ -149,7 +148,7 @@ namespace Daxs.Layout
             }
         }
 
-        double NormalizeNumber(double current) 
+        double NormalizeNumber(double current)
         {
             double clamped = Math.Clamp(current, clMin, clMax);
 
@@ -161,14 +160,14 @@ namespace Daxs.Layout
             return Math.Round(val, 1);
         }
 
-        void ChangeAngle() 
+        void ChangeAngle()
         {
             int last = (int)Math.Floor(NormalizeNumber(_angleDeg));
             int current = (int)Math.Floor(NormalizeNumber(_lastAngle));
 
             _lastAngle = _angleDeg;
-          
-            if(current != last)
+
+            if (current != last)
                 DaxsRuntime.Instance.RumbleGamepad(0, 30000, 20);
         }
     }

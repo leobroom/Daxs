@@ -95,7 +95,6 @@ namespace Daxs.Settings
 
             LoadSettings();
         }
-
         private void Add(BindingId rnum, double defaultValue, double displayFactor, double minValue, double maxValue) => Add(rnum.ToString(), defaultValue, displayFactor,  minValue,  maxValue);
         private void Add(string name, double defaultValue, double displayFactor, double minValue, double maxValue, int decimalPlaces = 0) => iValues[name] = new NumericValue(defaultValue, displayFactor, name,  minValue,  maxValue, decimalPlaces); 
         private void Add(string name, bool defaultValue)=> iValues[name] = new BooleanValue(defaultValue, name); 
@@ -114,7 +113,6 @@ namespace Daxs.Settings
         #region Bindings
 
         public double BindNumeric(BindingId key, Action<double> assign) => BindNumeric(key.ToString(), assign);
-
 
         public double BindNumeric(string key, Action<double> assign)
         {

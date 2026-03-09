@@ -1,5 +1,4 @@
 ﻿using Daxs.Layout;
-using Rhino;
 
 namespace Daxs.Actions
 {
@@ -17,9 +16,6 @@ namespace Daxs.Actions
             if (_entered) return;
             _entered = true;
 
-            RhinoApp.WriteLine("Change speed");
-
-
             ActionGate.Instance.EnterModal(this);
 
             // Switch layout + notify it
@@ -32,8 +28,6 @@ namespace Daxs.Actions
 
         protected override void OnDeactivated()
         {
-            RhinoApp.WriteLine("Change speed STOP");
-
             // Layout cleanup
             var lm = LayoutSystem.Instance;
 

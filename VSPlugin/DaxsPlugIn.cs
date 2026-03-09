@@ -7,13 +7,13 @@ using System;
 
 namespace Daxs
 {
-    public class DaxPlugIn : PlugIn
+    public class DaxsPlugIn : PlugIn
     {
-        public DaxPlugIn(){Instance = this;}
+        public DaxsPlugIn(){Instance = this;}
 
         public override PlugInLoadTime LoadTime => PlugInLoadTime.AtStartup;
 
-        public static DaxPlugIn Instance { get; private set; }
+        public static DaxsPlugIn Instance { get; private set; }
 
         protected override LoadReturnCode OnLoad(ref string errorMessage)
         {
@@ -46,13 +46,13 @@ namespace Daxs
         {
             RhinoApp.InvokeOnUiThread((Action)(() =>
             {
-                RhinoApp.WriteLine($"Write Dax data into Document...");
+                RhinoApp.WriteLine($"Write Daxs data into Document...");
             }));
 
             archive.Write3dmChunkVersion(Major, Minor);
 
             var dict = new ArchivableDictionary();
-            dict.Set("DaxNavMeshGuid", NavigationManager.Instance.NavMeshId);
+            dict.Set("DaxsNavMeshGuid", NavigationManager.Instance.NavMeshId);
 
             archive.WriteDictionary(dict);
         }
@@ -68,7 +68,7 @@ namespace Daxs
 
             try
             {
-                Guid navMeshId = dict.GetGuid("DaxNavMeshGuid");
+                Guid navMeshId = dict.GetGuid("DaxsNavMeshGuid");
 
                 bool isSuccess = NavigationManager.Instance.SetMeshById(navMeshId);
                 if (!isSuccess)
