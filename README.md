@@ -32,16 +32,16 @@ Coming soon:
 
 MIT License. See "MIT license" for details.
 
-##Third-Party Dependencies
+## Third-Party Dependencies
 
-Daxs uses:
-
-### SDL 3
-[Github page](https://github.com/libsdl-org/SDL)
+### SDL3
+[Github page](https://github.com/libsdl-org/SDL)  
 Copyright © [Sam Lantinga](slouken@libsdl.org)  
 Licensed under the zlib License  
-
-
-- SDL 3 – zlib License
-- SDL3-CS Wrapper – zlib License
-- RhinoCommon SDK – © Robert McNeel & Associates
+### SDL3-CS Wrapper
+[Github page](https://github.com/edwardgushchin/SDL3-CS)  
+Copyright © [Eduard Gushchin](eduardgushchin@yandex.ru)  
+Licensed under the zlib License  
+### RhinoCommon SDK
+[developer.rhino3d.com](https://developer.rhino3d.com/)
+© Robert McNeel & Associates
