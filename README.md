@@ -30,7 +30,7 @@ Coming soon:
 
 ## License
 
-MIT License. See ["MIT license"](https://github.com/leobroom/Daxs/blob/main/LICENSE) for details.
+MIT License. See [MIT license](https://github.com/leobroom/Daxs/blob/main/LICENSE) for details.
 
 ## Third-Party Dependencies
 ### SDL3
