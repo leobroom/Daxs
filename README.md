@@ -35,12 +35,12 @@ MIT License. See ["MIT license"](https://github.com/leobroom/Daxs/blob/main/LICE
 ## Third-Party Dependencies
 ### SDL3
 [Github page](https://github.com/libsdl-org/SDL)  
-Copyright © [Sam Lantinga](slouken@libsdl.org)  
+Copyright © Sam Lantinga  
 Licensed under the zlib License  
 ### SDL3-CS Wrapper
 [Github page](https://github.com/edwardgushchin/SDL3-CS)  
-Copyright © [Eduard Gushchin](eduardgushchin@yandex.ru)  
+Copyright © Eduard Gushchin  
 Licensed under the zlib License  
 ### RhinoCommon SDK
-[developer.rhino3d.com](https://developer.rhino3d.com/)  
+https://developer.rhino3d.com/  
 © Robert McNeel & Associates
