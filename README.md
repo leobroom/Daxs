@@ -10,7 +10,7 @@ Daxs is designed to give Rhino a stable gamepad interface with ergonomic APIs an
 
 ### Massive Gamepad Support
 
-Daxs supports theoretically **hundreds of** gamepads thanks to SDL 3’s controller database:
+Daxs supports theoretically hundreds of gamepads thanks to SDL 3’s controller database:
 
 - Xbox 360 / Xbox One / Xbox Series
 - PlayStation 4 / PlayStation 5
