@@ -1,4 +1,5 @@
 # Daxs
+> ⚠️ **Early Development Version:** Daxs is currently in a very early stage and features, behavior, and APIs may change significantly.
 
 **Daxs** is a Rhino plugin/package/app that brings gamepad support to Rhino.
 
@@ -32,8 +33,9 @@ With gamepad support, navigation through geometry becomes significantly smoother
 - Fully Customizable Button Mapping, including Rhino macros
  
 ## Installation
-Coming soon: 
-- packaged .yak installer for Rhino.
+- packaged .yak installer for Rhino for now.
+- Food For Rhino: Comming soon...
+- Package Manager: Comming soon...
 
 ## License
 MIT License. See [MIT license](https://github.com/leobroom/Daxs/blob/main/LICENSE) for details.
