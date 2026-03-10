@@ -1,0 +1,11 @@
+This software includes third-party components:
+
+SDL3
+https://github.com/libsdl-org/SDL
+Copyright (c) Sam Lantinga
+Licensed under the zlib License.
+
+SDL3-CS
+https://github.com/edwardgushchin/SDL3-CS
+Copyright (c) Eduard Gushchin
+Licensed under the zlib License.

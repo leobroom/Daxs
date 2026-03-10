@@ -6,7 +6,7 @@
     <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>0.1.832</Version>
+    <Version>0.2.1</Version>
     <Title>Daxs</Title>
     <Company>Leon Brohmann</Company>
     <Description>Daxs is a Rhino App that enables support for gamepad input, making it easier to integrate Xbox and PlayStation 4 controllers into your Rhino workflows or plugins.</Description>
@@ -63,6 +63,8 @@
     <Message Text="Copying license from $(LicenseSource) to $(LicenseDestination)" Importance="High" />
     <Copy SourceFiles="$(LicenseSource)" DestinationFiles="$(LicenseDestination)" Condition="Exists('$(LicenseSource)')" />
   </Target>
+	<!-- increase version
+	
   <Target Name="IncrementVersion" BeforeTargets="BeforeBuild">
     <PropertyGroup>
       <CurrentVersion>$(Version)</CurrentVersion>
@@ -73,7 +75,6 @@
       <NewVersion>$(Major).$(Minor).$(NewPatch)</NewVersion>
       <BumpScript>$([System.IO.Path]::Combine('$(IntermediateOutputPath)', 'bump-version.ps1'))</BumpScript>
     </PropertyGroup>
-    <!-- Build the PS script line-by-line with NO angle brackets -->
     <ItemGroup>
       <_BumpScriptLines Include="$p = '$(MSBuildProjectFullPath)'" />
       <_BumpScriptLines Include="[xml]$xml = Get-Content -LiteralPath $p" />
@@ -86,7 +87,9 @@
     <Exec Condition="$([MSBuild]::IsOSPlatform('Windows'))" Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(BumpScript)&quot;" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) Or $([MSBuild]::IsOSPlatform('Linux'))" Command="pwsh -NoProfile -File &quot;$(BumpScript)&quot;" />
   </Target>
-  <Target Name="BuildYakPackage" AfterTargets="DispatchToInnerBuilds">
+	-->
+
+	<Target Name="BuildYakPackage" AfterTargets="DispatchToInnerBuilds">
     <PropertyGroup>
       <YakExecutable Condition="$(YakExecutable) == '' and $([MSBuild]::IsOSPlatform(windows)) and Exists('C:\Program Files\Rhino 8\System\Yak.exe')">C:\Program Files\Rhino 8\System\Yak.exe</YakExecutable>
       <YakExecutable Condition="$(YakExecutable) == '' and $([MSBuild]::IsOSPlatform(macos)) and Exists('/Applications/Rhino 8.app/Contents/Resources/bin/yak')">/Applications/Rhino 8.app/Contents/Resources/bin/yak</YakExecutable>
