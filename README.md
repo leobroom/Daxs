@@ -1,16 +1,13 @@
 # Daxs
+> ⚠️ **Early Development Version:** Daxs is currently in a very early stage and features, behavior, and APIs may change significantly.
 
 **Daxs** is a Rhino plugin/package/app that brings gamepad support to Rhino.
 
-It is built on top of SDL 3 (via a SDL3-CS wrapper) and supports hundreds of gamepad models and variants out of the box — automatically using SDL’s unified input layer.
+Daxs makes navigating and interacting with Rhino feel as fluid and natural as moving inside a 3D game engine. It is designed to give Rhino a stable gamepad interface and customizable mappings, **without intefering with Rhinos functionality**.
 
-Daxs is designed to give Rhino a stable gamepad interface and customizable mappings
-
-## Key Features
-
-### Massive Gamepad Support
-
-Daxs supports theoretically hundreds of gamepads thanks to SDL 3’s controller database:
+## Gamepads supported
+Daxs is built on top of SDL 3 (via a SDL3-CS wrapper) and supports hundreds of gamepad models and variants out of the box — automatically using SDL’s unified input layer.
+Supported Gamepads:
 
 - Xbox 360 / Xbox One / Xbox Series
 - PlayStation 4 / PlayStation 5
@@ -24,12 +21,23 @@ Daxs supports theoretically hundreds of gamepads thanks to SDL 3’s controller 
 
 SDL automatically normalizes controller layouts → Daxs does the rest to communicate with Rhino.
 
+## WHY
+Navigating precicely complex models can sometimes be frustrating, especially within enclosed interior geometries such as architectural models.
+With gamepad support, navigation through geometry becomes significantly smoother and more natural (for us gamers). Most people already have spare controllers lying around. Simply plug in an old one and start using it.
+
+## Key Features
+- Free-flight navigation through the Rhino scene.
+- Walk mode - Movement constrained to a ground plane or a navigation mesh.
+- Plug and Play! Connect a gamepad over bluetooth - thats it! It will be automatically recognised.
+- No movement, no loose on performance. Daxs runs a high-frequency input runtime that processes controller input independently of Rhino's UI thread.
+- Fully Customizable Button Mapping, including Rhino macros
+ 
 ## Installation
-Coming soon: 
-- packaged .yak installer for Rhino.
+- packaged .yak installer for Rhino for now.
+- Food For Rhino: Comming soon...
+- Package Manager: Comming soon...
 
 ## License
-
 MIT License. See [MIT license](https://github.com/leobroom/Daxs/blob/main/LICENSE) for details.
 
 ## Third-Party Dependencies
