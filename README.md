@@ -21,7 +21,7 @@ Supported Gamepads:
 
 SDL automatically normalizes controller layouts → Daxs does the rest to communicate with Rhino.
 
-## WHY
+## Why
 Navigating precicely complex models can sometimes be frustrating, especially within enclosed interior geometries such as architectural models.
 With gamepad support, navigation through geometry becomes significantly smoother and more natural (for us gamers). Most people already have spare controllers lying around. Simply plug in an old one and start using it.
 
