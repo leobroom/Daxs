@@ -292,9 +292,9 @@ namespace Daxs.Settings
 
         private Bitmap LoadGamepadBitmap(Gamepad gamepad)
         {
-            string resourceName = GetControllerResourceName(gamepad);
+            string resourceName = "Shared/" + GetControllerResourceName(gamepad);
 
-            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream( resourceName);
             if (stream == null)
                 throw new Exception($"Embedded resource not found: {resourceName}");
 
