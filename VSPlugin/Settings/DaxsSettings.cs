@@ -292,7 +292,7 @@ namespace Daxs.Settings
 
         private Bitmap LoadGamepadBitmap(Gamepad gamepad)
         {
-            string resourceName = "Shared/" + GetControllerResourceName(gamepad);
+            string resourceName = "Daxs.Shared." + GetControllerResourceName(gamepad);
 
             using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream( resourceName);
             if (stream == null)
