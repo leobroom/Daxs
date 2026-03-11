@@ -41,13 +41,13 @@ With gamepad support, navigation through geometry becomes significantly smoother
 _WORK IN PROGRESS_
 
 ### Commands
-#### Daxs Fly
+#### Daxs: Fly
 Switch to Fly Mode. Free-flight navigation through the Rhino viewport.
-#### Daxs Walk
+#### Daxs: Walk
 Switch to Walk Mode. Movement constrained to a ground plane or a Mesh. (Set Navigation mesh before).
-#### Daxs Set Collision
+#### Daxs: Set Collision
 Set Navigation Mesh for Walk Mode
-#### Daxs Clear navigation mesh
+#### Daxs: Clear navigation mesh
 Removes the navigation mesh from memory.
 
 ## License
