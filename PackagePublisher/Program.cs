@@ -4,11 +4,14 @@ namespace PackagePublisher
 {
     internal class Program
     {
+
+        //Check https://developer.rhino3d.com/guides/yak/pushing-a-package-to-the-server/
         static void Main(string[] args)
         {
             string yakExe = @"C:\Program Files\Rhino 8\System\Yak.exe";
             string yakFolder = @"C:\Git\Daxs\VSPlugin\bin\Release";
-            string source = "https://test.yak.rhino3d.com";
+            string source = "https://yak.rhino3d.com";
+            //string source = "https://test.yak.rhino3d.com";
 
             Console.WriteLine("yak Folder: " + yakFolder);
             Console.WriteLine("yak Server: " + source + "\n");
