@@ -44,7 +44,7 @@ _WORK IN PROGRESS_
 #### Daxs Fly
 Switch to Fly Mode. Free-flight navigation through the Rhino viewport.
 #### Daxs Walk
-Switch to Walk Mode. Movement constrained to a ground plane or a Mesh. (Set Navigation mesh before)
+Switch to Walk Mode. Movement constrained to a ground plane or a Mesh. (Set Navigation mesh before).
 
 ## License
 MIT License. See [MIT license](https://github.com/leobroom/Daxs/blob/main/LICENSE) for details.
