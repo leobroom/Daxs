@@ -52,6 +52,7 @@ namespace Daxs.Settings
                 Add(b, BindingId.Unset);
 
             Add(GamepadButton.Start, BindingId.Macro1);
+            Add(GamepadButton.Back, BindingId.ChangeSpeed);
 
             Add(GamepadButton.North, BindingId.NextView);
             Add(GamepadButton.West, BindingId.NextViewport);
@@ -72,12 +73,12 @@ namespace Daxs.Settings
             Add(GamepadButton.DPadLeft, BindingId.LensMinus);
             Add(GamepadButton.DPadRight, BindingId.LensPlus);
 
-            //Custom1
+            //Macro1
             Add("Macro1_Name", "DaxsSettings");
             Add("Macro1_Function", "_Daxs_Settings");
             Add("Macro1_SimulateKeys", true);
 
-            //Custom2
+            //Macro2
             Add("Macro2_Name", "ViewCaptureToFile");
             Add("Macro2_Function", "_ViewCaptureToFile");
             Add("Macro2_SimulateKeys", true);
