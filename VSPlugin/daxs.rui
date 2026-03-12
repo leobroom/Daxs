@@ -28,67 +28,68 @@
     </tool_bar>
   </tool_bars>
   <macros>
+	  
     <macro_item guid="7b7a686d-dfda-4ce8-b844-1a5fb24faaf7" bitmap_id="536bec01-4a37-43dd-807e-19f82fdb7a82">
       <text>
-        <locale_1033>Daxs Fly</locale_1033>
+        <locale_1033>Daxs: Fly</locale_1033>
       </text>
       <tooltip>
-        <locale_1033>Daxs: Fly mode let's you fly around.</locale_1033>
+        <locale_1033>Fly Mode. Free-flight navigation through the Rhino viewport.</locale_1033>
       </tooltip>
       <script>_Daxs_Fly</script>
     </macro_item>
+	  
     <macro_item guid="04677d08-d666-45fd-a353-e727c40e300e" bitmap_id="b701c53b-e20c-40e6-8d0b-dad6f4507e0b">
       <text>
-        <locale_1033>Daxs clear navigation mesh</locale_1033>
+        <locale_1033>Daxs: Clear navigation mesh</locale_1033>
       </text>
+		<tooltip>
+			<locale_1033>Clear navigation mesh. Removes the navigation mesh from memory.</locale_1033>
+		</tooltip>
       <script>_Daxs_ClearNavigationMesh</script>
     </macro_item>
+	  
     <macro_item guid="5ea940d3-3f09-49f8-bd18-a7a134a7e1b9" bitmap_id="f0c85589-764a-4122-8cb0-07d117512888">
       <text>
-        <locale_1033>Daxs Start Stop</locale_1033>
+        <locale_1033>Daxs: Start/Stop</locale_1033>
       </text>
       <tooltip>
-        <locale_1033>Daxs: Start/Stop Gamepad Input</locale_1033>
+        <locale_1033>Start/Stop Daxs runtime</locale_1033>
       </tooltip>
-      <button_text>
-        <locale_1033>Daxs: Start/Stop</locale_1033>
-      </button_text>
       <script>Daxs_StartStop</script>
     </macro_item>
+	  
     <macro_item guid="6b29f6a9-bef3-4bc4-a8fd-913badb75f48" bitmap_id="4a213ab5-a452-4c91-81f5-08551ac5fe55">
       <text>
-        <locale_1033>Daxs Walk Mode</locale_1033>
+        <locale_1033>Daxs: Walk</locale_1033>
       </text>
       <tooltip>
-        <locale_1033>Daxs: Walk Mode on a plane or Mesh (Set Collision for that before )</locale_1033>
+        <locale_1033>Walk Mode. Movement constrained to a ground plane or a Mesh. (Set Navigation mesh before).</locale_1033>
       </tooltip>
-      <help_text>
-        <locale_1033>Daxs Walk</locale_1033>
-      </help_text>
-      <button_text>
-        <locale_1033>Daxs Walk</locale_1033>
-      </button_text>
-      <menu_text>
-        <locale_1033>Daxs Walk</locale_1033>
-      </menu_text>
       <script>_Daxs_Walk</script>
+		
     </macro_item>
     <macro_item guid="066c6bb0-7fb6-474d-9625-7e839b3b2990" bitmap_id="111cbd7e-a24a-47b8-b441-f77207c32cd3">
       <text>
-        <locale_1033>Daxs Settings</locale_1033>
+        <locale_1033>Daxs: Settings</locale_1033>
       </text>
+		<tooltip>
+			<locale_1033>Daxs Settings</locale_1033>
+		</tooltip>
       <script>_Daxs_Settings</script>
     </macro_item>
+	  
     <macro_item guid="e27ab4c7-152c-4723-b49a-c92de7a027eb" bitmap_id="0109713b-edb3-4d7c-bac9-2d714016e6cb">
       <text>
-        <locale_1033>Daxs Set Collision</locale_1033>
+        <locale_1033>Daxs: Set Collision</locale_1033>
       </text>
       <tooltip>
-        <locale_1033>Daxs: Set floor collision for Walk Mode</locale_1033>
+        <locale_1033>Set Navigation Mesh for Walk Mode</locale_1033>
       </tooltip>
       <script>_Daxs_SetCollisionMesh</script>
     </macro_item>
   </macros>
+	
   <icons>
     <icon guid="f0c85589-764a-4122-8cb0-07d117512888" name="f0c85589-764a-4122-8cb0-07d117512888.svg">
       <light><svg width="48" height="48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0pt 0pt 48pt 48pt" fill-dark="#FFF" stroke-dark="none">
