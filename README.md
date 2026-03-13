@@ -1,4 +1,4 @@
-# Daxs
+# ![Daxs Logo](Resources/icon.png) Daxs
 > ⚠️ **Early Development Version:** Daxs is currently in a very early stage and features, behavior, and APIs may change significantly.
 
 **Daxs** is a Rhino plugin/package/app that brings gamepad support to Rhino.
