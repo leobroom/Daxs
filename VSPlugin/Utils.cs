@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Rhino.PlugIns;
 
 namespace Daxs
@@ -51,6 +53,22 @@ namespace Daxs
         {
             string folder = GetPackageFolderPath();
             return Path.Combine(folder,"Shared", fileName);
+        }
+
+        /// <summary>
+        /// Gets Bitmap from the Shared Folder
+        /// </summary>
+        /// <param name="filename">filename with ending</param>
+        public static Bitmap GetSharedBitmap(string filename) 
+        {
+            Bitmap bmp = null;
+
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Daxs.Shared." + filename))
+            {
+                bmp = new Bitmap(stream);
+            }
+
+            return bmp;
         }
     }
 }
