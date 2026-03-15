@@ -23,7 +23,7 @@ namespace Daxs.Layout
         protected readonly RhinoDoc doc = RhinoDoc.ActiveDoc;
         protected readonly DaxsConfig settings = DaxsConfig.Instance;
         protected readonly ActionDispatcher actionManager = ActionDispatcher.Instance;
-        protected readonly OverlayRenderer hud = OverlayRenderer.Instance;
+        protected readonly HUD hud = HUD.Instance;
 
         protected double deadzone, yawSensitivity, pitchSensitivity, speedFactor;
 

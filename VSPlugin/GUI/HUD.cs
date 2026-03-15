@@ -10,10 +10,10 @@ using Daxs.Settings;
 
 namespace Daxs.GUI
 {
-    internal sealed class OverlayRenderer : DisplayConduit
+    internal sealed class HUD : DisplayConduit
     {
-        private static readonly Lazy<OverlayRenderer> _instance = new(() => new OverlayRenderer());
-        public static OverlayRenderer Instance => _instance.Value;
+        private static readonly Lazy<HUD> _instance = new(() => new HUD());
+        public static HUD Instance => _instance.Value;
 
         private readonly DaxsConfig  _settings = DaxsConfig.Instance;
         private readonly Stopwatch _sw = new();
@@ -90,7 +90,7 @@ namespace Daxs.GUI
 
         #endregion
 
-        private OverlayRenderer()
+        private HUD()
         {
             _textVisible = _settings.BindBoolean("TextVisible", v => _textVisible = v);
 

@@ -133,7 +133,7 @@ namespace Daxs.Layout
 
             _speedFactorVal = (_lastAngle == -1) ? _speedFactorVal : NormalizeNumber(_lastAngle);
 
-            OverlayRenderer.Instance.SetDonut("CHANGE\nSPEED", _speedFactorVal, clMin, clMax, 200);
+            HUD.Instance.SetDonut("CHANGE\nSPEED", _speedFactorVal, clMin, clMax, 200);
 
             if ((actionManager.HasActions) && sinceLastUi >= uiDt && !_uiUpdatePending)
             {

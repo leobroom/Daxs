@@ -38,7 +38,7 @@ namespace Daxs
 
         private readonly ActionDispatcher _actions = ActionDispatcher.Instance;
         private readonly LayoutSystem _layout = LayoutSystem.Instance;
-        private readonly OverlayRenderer _hud = OverlayRenderer.Instance;
+        private readonly HUD _hud = HUD.Instance;
         private readonly Bitmap _daxsIcon = Utils.GetSharedBitmap("icon.png");
 
         //Loop
