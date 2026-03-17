@@ -63,7 +63,6 @@ namespace Daxs.Layout
             }
             else 
             {
-                RhinoApp.WriteLine("ClosestPoint");
                 pos.Z -= eyeHeight;
                 pos = colMsh.ClosestPoint(pos);
                 pos.Z += eyeHeight;
