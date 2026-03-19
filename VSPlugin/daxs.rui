@@ -86,7 +86,7 @@
       <tooltip>
         <locale_1033>Set Navigation Mesh for Walk Mode</locale_1033>
       </tooltip>
-      <script>_Daxs_SetCollisionMesh</script>
+      <script>_Daxs_SetNavigationMesh</script>
     </macro_item>
   </macros>
 	
