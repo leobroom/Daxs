@@ -76,7 +76,7 @@ namespace Daxs
 
                 RhinoApp.InvokeOnUiThread((Action)(() =>
                 {
-                    RhinoApp.WriteLine($"DAXS Navigationmesh found in file! Loaded: {navMeshId}");
+                    RhinoApp.WriteLine($"Successfully read Daxs navigation mesh: {navMeshId}");
                 }));
             }
             catch (Exception)
