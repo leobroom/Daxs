@@ -108,8 +108,12 @@ namespace Daxs.Layout
 
             lst.Sort();
             double addZ = (teleport == InputY.Up) ? GetNextUp(lst, eyeHeight) : GetNextDown(lst, eyeHeight);
-            if (addZ != 0 && teleport!= InputY.Default)
+            if (addZ != 0 && teleport != InputY.Default) 
+            {
+                DaxsRuntime.Instance.RumbleGamepad(12000, 22000, 60);
                 hud.SetText("🎮", "Teleport " + teleport.ToString());
+            }
+             
 
             pos.Z += addZ;
         }
