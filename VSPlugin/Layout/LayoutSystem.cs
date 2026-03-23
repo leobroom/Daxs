@@ -49,6 +49,10 @@ namespace Daxs.Layout
                 previousLayout = (previousLayout == null) ? layout : currentLayout;
                 //RhinoApp.WriteLine("SetLayout:" + name);
                 currentLayout = layout;
+
+                if (currentLayout.Name == LayoutType.Walk)
+                    ((WalkLayout)currentLayout).EnforceMovement = true;
+
             }
         }
 

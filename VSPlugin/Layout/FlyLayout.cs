@@ -18,6 +18,8 @@ namespace Daxs.Layout
             hud.Enabled = true;        
         }
 
+        public bool EnforceMovement = false; 
+
         protected double moveSpeed, elevateSpeed;
 
         protected Plane camPlane;
@@ -79,7 +81,7 @@ namespace Daxs.Layout
                 yawAcc = newYaw;
             }
 
-            if (hasMoved)
+            if (hasMoved || EnforceMovement)
             {
                 yawAcc += yaw * yawSensitivity * delta * rotSpeedMulti;
                 pitchAcc += pitch * pitchSensitivity * delta * rotSpeedMulti;
@@ -96,7 +98,7 @@ namespace Daxs.Layout
 
             actionManager.QueueActions();
 
-            if ((hasMoved || actionManager.HasActions) && sinceLastUi >= uiDt && !_uiUpdatePending)
+            if ((hasMoved || EnforceMovement || actionManager.HasActions) && sinceLastUi >= uiDt && !_uiUpdatePending)
             {
                 _uiUpdatePending = true;
 
@@ -109,8 +111,9 @@ namespace Daxs.Layout
 
                     actionManager.ExecuteActionsOnMainThread();
 
-                    if (hasMoved) 
+                    if (hasMoved || EnforceMovement) 
                     {
+                        EnforceMovement = false;
                         if (!vp.IsPlanView)
                         {
                             //RhinoApp.WriteLine("" + vp + " | " + forward + " | " + strafe + " | " + vertical + " | " + pitch + " | " + moveSpeed + " | " + delta);
