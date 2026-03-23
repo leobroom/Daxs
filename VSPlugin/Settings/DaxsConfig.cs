@@ -21,12 +21,14 @@ namespace Daxs.Settings
             Add("AutoStart", true);
 
             //Gamepad
-            Add("YawSensitivity", 1, 100,1,1000);
-            Add("PitchSensitivity", 1, 100,1, 1000);
+            Add("YawSensitivity", 1.5, 100,1,1000);
+            Add("PitchSensitivity", 1.5, 100,1, 1000);
             Add("Deadzone", 0.175, 1, 0, 1,3);
-            Add("MoveSpeed", 150, 1,0.001, 100000,2);
+            Add("FlySpeed", 150, 1,0.001, 100000,2);
+            Add("WalkSpeed", 10, 1, 0.001, 100000, 2);
             Add("ElevateSpeed", 150, 1, 0.001, 100000, 2);
-            Add("SpeedFactor", 1, 1,0.1,10, 1);
+            Add("FlySpeedFactor", 1, 1,0.1,10, 1);
+            Add("WalkSpeedFactor", 1, 1, 0.1, 10, 1);
 
             //Multiplicator
             Add(BindingId.Speedmulti, 3, 1,0,10);

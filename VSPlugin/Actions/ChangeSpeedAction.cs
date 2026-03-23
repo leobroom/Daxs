@@ -20,10 +20,11 @@ namespace Daxs.Actions
 
             // Switch layout + notify it
             var lm = LayoutSystem.Instance;
+            var current = lm.Current.Name;
             lm.Set(LayoutType.Custom);
 
-            if (lm.Current is CustomLayout cl)
-                cl.EnterSpeedAdjustMode(this);
+            if (lm.Current is ChangeSpeedLayout cl)
+                cl.EnterSpeedAdjustMode(this, current);
         }
 
         protected override void OnDeactivated()
@@ -31,7 +32,7 @@ namespace Daxs.Actions
             // Layout cleanup
             var lm = LayoutSystem.Instance;
 
-            if (lm.Current is CustomLayout cl)
+            if (lm.Current is ChangeSpeedLayout cl)
                 cl.ExitSpeedAdjustMode(this);
 
             // Exit modal suppression

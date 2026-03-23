@@ -8,7 +8,7 @@ using static SDL3.SDL;
 
 namespace Daxs.Layout
 {
-    internal class CustomLayout : BaseLayout
+    internal class ChangeSpeedLayout : BaseLayout
     {
         public override LayoutType Name => LayoutType.Custom;
 
@@ -19,18 +19,20 @@ namespace Daxs.Layout
         private double _angleDeg = -1;
         private double _lastAngle = -1;
 
-        public CustomLayout() : base()
+        public ChangeSpeedLayout() : base()
         {
-            _speedFactor = (NumericValue)settings["SpeedFactor"];
+            _speedFactor = (NumericValue)settings["FlySpeedFactor"];
         }
 
-        public void EnterSpeedAdjustMode(ActionBase owner)
+        public void EnterSpeedAdjustMode(ActionBase owner, LayoutType current)
         {
             _owner = owner;
 
+            string sFName = (current == LayoutType.Fly) ? "FlySpeedFactor" : "WalkSpeedFactor";
+            _speedFactor = (NumericValue)settings[sFName];
+
             _speedFactorVal = _speedFactor.Value;
             _speedAdjustActive = true;
-            RhinoApp.WriteLine("_speedFactorVal: " + _speedFactorVal);
         }
 
         public void ExitSpeedAdjustMode(ActionBase owner)
@@ -39,8 +41,6 @@ namespace Daxs.Layout
                 return;
 
             _speedFactor.Value = _speedFactorVal;
-
-            RhinoApp.WriteLine("_speedFactor.Value: " + _speedFactor.Value);
             _speedAdjustActive = false;
             _owner = null;
             _angleDeg = -1;

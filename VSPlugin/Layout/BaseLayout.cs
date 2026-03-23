@@ -32,7 +32,6 @@ namespace Daxs.Layout
             deadzone = settings.BindNumeric("Deadzone", v => deadzone = v);
             yawSensitivity = settings.BindNumeric("YawSensitivity", v => yawSensitivity = v);
             pitchSensitivity = settings.BindNumeric("PitchSensitivity", v => pitchSensitivity = v);
-            speedFactor = settings.BindNumeric("SpeedFactor", v => speedFactor = v);
         }
 
         public abstract void HandleInput(Gamepad state);

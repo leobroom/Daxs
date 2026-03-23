@@ -25,6 +25,12 @@ namespace Daxs.Layout
             maximalJump = mj.Value;
         }
 
+        protected override void BindMoveSpeed()
+        {
+            moveSpeed = settings.BindNumeric("WalkSpeed", v => moveSpeed = v);
+            speedFactor = settings.BindNumeric("WalkSpeedFactor", v => speedFactor = v);
+        }
+
         protected override Plane CalculateCamPlane(double cp, double cy, double sy, double sp, double forward, double strafe, double vertical, double speedMulti, double delta, InputY teleport)
         {
             var viewDir = new Vector3d(cp * cy, cp * sy, sp);

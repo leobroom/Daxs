@@ -129,7 +129,7 @@ namespace Daxs.Settings
                 }
             };
 
-            string[] input = { "YawSensitivity", "PitchSensitivity", "Deadzone", "MoveSpeed", "ElevateSpeed", "SpeedFactor" };
+            string[] input = { "YawSensitivity", "PitchSensitivity", "Deadzone", "FlySpeed", "WalkSpeed", "ElevateSpeed", "FlySpeedFactor" , "WalkSpeedFactor" };
 
             string[] general = { "AutoStart" };
             string[] hud = { "TextTime", "TextVisible" };
@@ -163,7 +163,6 @@ namespace Daxs.Settings
                     EtoFactory.CreateTabpage("⚙️ Settings", settingRows),
                     EtoFactory.CreateTabpage("🧩 Custom", customRows),
                     EtoFactory.CreateAboutTab(), 
-                    /*EtoFactory.CreateThemeTab()*/ 
                 }
             };
 

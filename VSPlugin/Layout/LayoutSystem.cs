@@ -31,7 +31,7 @@ namespace Daxs.Layout
             Register(new FlyLayout());
             Register(new WalkLayout());
             Register(new MenuLayout());
-            Register(new CustomLayout());
+            Register(new ChangeSpeedLayout());
 
             //Navigation
             NavigationManager navMan = NavigationManager.Instance;
