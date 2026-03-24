@@ -53,11 +53,13 @@ namespace Daxs.Settings
             foreach (GamepadButton b in Enum.GetValues<GamepadButton>())
                 Add(b, BindingId.Unset);
 
-            Add(GamepadButton.Start, BindingId.Macro1);
+            Add(GamepadButton.Start, BindingId.Macro1); //DaxsSettings
             Add(GamepadButton.Back, BindingId.ChangeSpeed);
 
-            Add(GamepadButton.North, BindingId.NextView);
-            Add(GamepadButton.West, BindingId.NextViewport);
+            //Add(GamepadButton.West, BindingId.NextViewport);
+
+            Add(GamepadButton.North, BindingId.NextViewport);
+            Add(GamepadButton.West, BindingId.Macro2); //ViewCaptureToFile
             Add(GamepadButton.East, BindingId.NextDisplaymode);
             Add(GamepadButton.South, BindingId.NextNamedView);
 

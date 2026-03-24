@@ -6,7 +6,7 @@
     <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>0.2.38</Version>
+    <Version>0.2.39</Version>
     <Title>Daxs</Title>
     <Company>Leon Brohmann</Company>
     <Description>Daxs is a Rhino plugin that adds stable, modern gamepad support through SDL 3 to Rhino, enabling compatibility with hundreds of controllers. Daxs makes navigating and interacting with Rhino feel as fluid and natural as moving inside a 3D game engine. It is designed to give Rhino a stable gamepad interface and customizable mappings, without intefering with Rhinos functionality. !CAUTION! Early Development Version: Daxs is currently in a very early stage and features, behavior, and APIs may change significantly.</Description>
