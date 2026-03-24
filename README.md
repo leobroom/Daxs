@@ -58,6 +58,10 @@ MIT License. See [MIT license](https://github.com/leobroom/Daxs/blob/main/LICENS
 [Github page](https://github.com/libsdl-org/SDL)  
 Copyright © Sam Lantinga  
 Licensed under the zlib License  
+### SDL_GameControllerDB
+[Github page](https://github.com/mdqinc/SDL_GameControllerDB)  
+Copyright © Sam Lantinga  
+Licensed under the zlib License  
 ### SDL3-CS Wrapper
 [Github page](https://github.com/edwardgushchin/SDL3-CS)  
 Copyright © Eduard Gushchin  
