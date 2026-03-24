@@ -12,11 +12,13 @@ namespace Daxs.Layout
 
         public FlyLayout() : base() 
         {
-            moveSpeed = settings.BindNumeric("MoveSpeed", v => moveSpeed = v);
+            BindMoveSpeed();
             elevateSpeed = settings.BindNumeric("ElevateSpeed", v => elevateSpeed = v);
 
             hud.Enabled = true;        
         }
+
+        public bool EnforceMovement = false; 
 
         protected double moveSpeed, elevateSpeed;
 
@@ -25,6 +27,12 @@ namespace Daxs.Layout
         double yawAcc = 0.0, pitchAcc = 0.0;
         protected Vector3d zAxis = Vector3d.ZAxis;
         readonly double rad85 = RhinoMath.ToRadians(85);
+
+        protected virtual void BindMoveSpeed() 
+        {
+            moveSpeed = settings.BindNumeric("FlySpeed", v => moveSpeed = v);
+            speedFactor = settings.BindNumeric("FlySpeedFactor", v => speedFactor = v);
+        }
 
         public override void HandleInput(Gamepad state)
         {
@@ -73,7 +81,7 @@ namespace Daxs.Layout
                 yawAcc = newYaw;
             }
 
-            if (hasMoved)
+            if (hasMoved || EnforceMovement)
             {
                 yawAcc += yaw * yawSensitivity * delta * rotSpeedMulti;
                 pitchAcc += pitch * pitchSensitivity * delta * rotSpeedMulti;
@@ -90,7 +98,7 @@ namespace Daxs.Layout
 
             actionManager.QueueActions();
 
-            if ((hasMoved || actionManager.HasActions) && sinceLastUi >= uiDt && !_uiUpdatePending)
+            if ((hasMoved || EnforceMovement || actionManager.HasActions) && sinceLastUi >= uiDt && !_uiUpdatePending)
             {
                 _uiUpdatePending = true;
 
@@ -103,8 +111,9 @@ namespace Daxs.Layout
 
                     actionManager.ExecuteActionsOnMainThread();
 
-                    if (hasMoved) 
+                    if (hasMoved || EnforceMovement) 
                     {
+                        EnforceMovement = false;
                         if (!vp.IsPlanView)
                         {
                             //RhinoApp.WriteLine("" + vp + " | " + forward + " | " + strafe + " | " + vertical + " | " + pitch + " | " + moveSpeed + " | " + delta);

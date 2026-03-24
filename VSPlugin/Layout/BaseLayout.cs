@@ -23,7 +23,7 @@ namespace Daxs.Layout
         protected readonly RhinoDoc doc = RhinoDoc.ActiveDoc;
         protected readonly DaxsConfig settings = DaxsConfig.Instance;
         protected readonly ActionDispatcher actionManager = ActionDispatcher.Instance;
-        protected readonly OverlayRenderer hud = OverlayRenderer.Instance;
+        protected readonly HUD hud = HUD.Instance;
 
         protected double deadzone, yawSensitivity, pitchSensitivity, speedFactor;
 
@@ -32,7 +32,6 @@ namespace Daxs.Layout
             deadzone = settings.BindNumeric("Deadzone", v => deadzone = v);
             yawSensitivity = settings.BindNumeric("YawSensitivity", v => yawSensitivity = v);
             pitchSensitivity = settings.BindNumeric("PitchSensitivity", v => pitchSensitivity = v);
-            speedFactor = settings.BindNumeric("SpeedFactor", v => speedFactor = v);
         }
 
         public abstract void HandleInput(Gamepad state);

@@ -1,7 +1,7 @@
-﻿
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+
 using static SDL3.SDL;
 using Daxs.Settings;
 
@@ -11,7 +11,6 @@ namespace Daxs.Actions
     {
         private static readonly Lazy<ActionDispatcher> _instance = new(() => new ActionDispatcher());
         public static ActionDispatcher Instance => _instance.Value;
-        private readonly DaxsConfig _settings = DaxsConfig.Instance;
         private readonly ActionGate _gate = ActionGate.Instance;
 
         private readonly Dictionary<GamepadButton, BindingId> _actionToButtonTable = new();
@@ -21,15 +20,15 @@ namespace Daxs.Actions
 
         readonly Dictionary<BindingId, IAction> _actionTable = new()
         {
-            { BindingId.Macro1,        new RhinoMacroAction(InputX.IsDown,BindingId.Macro1)},
-            { BindingId.Macro2,        new RhinoMacroAction(InputX.IsDown,BindingId.Macro2)},
-            { BindingId.Macro3,        new RhinoMacroAction(InputX.IsDown,BindingId.Macro3) },
-            { BindingId.Macro4,        new RhinoMacroAction(InputX.IsDown,BindingId.Macro4) },
-            { BindingId.Macro5,        new RhinoMacroAction(InputX.IsDown,BindingId.Macro5) },
-            { BindingId.Macro6,        new RhinoMacroAction(InputX.IsDown,BindingId.Macro6) },
-            { BindingId.LensPlus,  new LensAction(InputX.IsDown,InputY.Up ) },
+            { BindingId.Macro1, new RhinoMacroAction(InputX.IsDown,BindingId.Macro1)},
+            { BindingId.Macro2, new RhinoMacroAction(InputX.IsDown,BindingId.Macro2)},
+            { BindingId.Macro3, new RhinoMacroAction(InputX.IsDown,BindingId.Macro3) },
+            { BindingId.Macro4, new RhinoMacroAction(InputX.IsDown,BindingId.Macro4) },
+            { BindingId.Macro5, new RhinoMacroAction(InputX.IsDown,BindingId.Macro5) },
+            { BindingId.Macro6, new RhinoMacroAction(InputX.IsDown,BindingId.Macro6) },
+            { BindingId.LensPlus, new LensAction(InputX.IsDown,InputY.Up ) },
             { BindingId.LensMinus, new LensAction( InputX.IsDown,InputY.Down) },
-            { BindingId.LensDefault,new LensAction(InputX.IsDown,InputY.Default ) },
+            { BindingId.LensDefault, new LensAction(InputX.IsDown,InputY.Default ) },
             { BindingId.SwitchMode, new SwitchAction(InputX.IsDown) },
             { BindingId.NextView, new NextViewAction(InputX.IsDown)},
             { BindingId.NextViewport, new ViewportAction(InputX.IsDown)},
@@ -76,23 +75,25 @@ namespace Daxs.Actions
 
         public ActionDispatcher()
         {
-            _speedMulti = _settings.BindNumeric(BindingId.Speedmulti, v => _speedMulti = v);
-            _rotSpeedmulti = _settings.BindNumeric(BindingId.RotSpeedMulti, v => _rotSpeedmulti = v);
+            DaxsConfig config = DaxsConfig.Instance;
+
+            _speedMulti = config.BindNumeric(BindingId.Speedmulti, v => _speedMulti = v);
+            _rotSpeedmulti = config.BindNumeric(BindingId.RotSpeedMulti, v => _rotSpeedmulti = v);
 
             foreach (GamepadButton button in Enum.GetValues<GamepadButton>())
             {
                 if (button == GamepadButton.Invalid || button == GamepadButton.Count)
                     continue;
 
-                BindingId gAction = _settings.BindAction(button, v =>
+                BindingId gAction = config.BindAction(button, v =>
                 {
                     BindingId aEnum = Enum.Parse<BindingId>(v);
- 
+
                     AddToButtonTable(button, aEnum);
                     ResetButtonBinding(aEnum, button);
                 });
 
-                AddToButtonTable(button,  gAction);
+                AddToButtonTable(button, gAction);
             }
 
             foreach (GamepadAxis axis in Enum.GetValues<GamepadAxis>())
@@ -100,18 +101,18 @@ namespace Daxs.Actions
                 if (axis == GamepadAxis.Invalid || axis == GamepadAxis.Count)
                     continue;
 
-                BindingId gAction = _settings.BindAction(axis, v =>
+                BindingId gAction = config.BindAction(axis, v =>
                 {
                     BindingId aEnum = Enum.Parse<BindingId>(v);
                     AddToAxisTable(axis, aEnum);
                     ResetAxisBinding(aEnum, axis);
                 });
 
-                AddToAxisTable(axis,  gAction);
+                AddToAxisTable(axis, gAction);
             }
         }
 
-        private void AddToButtonTable(GamepadButton button, BindingId gAction) 
+        private void AddToButtonTable(GamepadButton button, BindingId gAction)
         {
             if (gAction == BindingId.Unset)
                 _actionToButtonTable.Remove(button);
@@ -127,12 +128,12 @@ namespace Daxs.Actions
                 _actionToAxisTable[axis] = gAction;
         }
 
-        private void ResetButtonBinding(BindingId action, GamepadButton button) 
+        private void ResetButtonBinding(BindingId action, GamepadButton button)
         {
-            foreach (var key in _buttonBindingTable.Where(kv => kv.Value.Equals(button)).Select(kv => kv.Key).ToList()) 
+            foreach (var key in _buttonBindingTable.Where(kv => kv.Value.Equals(button)).Select(kv => kv.Key).ToList())
                 _buttonBindingTable.Remove(key);
 
-            _buttonBindingTable[action]  =button;
+            _buttonBindingTable[action] = button;
         }
 
         private void ResetAxisBinding(BindingId action, GamepadAxis axis)
@@ -143,20 +144,20 @@ namespace Daxs.Actions
             _axisBindingTable[action] = axis;
         }
 
-        internal bool QueueActions()    
+        internal bool QueueActions()
         {
             bool hasActions = false;
 
             _frameActiveActions.Clear();
 
-            foreach (var kvPair in _actionToButtonTable) 
+            foreach (var kvPair in _actionToButtonTable)
             {
                 GamepadButton button = kvPair.Key;
                 BindingId actionType = kvPair.Value;
 
-                if (_actionTable.TryGetValue(actionType, out IAction action) && 
+                if (_actionTable.TryGetValue(actionType, out IAction action) &&
                     _gamepad.GetButtonState(button) == action.Input &&
-                    _gate.Allows(actionType, action)) 
+                    _gate.Allows(actionType, action))
                 {
                     hasActions = true;
                     _actionQueue.Enqueue(action);
@@ -204,7 +205,7 @@ namespace Daxs.Actions
 
         internal void ExecuteActionsOnMainThread()
         {
-            if(!HasActions)
+            if (!HasActions)
                 return;
 
             while (_actionQueue.TryDequeue(out var action))
@@ -213,6 +214,10 @@ namespace Daxs.Actions
             }
         }
 
+        /// <summary>
+        /// Each cycle the gamepad state is updated
+        /// </summary>
+        /// <param name="gamepad"></param>
         internal void Update(Gamepad gamepad) => this._gamepad = gamepad;
     }
 }

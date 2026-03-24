@@ -21,12 +21,14 @@ namespace Daxs.Settings
             Add("AutoStart", true);
 
             //Gamepad
-            Add("YawSensitivity", 1, 100,1,1000);
-            Add("PitchSensitivity", 1, 100,1, 1000);
+            Add("YawSensitivity", 2.0, 100,1,1000);
+            Add("PitchSensitivity", 2.0, 100,1, 1000);
             Add("Deadzone", 0.175, 1, 0, 1,3);
-            Add("MoveSpeed", 150, 1,0.001, 100000,2);
-            Add("ElevateSpeed", 150, 1, 0.001, 100000, 2);
-            Add("SpeedFactor", 1, 1,0.1,10, 1);
+            Add("FlySpeed", 25, 10,1, 100000, 2);
+            Add("WalkSpeed", 5, 10, 1, 100000,2);
+            Add("ElevateSpeed", 25, 10, 1, 100000);
+            Add("FlySpeedFactor", 1, 1,0.1,10, 1);
+            Add("WalkSpeedFactor", 1, 1, 0.1, 10, 1);
 
             //Multiplicator
             Add(BindingId.Speedmulti, 3, 1,0,10);
@@ -51,10 +53,13 @@ namespace Daxs.Settings
             foreach (GamepadButton b in Enum.GetValues<GamepadButton>())
                 Add(b, BindingId.Unset);
 
-            Add(GamepadButton.Start, BindingId.Macro1);
+            Add(GamepadButton.Start, BindingId.Macro1); //DaxsSettings
+            Add(GamepadButton.Back, BindingId.ChangeSpeed);
 
-            Add(GamepadButton.North, BindingId.NextView);
-            Add(GamepadButton.West, BindingId.NextViewport);
+            //Add(GamepadButton.West, BindingId.NextViewport);
+
+            Add(GamepadButton.North, BindingId.NextViewport);
+            Add(GamepadButton.West, BindingId.Macro2); //ViewCaptureToFile
             Add(GamepadButton.East, BindingId.NextDisplaymode);
             Add(GamepadButton.South, BindingId.NextNamedView);
 
@@ -72,12 +77,12 @@ namespace Daxs.Settings
             Add(GamepadButton.DPadLeft, BindingId.LensMinus);
             Add(GamepadButton.DPadRight, BindingId.LensPlus);
 
-            //Custom1
+            //Macro1
             Add("Macro1_Name", "DaxsSettings");
             Add("Macro1_Function", "_Daxs_Settings");
             Add("Macro1_SimulateKeys", true);
 
-            //Custom2
+            //Macro2
             Add("Macro2_Name", "ViewCaptureToFile");
             Add("Macro2_Function", "_ViewCaptureToFile");
             Add("Macro2_SimulateKeys", true);

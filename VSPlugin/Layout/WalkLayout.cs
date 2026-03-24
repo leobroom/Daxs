@@ -25,6 +25,12 @@ namespace Daxs.Layout
             maximalJump = mj.Value;
         }
 
+        protected override void BindMoveSpeed()
+        {
+            moveSpeed = settings.BindNumeric("WalkSpeed", v => moveSpeed = v);
+            speedFactor = settings.BindNumeric("WalkSpeedFactor", v => speedFactor = v);
+        }
+
         protected override Plane CalculateCamPlane(double cp, double cy, double sy, double sp, double forward, double strafe, double vertical, double speedMulti, double delta, InputY teleport)
         {
             var viewDir = new Vector3d(cp * cy, cp * sy, sp);
@@ -63,7 +69,6 @@ namespace Daxs.Layout
             }
             else 
             {
-                RhinoApp.WriteLine("ClosestPoint");
                 pos.Z -= eyeHeight;
                 pos = colMsh.ClosestPoint(pos);
                 pos.Z += eyeHeight;
@@ -109,8 +114,12 @@ namespace Daxs.Layout
 
             lst.Sort();
             double addZ = (teleport == InputY.Up) ? GetNextUp(lst, eyeHeight) : GetNextDown(lst, eyeHeight);
-            if (addZ != 0 && teleport!= InputY.Default)
+            if (addZ != 0 && teleport != InputY.Default) 
+            {
+                DaxsRuntime.Instance.RumbleGamepad(12000, 22000, 60);
                 hud.SetText("🎮", "Teleport " + teleport.ToString());
+            }
+             
 
             pos.Z += addZ;
         }

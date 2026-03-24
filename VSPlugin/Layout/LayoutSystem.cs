@@ -31,7 +31,7 @@ namespace Daxs.Layout
             Register(new FlyLayout());
             Register(new WalkLayout());
             Register(new MenuLayout());
-            Register(new CustomLayout());
+            Register(new ChangeSpeedLayout());
 
             //Navigation
             NavigationManager navMan = NavigationManager.Instance;
@@ -49,6 +49,10 @@ namespace Daxs.Layout
                 previousLayout = (previousLayout == null) ? layout : currentLayout;
                 //RhinoApp.WriteLine("SetLayout:" + name);
                 currentLayout = layout;
+
+                if (currentLayout.Name == LayoutType.Walk)
+                    ((WalkLayout)currentLayout).EnforceMovement = true;
+
             }
         }
 

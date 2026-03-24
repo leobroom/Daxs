@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Reflection;
 
 using static SDL3.SDL;
 
@@ -10,6 +9,7 @@ using Daxs.Layout;
 
 using Eto.Forms;
 using Eto.Drawing;
+using Rhino.UI;
 
 namespace Daxs.Settings
 {
@@ -49,7 +49,7 @@ namespace Daxs.Settings
         // Gamepad Daxs Info
         private Label _gamepadInfoLabel = new();
         private ImageView _gpImageView;
-        private readonly string _gpDefaultResName = "DaxsGPLayout_xBox.png"; 
+        private readonly string _gpDefaultResName = "DaxsGPLayout_xBox.png";
         private readonly GpResource[] _gpResources = new GpResource[]
         {
             new ("DaxsGPLayout_PS.png","ps3","ps4","ps5"),
@@ -129,7 +129,7 @@ namespace Daxs.Settings
                 }
             };
 
-            string[] input = { "YawSensitivity", "PitchSensitivity", "Deadzone", "MoveSpeed", "ElevateSpeed", "SpeedFactor" };
+            string[] input = { "YawSensitivity", "PitchSensitivity", "Deadzone", "FlySpeed", "WalkSpeed", "ElevateSpeed", "FlySpeedFactor" , "WalkSpeedFactor" };
 
             string[] general = { "AutoStart" };
             string[] hud = { "TextTime", "TextVisible" };
@@ -163,7 +163,6 @@ namespace Daxs.Settings
                     EtoFactory.CreateTabpage("⚙️ Settings", settingRows),
                     EtoFactory.CreateTabpage("🧩 Custom", customRows),
                     EtoFactory.CreateAboutTab(), 
-                    /*EtoFactory.CreateThemeTab()*/ 
                 }
             };
 
@@ -292,13 +291,9 @@ namespace Daxs.Settings
 
         private Bitmap LoadGamepadBitmap(Gamepad gamepad)
         {
-            string resourceName = "Daxs.Shared." + GetControllerResourceName(gamepad);
+            string resourceName = GetControllerResourceName(gamepad);
 
-            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream( resourceName);
-            if (stream == null)
-                throw new Exception($"Embedded resource not found: {resourceName}");
-
-            return new Bitmap(stream);
+            return Utils.GetSharedBitmap(resourceName).ToEto();
         }
 
         private void SetGamepadType(Gamepad gamepad)
