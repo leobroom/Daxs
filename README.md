@@ -34,8 +34,8 @@ With gamepad support, navigation through geometry becomes significantly smoother
  
 ## Installation
 - packaged .yak installer for Rhino for now. [Check the latest release](https://github.com/leobroom/Daxs/releases)
-- Food For Rhino: Comming soon...
-- Package Manager: Comming soon...
+- Package Manager: You can install Dax over the Rhino Package Manager
+- - Food For Rhino: Comming soon...
 
 ## Documentation
 _WORK IN PROGRESS_
