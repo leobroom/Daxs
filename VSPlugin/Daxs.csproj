@@ -63,7 +63,7 @@
     <Message Text="Copying license from $(LicenseSource) to $(LicenseDestination)" Importance="High" />
     <Copy SourceFiles="$(LicenseSource)" DestinationFiles="$(LicenseDestination)" Condition="Exists('$(LicenseSource)')" />
   </Target>
-  <!-- increase version	
+  <!-- increase version	-->
   <Target Name="IncrementVersion" BeforeTargets="BeforeBuild">
     <PropertyGroup>
       <CurrentVersion>$(Version)</CurrentVersion>
@@ -85,7 +85,7 @@
     <WriteLinesToFile File="$(BumpScript)" Overwrite="true" Lines="@(_BumpScriptLines)" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('Windows'))" Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(BumpScript)&quot;" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) Or $([MSBuild]::IsOSPlatform('Linux'))" Command="pwsh -NoProfile -File &quot;$(BumpScript)&quot;" />
-  </Target> -->
+  </Target> 
   <Target Name="BuildYakPackage" AfterTargets="DispatchToInnerBuilds">
     <PropertyGroup>
       <YakExecutable Condition="$(YakExecutable) == '' and $([MSBuild]::IsOSPlatform(windows)) and Exists('C:\Program Files\Rhino 8\System\Yak.exe')">C:\Program Files\Rhino 8\System\Yak.exe</YakExecutable>
