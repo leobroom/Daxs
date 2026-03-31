@@ -37,6 +37,10 @@ With gamepad support, navigation through geometry becomes significantly smoother
 - Package Manager: You can install Dax over the Rhino Package Manager
 - Food For Rhino: Comming soon...
 
+## Support
+- Create in Github directly an Issue - or:
+- [Visit the official support thread inside the official McNeel/Rhino forum](https://discourse.mcneel.com/t/daxs-plugin-gamepad-support-for-rhino/217538?u=leonbrohmann)
+
 ## Documentation
 _WORK IN PROGRESS_
 
