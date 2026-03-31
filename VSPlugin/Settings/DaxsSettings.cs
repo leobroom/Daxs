@@ -43,7 +43,8 @@ namespace Daxs.Settings
             { BindingId.Macro3, "Macro3" },
             { BindingId.Macro4, "Macro4" },
             { BindingId.Macro5, "Macro5" },
-            { BindingId.Macro6, "Macro6" }
+            { BindingId.Macro6, "Macro6" },
+            { BindingId.SaveNamedView, "Save NamedView" },
         };
 
         // Gamepad Daxs Info

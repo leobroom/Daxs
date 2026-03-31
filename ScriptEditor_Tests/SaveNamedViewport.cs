@@ -67,32 +67,29 @@ public class SaveNamedViewDialog : Dialog<string>
 
         //Padding = 10;
         Padding = new Padding(10,10,10,0);
-        ClientSize = new Size(290, 91);
+        ClientSize = new Size(287, 91);
 
         this.UseRhinoStyle();
 
-        var label = new Label
-        {
-            Text = "Save current viewport settings as:"
-        };
+        var label = new Label{Text = "Save current viewport settings as:"};
 
         _textBox = new TextBox
         {
             Text = initialName ?? string.Empty
         };
 
+        int bWidth = 80;
 
-int w = 100;
         var okButton = new Button
         {
             Text = "OK",
-            Width = w
+            Width = bWidth
         };
 
         var cancelButton = new Button
         {
             Text = "Cancel",
-            Width = w
+            Width = bWidth
         };
 
         okButton.Click += (s, e) =>
@@ -120,10 +117,10 @@ int w = 100;
 
         var buttonRow = new TableLayout
         {
-            Spacing = new Size(0, 0),
+            Spacing = new Size(5, 0),
             Rows =
             {
-                new TableRow(null, okButton, cancelButton, null)
+                new TableRow(null, okButton, cancelButton)
             }
         };
 
