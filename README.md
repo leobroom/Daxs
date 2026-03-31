@@ -38,7 +38,7 @@ With gamepad support, navigation through geometry becomes significantly smoother
 - Food For Rhino: Comming soon...
 
 ## How to get started
--> [Wikipage](https://github.com/leobroom/Daxs/wiki#how-to-get-started)
+-> [Wikipage - How to get started](https://github.com/leobroom/Daxs/wiki#how-to-get-started)
 
 ## Support
 - Create in Github directly an Issue - or:
