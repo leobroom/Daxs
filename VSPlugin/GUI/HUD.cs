@@ -98,7 +98,7 @@ namespace Daxs.GUI
             _elements["donut"] = new DonutGaugeElement();
         }
 
-        #region Public API (thread-safe, latest-wins)
+        #region Public API
      
         public void SetText(string emoji, string message, int durationMs = 2000)
         {
@@ -220,9 +220,8 @@ namespace Daxs.GUI
         #region Tick / redraw
 
         /// <summary>
-        /// Called by ControllerManager with delta seconds (any thread).
+        /// Called by Runtime with delta seconds.
         /// This method MUST NOT touch Rhino views or overlay elements directly.
-        /// It only schedules UI work.
         /// </summary>
         public void Tick(double delta)
         {
@@ -230,7 +229,6 @@ namespace Daxs.GUI
                 return;
 
             // If HUD isn’t enabled and no new work is requested, don’t schedule UI frames.
-            // (Truth is decided on UI thread; this is just a cheap early-out.)
             if (!Enabled && !_uiWorkRequested)
                 return;
 
@@ -254,8 +252,6 @@ namespace Daxs.GUI
                 // Advance animations/timeouts + redraw throttling
                 TickUiThread();
 
-                // We processed a UI frame; clear the “requested” flag.
-                // (If new requests come in, public API sets it again.)
                 _uiWorkRequested = false;
             }));
         }
@@ -306,7 +302,7 @@ namespace Daxs.GUI
             if (!Enabled || doc == null)
                 return;
 
-            var av = doc.Views.ActiveView;
+            var av = doc.Views?.ActiveView;
             if (av == null || e.Viewport.Id != av.ActiveViewportID)
                 return;
 
