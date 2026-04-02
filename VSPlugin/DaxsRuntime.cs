@@ -183,6 +183,10 @@ namespace Daxs
                     }
 
                     gp.Update();
+
+                    var overlayState = GamepadOverlayStateFactory.FromGamepad(gp);
+                    HUD.Instance.SetGamepadOverlay(overlayState);
+
                     _actions.Update(gp);
                     _hud.Tick(_tickDt);
                     _layout.Current.HandleInputAndDelta(gp, _tickDt);

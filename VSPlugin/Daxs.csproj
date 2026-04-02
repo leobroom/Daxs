@@ -6,7 +6,7 @@
     <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>0.2.11</Version>
+    <Version>0.2.17</Version>
     <Title>Daxs</Title>
     <Company>Leon Brohmann</Company>
     <Description>Daxs is a Rhino plugin that adds stable, modern gamepad support through SDL 3 to Rhino, enabling compatibility with hundreds of controllers. Daxs makes navigating and interacting with Rhino feel as fluid and natural as moving inside a 3D game engine. It is designed to give Rhino a stable gamepad interface and customizable mappings, without intefering with Rhinos functionality. !CAUTION! Early Development Version: Daxs is currently in a very early stage and features, behavior, and APIs may change significantly.</Description>
@@ -33,6 +33,62 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <!-- GAMEPAD LAYOUTS END-->
+    <!-- GAMEPAD OVERLAY START-->
+    <EmbeddedResource Include="Shared\overlay_BACK.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_DPAD_DOWN.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_DPAD_GUIDE.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_DPAD_LEFT.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_DPAD_RIGHT.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_DPAD_UP.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_EAST.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_inactive.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_LEFT_SHOULDER.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_LEFT_STICK.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_LEFT_TRIGGER.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_NORTH.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_RIGHT_SHOULDER.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_RIGHT_STICK.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_RIGHT_TRIGGER.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_SOUTH.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_START.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Shared\overlay_WEST.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <!-- GAMEPAD OVERLAY END-->
     <EmbeddedResource Include="Shared\SDL3.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
