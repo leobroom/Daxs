@@ -10,8 +10,11 @@ namespace Daxs.GUI
     {
         public Bitmap BaseImage { get; }
         public IReadOnlyDictionary<GamepadButton, Bitmap> ButtonMasks => _buttonMasks;
+        public IReadOnlyDictionary<GamepadAxis, Bitmap> AxisMasks => _axisMasks;
 
         private readonly Dictionary<GamepadButton, Bitmap> _buttonMasks = new();
+        private readonly Dictionary<GamepadAxis, Bitmap> _axisMasks = new();
+
         private bool _disposed;
 
         public int Width => BaseImage.Width;
@@ -22,6 +25,7 @@ namespace Daxs.GUI
             BaseImage = Daxs.Utils.GetSharedBitmap("overlay_inactive.png")
                 ?? throw new InvalidOperationException("Failed to load embedded overlay_inactive.png.");
 
+            // Buttons
             Load(GamepadButton.Back, "overlay_BACK.png");
             Load(GamepadButton.DPadDown, "overlay_DPAD_DOWN.png");
             Load(GamepadButton.Guide, "overlay_DPAD_GUIDE.png");
@@ -37,6 +41,8 @@ namespace Daxs.GUI
             Load(GamepadButton.South, "overlay_SOUTH.png");
             Load(GamepadButton.Start, "overlay_START.png");
             Load(GamepadButton.West, "overlay_WEST.png");
+            Load(GamepadAxis.LeftTrigger, "overlay_LEFT_TRIGGER.png");
+            Load(GamepadAxis.RightTrigger, "overlay_RIGHT_TRIGGER.png");
         }
 
         private void Load(GamepadButton button, string fileName)
@@ -45,14 +51,28 @@ namespace Daxs.GUI
             if (bmp == null)
                 throw new InvalidOperationException($"Failed to load embedded resource '{fileName}'.");
 
+            ValidateSizeOrThrow(bmp, fileName);
+            _buttonMasks[button] = bmp;
+        }
+
+        private void Load(GamepadAxis axis, string fileName)
+        {
+            var bmp = Daxs.Utils.GetSharedBitmap(fileName);
+            if (bmp == null)
+                throw new InvalidOperationException($"Failed to load embedded resource '{fileName}'.");
+
+            ValidateSizeOrThrow(bmp, fileName);
+            _axisMasks[axis] = bmp;
+        }
+
+        private void ValidateSizeOrThrow(Bitmap bmp, string fileName)
+        {
             if (bmp.Width != BaseImage.Width || bmp.Height != BaseImage.Height)
             {
                 bmp.Dispose();
                 throw new InvalidOperationException(
                     $"Mask '{fileName}' size {bmp.Width}x{bmp.Height} does not match base overlay size {BaseImage.Width}x{BaseImage.Height}.");
             }
-
-            _buttonMasks[button] = bmp;
         }
 
         public void Dispose()
@@ -66,8 +86,11 @@ namespace Daxs.GUI
 
             foreach (var bmp in _buttonMasks.Values)
                 bmp.Dispose();
-
             _buttonMasks.Clear();
+
+            foreach (var bmp in _axisMasks.Values)
+                bmp.Dispose();
+            _axisMasks.Clear();
         }
     }
 }
