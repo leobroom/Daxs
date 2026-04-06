@@ -1,4 +1,5 @@
-﻿using Daxs.Settings;
+﻿using Daxs.Layout;
+using Daxs.Settings;
 using Eto.Drawing;
 using Eto.Forms;
 using Rhino;
@@ -21,6 +22,10 @@ namespace Daxs.Actions
         {
             var doc = RhinoDoc.ActiveDoc;
             var activeView = doc.Views.ActiveView;     
+
+            var currentView = LayoutSystem.Instance.Current.Name;
+            var pastView = (currentView == LayoutType.Menu || currentView == LayoutType.Custom) ? LayoutType.Fly : LayoutType.Walk;
+
             if (activeView == null)
             {
                 RhinoApp.WriteLine("No active view.");
@@ -31,6 +36,8 @@ namespace Daxs.Actions
             var dialog = new SaveNamedViewDialog(currentName);
 
             _hud.SetText(HUD_Emoji, HUD_Text);
+
+            LayoutSystem.Instance.Set(LayoutType.Menu);
 
             string result = dialog.ShowModal(RhinoEtoApp.MainWindowForDocument(doc));
             if (string.IsNullOrWhiteSpace(result))
@@ -59,6 +66,8 @@ namespace Daxs.Actions
             string msg = (index >= 0) ? $"Named view saved: {result}" : "Failed to save named view.";
 
             RhinoApp.WriteLine(msg);
+
+            LayoutSystem.Instance.Set(pastView);
         }
 
         private class SaveNamedViewDialog : Dialog<string>

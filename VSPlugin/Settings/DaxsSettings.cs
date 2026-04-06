@@ -133,7 +133,7 @@ namespace Daxs.Settings
             string[] input = { "YawSensitivity", "PitchSensitivity", "Deadzone", "FlySpeed", "WalkSpeed", "ElevateSpeed", "FlySpeedFactor" , "WalkSpeedFactor" };
 
             string[] general = { "AutoStart" };
-            string[] hud = { "TextTime", "TextVisible" };
+            string[] hud = { "TextTime", "TextVisible", "DeveloperMode" };
             string[] walk = { "EyeHeight", "MaximalJump" };
             string[] lens = { "LensStep", "LensDefault" };
 

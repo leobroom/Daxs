@@ -2,12 +2,11 @@
 {
     internal sealed class SetGamepadOverlayCommand : OverlayCommand<GamepadOverlayElement>
     {
-        private readonly GamepadOverlayState _state;
+        private readonly Gamepad _state;
 
-        public SetGamepadOverlayCommand(GamepadOverlayState state)
-            : base(OverlayIds.GamepadOverlay)
+        public SetGamepadOverlayCommand(Gamepad state) : base(OverlayIds.GamepadOverlay)
         {
-            _state = state?.Clone() ?? new GamepadOverlayState();
+            _state = state;
         }
 
         protected override void ApplyTo(HUD hud, GamepadOverlayElement element)
@@ -20,14 +19,8 @@
 
     internal sealed class HideGamepadOverlayCommand : OverlayCommand<GamepadOverlayElement>
     {
-        public HideGamepadOverlayCommand()
-            : base(OverlayIds.GamepadOverlay)
-        {
-        }
+        public HideGamepadOverlayCommand(): base(OverlayIds.GamepadOverlay){}
 
-        protected override void ApplyTo(HUD hud, GamepadOverlayElement element)
-        {
-            element.Hide();
-        }
+        protected override void ApplyTo(HUD hud, GamepadOverlayElement element) =>element.Hide();
     }
 }

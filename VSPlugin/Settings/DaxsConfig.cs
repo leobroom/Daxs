@@ -46,6 +46,9 @@ namespace Daxs.Settings
             Add("LensStep", 1, 1,1,10,2);
             Add("LensDefault", 35, 1,1,100,2);
 
+            //Developer
+            Add("DeveloperMode", false);
+
             foreach (GamepadAxis a in Enum.GetValues<GamepadAxis>())
                 Add(a, BindingId.Unset);
 

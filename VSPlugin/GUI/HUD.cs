@@ -44,10 +44,7 @@ namespace Daxs.GUI
 
             _elements[OverlayIds.Toast] = new ToastElement();
             _elements[OverlayIds.Donut] = new DonutGaugeElement();
-
-
-            _elements[OverlayIds.GamepadOverlay] = new GamepadOverlayElement(
-              new GamepadOverlayAssets());
+            _elements[OverlayIds.GamepadOverlay] = new GamepadOverlayElement(new GamepadOverlayAssets());
         }
 
         #region Public API
@@ -75,7 +72,7 @@ namespace Daxs.GUI
             EnqueueCommand(new HideDonutCommand());
         }
 
-        public void SetGamepadOverlay(GamepadOverlayState state)
+        public void SetGamepadOverlay(Gamepad state)
         {
             EnqueueCommand(new SetGamepadOverlayCommand(state));
         }
@@ -134,7 +131,7 @@ namespace Daxs.GUI
 
             if (!_textVisible)
             {
-                HideAllUiThread();
+                Disable();
                 return;
             }
 
@@ -291,7 +288,7 @@ namespace Daxs.GUI
             Enabled = false;
         }
 
-        private void HideAllUiThread()
+        private void Disable()
         {
             foreach (var element in _elements.Values)
                 element.Dispose();

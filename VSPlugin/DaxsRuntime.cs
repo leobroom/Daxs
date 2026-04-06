@@ -12,6 +12,7 @@ using Daxs.Actions;
 using Daxs.GUI;
 using Daxs.Layout;
 using Daxs.Settings;
+using System.ComponentModel.Design;
 
 namespace Daxs
 {
@@ -29,11 +30,21 @@ namespace Daxs
     {
         public static DaxsRuntime Instance { get; } = new DaxsRuntime();
 
+        private bool _developerMode = false;
+
         private DaxsRuntime()
         {
             RhinoApp.Closing += (sender, e) => { DaxsConfig.Instance.SaveSettings(); };
 
             LoadSDL();
+
+            //Deverloper mode
+
+            _developerMode = DaxsConfig.Instance.BindBoolean("DeveloperMode", v => 
+            {
+                _developerMode = v;
+                ToggleDeveloperMode();
+            });
         }
 
         private readonly ActionDispatcher _actions = ActionDispatcher.Instance;
@@ -184,9 +195,6 @@ namespace Daxs
 
                     gp.Update();
 
-                    var overlayState = GamepadOverlayStateFactory.FromGamepad(gp);
-                    HUD.Instance.SetGamepadOverlay(overlayState);
-
                     _actions.Update(gp);
                     _hud.Tick(_tickDt);
                     _layout.Current.HandleInputAndDelta(gp, _tickDt);
@@ -260,6 +268,8 @@ namespace Daxs
                 return false;
             }
 
+            ToggleDeveloperMode();
+
             SignalConnection(openedId);
             return true;
         }
@@ -318,7 +328,24 @@ namespace Daxs
                 _gp = null;
                 _gpId = IntPtr.Zero;
             }
+
+            ToggleDeveloperMode();
         }
+
+        private void ToggleDeveloperMode()
+        {
+            lock (_lock)
+            {
+                if (_gp == null || State != DaxStatus.Started || !_developerMode) //Disable
+                {
+                    _hud.HideGamepadOverlay();
+                }
+                else //Eneable
+                {
+                    _hud.SetGamepadOverlay(_gp);
+                }                   
+            }
+        }   
         #endregion
     }
 }
