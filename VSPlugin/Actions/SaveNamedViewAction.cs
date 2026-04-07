@@ -3,9 +3,7 @@ using Daxs.Settings;
 using Eto.Drawing;
 using Eto.Forms;
 using Rhino;
-using Rhino.Display;
 using Rhino.UI;
-using System;
 
 namespace Daxs.Actions
 {
@@ -13,8 +11,7 @@ namespace Daxs.Actions
     {
         private InputY _mode;
 
-        public SaveNamedViewAction(InputX Input) : base(Input)
-        { }
+        public SaveNamedViewAction(InputX Input) : base(Input){ }
 
         public override string HUD_Text => $"Save current viewport as:";
 
@@ -24,12 +21,15 @@ namespace Daxs.Actions
             var activeView = doc.Views.ActiveView;     
 
             var currentView = LayoutSystem.Instance.Current.Name;
-            var pastView = (currentView == LayoutType.Menu || currentView == LayoutType.Custom) ? LayoutType.Fly : LayoutType.Walk;
+            var pastView = (currentView == LayoutType.Menu || currentView == LayoutType.Custom) ? LayoutType.Fly : currentView;
 
             if (activeView == null)
             {
                 RhinoApp.WriteLine("No active view.");
-                return;
+                {
+                    Exit(pastView);
+                    return;
+                }
             }
 
             string currentName = activeView.ActiveViewport.Name;
@@ -43,7 +43,10 @@ namespace Daxs.Actions
             if (string.IsNullOrWhiteSpace(result))
             {
                 RhinoApp.WriteLine("Cancelled.");
-                return;
+                {
+                    Exit(pastView);
+                    return;
+                }
             }
 
             // Optional duplicate handling
@@ -57,8 +60,11 @@ namespace Daxs.Actions
                     MessageBoxType.Question);
 
                 if (overwrite != DialogResult.Yes)
+                {
+                    Exit(pastView);
                     return;
-
+                }
+           
                 doc.NamedViews.Delete(existing);
             }
 
@@ -67,7 +73,12 @@ namespace Daxs.Actions
 
             RhinoApp.WriteLine(msg);
 
-            LayoutSystem.Instance.Set(pastView);
+            Exit(pastView);
+        }
+
+        private void Exit(LayoutType last) 
+        {
+            LayoutSystem.Instance.Set(last);
         }
 
         private class SaveNamedViewDialog : Dialog<string>
@@ -90,10 +101,7 @@ namespace Daxs.Actions
 
                 var label = new Label { Text = "Save current viewport settings as:" };
 
-                _textBox = new TextBox
-                {
-                    Text = initialName ?? string.Empty
-                };
+                _textBox = new TextBox {Text = initialName ?? string.Empty};
 
                 int bWidth = 80;
 

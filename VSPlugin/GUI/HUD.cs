@@ -49,38 +49,17 @@ namespace Daxs.GUI
 
         #region Public API
 
-        public void SetText(string emoji, string message, int durationMs = 2000)
-        {
-            EnqueueCommand(new SetToastTextCommand(emoji, message, durationMs));
-        }
+        public void SetText(string emoji, string message, int durationMs = 2000)=> EnqueueCommand(new SetToastTextCommand(emoji, message, durationMs));
 
-        public void SetImageToast(Bitmap icon, string message, int durationMs, int iconSizePx = 20)
-        {
-            if (icon == null)
-                return;
+        public void SetImageToast(Bitmap icon, string message, int durationMs, int iconSizePx = 20)=> EnqueueCommand(new SetToastIconCommand(icon, message, durationMs, iconSizePx));
 
-            EnqueueCommand(new SetToastIconCommand(icon, message, durationMs, iconSizePx));
-        }
+        public void SetDonut(string title, double value0to10, double startDeg, double endDeg, int durationMs = 0)=> EnqueueCommand(new SetDonutCommand(title, value0to10, startDeg, endDeg, durationMs));
 
-        public void SetDonut(string title, double value0to10, double startDeg, double endDeg, int durationMs = 0)
-        {
-            EnqueueCommand(new SetDonutCommand(title, value0to10, startDeg, endDeg, durationMs));
-        }
+        public void HideDonut()=> EnqueueCommand(new HideDonutCommand());
 
-        public void HideDonut()
-        {
-            EnqueueCommand(new HideDonutCommand());
-        }
+        public void SetGamepadOverlay(Gamepad state)=>   EnqueueCommand(new SetGamepadOverlayCommand(state));
 
-        public void SetGamepadOverlay(Gamepad state)
-        {
-            EnqueueCommand(new SetGamepadOverlayCommand(state));
-        }
-
-        public void HideGamepadOverlay()
-        {
-            EnqueueCommand(new HideGamepadOverlayCommand());
-        }
+        public void HideGamepadOverlay() =>  EnqueueCommand(new HideGamepadOverlayCommand());
 
         #endregion
 
@@ -245,6 +224,8 @@ namespace Daxs.GUI
                 if (element.Enabled)
                     element.Draw(e.Display, e.Viewport, uiScale, now);
             }
+
+           // e.Display.Draw2dText("conduit ON",System.Drawing.Color.Red,new Rhino.Geometry.Point2d(20, 40), false, 20);
         }
 
         protected override void OnEnable(bool enable)
@@ -286,6 +267,19 @@ namespace Daxs.GUI
             }
 
             Enabled = false;
+        }
+
+        public void Hide()
+        {
+            foreach (var element in _elements.Values)
+            {
+                if (element is GamepadOverlayElement overlay)
+                    overlay.Hide();
+                else if (element is ToastElement toast)
+                    toast.Hide();
+                else if (element is DonutGaugeElement donut)
+                    donut.Hide();
+            }
         }
 
         private void Disable()

@@ -136,6 +136,8 @@ namespace Daxs
             _cts.Cancel();
             State = DaxStatus.Stopped;
 
+            DisconnectAndDispose();
+
             if (!restart)
                 RhinoApp.WriteLine("Daxs stopped");
         }
@@ -338,12 +340,17 @@ namespace Daxs
             {
                 if (_gp == null || State != DaxStatus.Started || !_developerMode) //Disable
                 {
-                    _hud.HideGamepadOverlay();
+                    _hud.Hide();
                 }
                 else //Eneable
                 {
                     _hud.SetGamepadOverlay(_gp);
-                }                   
+                }
+
+                //RhinoApp.InvokeOnUiThread((Action)(() =>
+                //{
+                //    RhinoApp.WriteLine($"_gp: {(_gp == null ? "null" : "OK")} - State {State} - DEvelopermode: {_developerMode}");
+                //}));
             }
         }   
         #endregion
