@@ -65,7 +65,16 @@ namespace Daxs
 
             using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Daxs.Shared." + filename))
             {
-                bmp = new Bitmap(stream);
+                try
+                {
+                    bmp = new Bitmap(stream);
+                }
+                catch (Exception e )
+                {
+
+                    throw new Exception($"{filename}_ " + e);
+                }
+               
             }
 
             return bmp;

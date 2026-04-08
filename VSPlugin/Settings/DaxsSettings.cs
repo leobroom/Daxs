@@ -10,6 +10,7 @@ using Daxs.Layout;
 using Eto.Forms;
 using Eto.Drawing;
 using Rhino.UI;
+using Rhino;
 
 namespace Daxs.Settings
 {
@@ -50,6 +51,7 @@ namespace Daxs.Settings
         // Gamepad Daxs Info
         private Label _gamepadInfoLabel = new();
         private ImageView _gpImageView;
+        private readonly string _gpDefaultOfflineName = "DaxsGPLayout_offline.png";
         private readonly string _gpDefaultResName = "DaxsGPLayout_xBox.png";
         private readonly GpResource[] _gpResources = new GpResource[]
         {
@@ -272,12 +274,12 @@ namespace Daxs.Settings
         private string GetControllerResourceName(Gamepad gamepad)
         {
             if (gamepad == null)
-                return _gpDefaultResName;
+                return _gpDefaultOfflineName;
 
             string type = gamepad.GpType.ToLowerInvariant();
 
-            //string name = gamepad.Name.ToLowerInvariant();
-            //RhinoApp.WriteLine("Type: " +type + ", Name: " + name);
+            string name = gamepad.Name.ToLowerInvariant();
+            RhinoApp.WriteLine("Type: " +type + ", Name: " + name);
 
             foreach (GpResource res in _gpResources)
             {
@@ -286,7 +288,7 @@ namespace Daxs.Settings
                         return res.Name;
             }
 
-            // Default xBox fallback
+            // Default xBox fallback          
             return _gpDefaultResName;
         }
 
@@ -313,15 +315,19 @@ namespace Daxs.Settings
                 _gpImageView.Image = bmp;
                 _gpImageView.Size = new Size(w, h);
             }
+            //else 
+            //{
+            //    RhinoApp.WriteLine("No gampepad art found!");
+            //}
 
-            foreach (GamepadButton button in _inputActions.Keys)
-            {
-                Label label = _inputActions[button].Item1;
-                bool hasButton = gamepad != null && gamepad.HasGamepadButton(button);
+                foreach (GamepadButton button in _inputActions.Keys)
+                {
+                    Label label = _inputActions[button].Item1;
+                    bool hasButton = gamepad != null && gamepad.HasGamepadButton(button);
 
-                label.Enabled = hasButton;
-                label.Text = hasButton ? (gamepad.GetButtonLabel(button) is "Unknown" ? button.ToString() : gamepad.GetButtonLabel(button)) : button.ToString();
-            }
+                    label.Enabled = hasButton;
+                    label.Text = hasButton ? (gamepad.GetButtonLabel(button) is "Unknown" ? button.ToString() : gamepad.GetButtonLabel(button)) : button.ToString();
+                }
         }
         #endregion
 
