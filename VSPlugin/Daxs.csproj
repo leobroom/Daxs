@@ -6,7 +6,7 @@
     <NoWarn>NU1701</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
-    <Version>0.2.3</Version>
+    <Version>0.2.4</Version>
     <Title>Daxs</Title>
     <Company>Leon Brohmann</Company>
     <Description>Daxs is a Rhino plugin that adds stable, modern gamepad support through SDL 3 to Rhino, enabling compatibility with hundreds of controllers. Daxs makes navigating and interacting with Rhino feel as fluid and natural as moving inside a 3D game engine. It is designed to give Rhino a stable gamepad interface and customizable mappings, without intefering with Rhinos functionality. !CAUTION! Early Development Version: Daxs is currently in a very early stage and features, behavior, and APIs may change significantly.</Description>
@@ -85,7 +85,8 @@
     <WriteLinesToFile File="$(BumpScript)" Overwrite="true" Lines="@(_BumpScriptLines)" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('Windows'))" Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(BumpScript)&quot;" />
     <Exec Condition="$([MSBuild]::IsOSPlatform('OSX')) Or $([MSBuild]::IsOSPlatform('Linux'))" Command="pwsh -NoProfile -File &quot;$(BumpScript)&quot;" />
-  </Target> -->
+  </Target>
+  -->
   <Target Name="BuildYakPackage" AfterTargets="DispatchToInnerBuilds">
     <PropertyGroup>
       <YakExecutable Condition="$(YakExecutable) == '' and $([MSBuild]::IsOSPlatform(windows)) and Exists('C:\Program Files\Rhino 8\System\Yak.exe')">C:\Program Files\Rhino 8\System\Yak.exe</YakExecutable>
@@ -116,7 +117,7 @@
     <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="- xbox" Overwrite="false" WriteOnlyWhenDifferent="true" />
     <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="- ps4" Overwrite="false" WriteOnlyWhenDifferent="true" />
     <WriteLinesToFile File="$(OutputPath)/manifest.yml" Lines="- playstation" Overwrite="false" WriteOnlyWhenDifferent="true" />
-	  <Exec Command="&quot;$(YakExecutable)&quot; build --platform win" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
+    <Exec Command="&quot;$(YakExecutable)&quot; build --platform win" WorkingDirectory="$(OutputPath)" Condition="$(BuildYakPackage) == 'True'" />
   </Target>
   <!-- Optional: set to False to skip auto-install -->
   <PropertyGroup>

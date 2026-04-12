@@ -12,7 +12,7 @@ namespace Daxs.Settings
             Label label = new()
             {
                 Text = name,
-                Width = 80
+                Width = 100
             };
 
             return new TableCell(label);
