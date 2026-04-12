@@ -7,8 +7,8 @@ using Rhino.Display;
 var doc = __rhino_doc__;
 
 const string viewName = "Daxs Wiki";
-const int width = 1024; //1280
-const int height = 576; //720
+const int width = 800; //1024 //1280
+const int height = 450; //576 //720
 
 // Placement on screen
 var createRect = new Rectangle(100, 100, width, height);
