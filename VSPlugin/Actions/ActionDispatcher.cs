@@ -34,7 +34,8 @@ namespace Daxs.Actions
             { BindingId.NextViewport, new ViewportAction(InputX.IsDown)},
             { BindingId.NextDisplaymode, new DisplaymodeAction(InputX.IsDown)},
             { BindingId.NextNamedView, new NamedViewAction(InputX.IsDown)},
-            { BindingId.ChangeSpeed, new ChangeSpeedAction(InputX.IsHold)}
+            { BindingId.ChangeSpeed, new ChangeSpeedAction(InputX.IsHold)},
+            { BindingId.SaveNamedView, new SaveNamedViewAction(InputX.IsDown)},
         };
 
         //ActionQueue

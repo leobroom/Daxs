@@ -23,6 +23,7 @@
         Macro4,
         Macro5,
         Macro6,
-        ChangeSpeed
+        ChangeSpeed,
+        SaveNamedView
     }
 }
