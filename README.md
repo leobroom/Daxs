@@ -1,7 +1,7 @@
 # ![Daxs Logo](Resources/icon.png) Daxs
 > ⚠️ **Early Development Version:** Daxs is currently in a very early stage and features, behavior, and APIs may change significantly.
 
-**Daxs** is a Rhino plugin/package/app that brings gamepad support to Rhino.
+**Daxs** is a **Rhino 8** plugin/package/app that brings gamepad support to Rhino.
 
 Daxs (pronounced [[daˈks]](https://youtu.be/_Uw-8_C8lpg?si=rvCSB4eXKVYq_Fz7&t=7)  - from the German "Dachs"- badger) makes navigating and interacting with Rhino feel as fluid and natural as moving inside a 3D game engine. It is designed to give Rhino a stable gamepad interface and customizable mappings, **without intefering with Rhinos functionality**.
 
@@ -32,7 +32,9 @@ With gamepad support, navigation through geometry becomes significantly smoother
 - No movement, no loose on performance. Daxs runs a high-frequency input runtime that processes controller input independently of Rhino's UI thread.
 - Fully Customizable Button Mapping, including Rhino macros
  
-## Installation
+## Installation & Version
+- **Right now just Rhino 8 on Windows is supported.**
+- Update your Rhino first to the newest version!
 - packaged .yak installer for Rhino for now. [Check the latest release](https://github.com/leobroom/Daxs/releases)
 - Package Manager: You can install Dax over the Rhino Package Manager
 - Food For Rhino: Comming soon...
