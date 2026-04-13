@@ -42,22 +42,12 @@ With gamepad support, navigation through geometry becomes significantly smoother
 ## How to get started
 -> [Wikipage - How to get started](https://github.com/leobroom/Daxs/wiki#how-to-get-started)
 
+## Documentation
+-> [Wikipage - Documentation](https://github.com/leobroom/Daxs/wiki/Home-%E2%80%90-Welcome-to-the-Daxs-wiki!#documentation)
+
 ## Support
 - Create in Github directly an Issue - or:
 - [Visit the official support thread inside the official McNeel/Rhino forum](https://discourse.mcneel.com/t/daxs-plugin-gamepad-support-for-rhino/217538?u=leonbrohmann)
-
-## Documentation
-_WORK IN PROGRESS_
-
-### Commands
-#### Daxs: Fly
-Switch to Fly Mode. Free-flight navigation through the Rhino viewport.
-#### Daxs: Walk
-Switch to Walk Mode. Movement constrained to a ground plane or a Mesh. (Set Navigation mesh before).
-#### Daxs: Set Collision
-Set Navigation Mesh for Walk Mode
-#### Daxs: Clear navigation mesh
-Removes the navigation mesh from memory.
 
 ## License
 MIT License. See [MIT license](https://github.com/leobroom/Daxs/blob/main/LICENSE) for details.
