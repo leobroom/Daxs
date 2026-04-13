@@ -7,7 +7,7 @@ Daxs (pronounced [[daˈks]](https://youtu.be/_Uw-8_C8lpg?si=rvCSB4eXKVYq_Fz7&t=7
 
 | <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/fly.png" alt="Daxs Fly Mode" width="24"> Daxs Fly Mode  | <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/Walk.png" alt="Daxs Walk Mode" width="24"> Daxs Walk Mode |
 | ------------- | ------------- |
-| <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/Wiki/Daxs_FlyMode2.gif" alt="Daxs Fly Mode" width="450">  | <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/Wiki/Daxs_WalkMode2.gif" alt="Daxs Flywalk Mode" width="450"> |
+| <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/Wiki/Daxs_FlyMode2.gif" alt="Daxs Fly Mode" width="400">  | <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/Wiki/Daxs_WalkMode2.gif" alt="Daxs Flywalk Mode" width="400"> |
 | Fly through your model  | Walk through your model via navigation mesh, or a plane (first-person view)  |
 
 ### 
