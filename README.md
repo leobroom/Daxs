@@ -10,15 +10,6 @@ Daxs (pronounced [[daˈks]](https://youtu.be/_Uw-8_C8lpg?si=rvCSB4eXKVYq_Fz7&t=7
 | <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/Wiki/Daxs_FlyMode2.gif" alt="Daxs Fly Mode">  | <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/Wiki/Daxs_WalkMode2.gif" alt="Daxs Flywalk Mode"> |
 | Fly through your model  | Walk through your model via navigation mesh, or a plane (first-person view)  |
 
-### 
-
-
-
-### 
-
-
-
-
 ## Gamepads supported
 Daxs is built on top of SDL 3 (via a SDL3-CS wrapper) and supports hundreds of gamepad models and variants out of the box — automatically using SDL’s unified input layer.
 Supported Gamepads:
@@ -57,7 +48,7 @@ With gamepad support, navigation through geometry becomes significantly smoother
 -> [Wikipage - How to get started](https://github.com/leobroom/Daxs/wiki#how-to-get-started)
 
 ## Documentation
--> [Wikipage - Documentation](https://github.com/leobroom/Daxs/wiki/Home-%E2%80%90-Welcome-to-the-Daxs-wiki!#documentation)
+-> [Wikipage - Documentation](https://github.com/leobroom/Daxs/wiki#documentation)
 
 ## Support
 - Create in Github directly an Issue - or:
