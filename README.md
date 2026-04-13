@@ -32,7 +32,9 @@ With gamepad support, navigation through geometry becomes significantly smoother
 - No movement, no loose on performance. Daxs runs a high-frequency input runtime that processes controller input independently of Rhino's UI thread.
 - Fully Customizable Button Mapping, including Rhino macros
  
-## Installation
+## Installation & Version
+- **Right now just Rhino 8 on Windows is supported.**
+- Update your Rhino first to the newest version!
 - packaged .yak installer for Rhino for now. [Check the latest release](https://github.com/leobroom/Daxs/releases)
 - Package Manager: You can install Dax over the Rhino Package Manager
 - Food For Rhino: Comming soon...
