@@ -17,6 +17,16 @@ namespace Daxs
 
         protected override LoadReturnCode OnLoad(ref string errorMessage)
         {
+            var rVersion = RhinoApp.Version;
+
+            if (rVersion.Major < 8 || !Rhino.Runtime.HostUtils.RunningOnWindows)
+            {
+                errorMessage = "Daxs requires Rhino 8 or higher on Windows. IOS is not supported";
+                Rhino.UI.Dialogs.ShowMessage(errorMessage, "Daxs - Incompatible Rhino Version");
+
+                return LoadReturnCode.ErrorNoDialog;
+            }
+
             RhinoApp.Initialized += OnRhinoInitialized;
 
             return base.OnLoad(ref errorMessage);
