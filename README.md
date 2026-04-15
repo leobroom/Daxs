@@ -5,6 +5,11 @@
 
 Daxs (pronounced [[daˈks]](https://youtu.be/_Uw-8_C8lpg?si=rvCSB4eXKVYq_Fz7&t=7)  - from the German "Dachs"- badger) makes navigating and interacting with Rhino feel as fluid and natural as moving inside a 3D game engine. It is designed to give Rhino a stable gamepad interface and customizable mappings, **without intefering with Rhinos functionality**.
 
+| <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/fly.png" alt="Daxs Fly Mode" width="24"> Daxs Fly Mode  | <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/Walk.png" alt="Daxs Walk Mode" width="24"> Daxs Walk Mode |
+| ------------- | ------------- |
+| <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/Wiki/Daxs_FlyMode2.gif" alt="Daxs Fly Mode">  | <img src="https://raw.githubusercontent.com/leobroom/Daxs/main/Resources/Wiki/Daxs_WalkMode2.gif" alt="Daxs Flywalk Mode"> |
+| Fly through your model  | Walk through your model via navigation mesh, or a plane (first-person view)  |
+
 ## Gamepads supported
 Daxs is built on top of SDL 3 (via a SDL3-CS wrapper) and supports hundreds of gamepad models and variants out of the box — automatically using SDL’s unified input layer.
 Supported Gamepads:
@@ -42,22 +47,12 @@ With gamepad support, navigation through geometry becomes significantly smoother
 ## How to get started
 -> [Wikipage - How to get started](https://github.com/leobroom/Daxs/wiki#how-to-get-started)
 
+## Documentation
+-> [Wikipage - Documentation](https://github.com/leobroom/Daxs/wiki#documentation)
+
 ## Support
 - Create in Github directly an Issue - or:
 - [Visit the official support thread inside the official McNeel/Rhino forum](https://discourse.mcneel.com/t/daxs-plugin-gamepad-support-for-rhino/217538?u=leonbrohmann)
-
-## Documentation
-_WORK IN PROGRESS_
-
-### Commands
-#### Daxs: Fly
-Switch to Fly Mode. Free-flight navigation through the Rhino viewport.
-#### Daxs: Walk
-Switch to Walk Mode. Movement constrained to a ground plane or a Mesh. (Set Navigation mesh before).
-#### Daxs: Set Collision
-Set Navigation Mesh for Walk Mode
-#### Daxs: Clear navigation mesh
-Removes the navigation mesh from memory.
 
 ## License
 MIT License. See [MIT license](https://github.com/leobroom/Daxs/blob/main/LICENSE) for details.
