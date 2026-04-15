@@ -68,11 +68,11 @@ namespace Daxs.Settings
             Add(GamepadButton.East, BindingId.NextDisplaymode);
             Add(GamepadButton.South, BindingId.NextNamedView);
 
-            Add(GamepadButton.LeftShoulder, BindingId.TeleportPlus);
-            Add(GamepadButton.RightShoulder, BindingId.TeleportMinus);
+            Add(GamepadButton.RightShoulder, BindingId.TeleportPlus);
+            Add(GamepadButton.LeftShoulder, BindingId.TeleportMinus);
 
-            Add(GamepadAxis.LeftTrigger, BindingId.ElevatePlus);
-            Add(GamepadAxis.RightTrigger, BindingId.ElevateMinus);
+            Add(GamepadAxis.RightTrigger, BindingId.ElevatePlus);
+            Add(GamepadAxis.LeftTrigger, BindingId.ElevateMinus);
 
             Add(GamepadButton.LeftStick, BindingId.Speedmulti);
             Add(GamepadButton.RightStick, BindingId.RotSpeedMulti);
