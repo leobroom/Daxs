@@ -27,8 +27,8 @@ namespace Daxs.Layout
 
         protected override void BindMoveSpeed()
         {
-            moveSpeed = settings.BindNumeric("WalkSpeed", v => moveSpeed = v);
-            speedFactor = settings.BindNumeric("WalkSpeedFactor", v => speedFactor = v);
+            _moveSpeed = settings.BindNumeric("WalkSpeed", v => _moveSpeed = v);
+            _speedFactor = settings.BindNumeric("WalkSpeedFactor", v => _speedFactor = v);
         }
 
         protected override Plane CalculateCamPlane(double cp, double cy, double sy, double sp, double forward, double strafe, double vertical, double speedMulti, double delta, InputY teleport)
@@ -39,9 +39,9 @@ namespace Daxs.Layout
 
             Vector3d move = moveDir * (forward * speedMulti * delta)
                         + right * (strafe * speedMulti * delta)
-                        + zAxis * (vertical * speedMulti * delta);
+                        + _zAxis * (vertical * speedMulti * delta);
 
-            Point3d pos = camPlane.Origin + move;
+            Point3d pos = _camPlane.Origin + move;
 
             //Collision
             if (navMesh != null)

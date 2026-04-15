@@ -23,6 +23,8 @@ namespace Daxs.Settings
             //Gamepad
             Add("YawSensitivity", 2.0, 100,1,1000);
             Add("PitchSensitivity", 2.0, 100,1, 1000);
+            Add("InvertY-axis", false);
+
             Add("Deadzone", 0.175, 1, 0, 1,3);
             Add("FlySpeed", 25, 10,1, 100000, 2);
             Add("WalkSpeed", 5, 10, 1, 100000,2);

@@ -132,7 +132,7 @@ namespace Daxs.Settings
                 }
             };
 
-            string[] input = { "YawSensitivity", "PitchSensitivity", "Deadzone", "FlySpeed", "WalkSpeed", "ElevateSpeed", "FlySpeedFactor" , "WalkSpeedFactor" };
+            string[] input = { "YawSensitivity", "PitchSensitivity", "InvertY-axis","Deadzone", "FlySpeed", "WalkSpeed", "ElevateSpeed", "FlySpeedFactor" , "WalkSpeedFactor" };
 
             string[] general = { "AutoStart" };
             string[] hud = { "TextTime", "TextVisible", "DeveloperMode" };

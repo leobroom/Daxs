@@ -25,7 +25,7 @@ namespace Daxs.Layout
         protected readonly ActionDispatcher actionManager = ActionDispatcher.Instance;
         protected readonly HUD hud = HUD.Instance;
 
-        protected double deadzone, yawSensitivity, pitchSensitivity, speedFactor;
+        protected double deadzone, yawSensitivity, pitchSensitivity, _speedFactor;
 
         public BaseLayout() 
         {

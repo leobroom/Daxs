@@ -13,25 +13,27 @@ namespace Daxs.Layout
         public FlyLayout() : base() 
         {
             BindMoveSpeed();
-            elevateSpeed = settings.BindNumeric("ElevateSpeed", v => elevateSpeed = v);
+            _elevateSpeed = settings.BindNumeric("ElevateSpeed", v => _elevateSpeed = v);
+            _invertY = settings.BindBoolean("InvertY-axis", v => _invertY = v);
 
             hud.Enabled = true;        
         }
 
         public bool EnforceMovement = false; 
 
-        protected double moveSpeed, elevateSpeed;
+        protected bool _invertY = false;
+        protected double _moveSpeed, _elevateSpeed;
 
-        protected Plane camPlane;
+        protected Plane _camPlane;
 
-        double yawAcc = 0.0, pitchAcc = 0.0;
-        protected Vector3d zAxis = Vector3d.ZAxis;
-        readonly double rad85 = RhinoMath.ToRadians(85);
+        double _yawAcc = 0.0, _pitchAcc = 0.0;
+        protected Vector3d _zAxis = Vector3d.ZAxis;
+        readonly double _rad85 = RhinoMath.ToRadians(85);
 
         protected virtual void BindMoveSpeed() 
         {
-            moveSpeed = settings.BindNumeric("FlySpeed", v => moveSpeed = v);
-            speedFactor = settings.BindNumeric("FlySpeedFactor", v => speedFactor = v);
+            _moveSpeed = settings.BindNumeric("FlySpeed", v => _moveSpeed = v);
+            _speedFactor = settings.BindNumeric("FlySpeedFactor", v => _speedFactor = v);
         }
 
         public override void HandleInput(Gamepad state)
@@ -55,6 +57,11 @@ namespace Daxs.Layout
             var (yaw, pitch) = NormalizeStick(state.GetAxisValue(GamepadAxis.RightX), state.GetAxisValue(GamepadAxis.RightY));
             var (strafe, forward) = NormalizeStick(state.GetAxisValue(GamepadAxis.LeftX), state.GetAxisValue(GamepadAxis.LeftY));
 
+            //invert Y
+
+            if(_invertY)
+                pitch = -pitch;
+
             InputY teleport = actionManager.Teleport;
 
             bool hasMoved = yaw != 0 || pitch != 0 || forward != 0 || strafe != 0 || Math.Abs(vertical) > 0.02 || teleport != InputY.Default;
@@ -66,34 +73,34 @@ namespace Daxs.Layout
                     return;
 
                 Vector3d camDir = vp.CameraDirection;
-                Vector3d right = Vector3d.CrossProduct(zAxis, camDir); // Turntable basis (use world up to remove roll)
+                Vector3d right = Vector3d.CrossProduct(_zAxis, camDir); // Turntable basis (use world up to remove roll)
 
                 if (!right.Unitize())
                     right = Vector3d.XAxis; // guard near poles
 
-                camPlane = new Plane(vp.CameraLocation, camDir, right);
+                _camPlane = new Plane(vp.CameraLocation, camDir, right);
 
                 // Rebase angle accumulators to match viewport direction
                 double newYaw = Math.Atan2(camDir.Y, camDir.X);
                 double newPitch = Math.Asin(camDir.Z);
 
-                pitchAcc = GetPitch(newPitch);
-                yawAcc = newYaw;
+                _pitchAcc = GetPitch(newPitch);
+                _yawAcc = newYaw;
             }
 
             if (hasMoved || EnforceMovement)
             {
-                yawAcc += yaw * yawSensitivity * delta * rotSpeedMulti;
-                pitchAcc += pitch * pitchSensitivity * delta * rotSpeedMulti;
-                pitchAcc = GetPitch(pitchAcc);
+                _yawAcc += yaw * yawSensitivity * delta * rotSpeedMulti;
+                _pitchAcc += pitch * pitchSensitivity * delta * rotSpeedMulti;
+                _pitchAcc = GetPitch(_pitchAcc);
 
                 // Rebuild basis from yaw/pitch (turntable, world-up = +Z)
-                double cy = Math.Cos(yawAcc);
-                double sy = Math.Sin(yawAcc);
-                double cp = Math.Cos(pitchAcc);
-                double sp = Math.Sin(pitchAcc);
+                double cy = Math.Cos(_yawAcc);
+                double sy = Math.Sin(_yawAcc);
+                double cp = Math.Cos(_pitchAcc);
+                double sp = Math.Sin(_pitchAcc);
 
-                camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti * speedFactor * moveSpeed, delta, teleport);
+                _camPlane = CalculateCamPlane(cp, cy, sy, sp, forward, strafe, vertical, speedMulti * _speedFactor * _moveSpeed, delta, teleport);
             }
 
             actionManager.QueueActions();
@@ -117,11 +124,11 @@ namespace Daxs.Layout
                         if (!vp.IsPlanView)
                         {
                             //RhinoApp.WriteLine("" + vp + " | " + forward + " | " + strafe + " | " + vertical + " | " + pitch + " | " + moveSpeed + " | " + delta);
-                            vp.SetCameraLocation(camPlane.Origin, true);
-                            vp.SetCameraDirection(camPlane.XAxis, true);
+                            vp.SetCameraLocation(_camPlane.Origin, true);
+                            vp.SetCameraDirection(_camPlane.XAxis, true);
                         }
                         else
-                            ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, moveSpeed, delta);
+                            ApplyCameraPanControls(vp, forward, strafe, vertical, pitch, _moveSpeed, delta);
 
                         view.Redraw();
                     }
@@ -139,12 +146,12 @@ namespace Daxs.Layout
 
             Vector3d move = fwd * (forward * speedMulti * delta)
                         + right * (strafe * speedMulti * delta)
-                        + zAxis * (vertical * elevateSpeed * delta);
+                        + _zAxis * (vertical * _elevateSpeed * delta);
 
-            return new Plane(camPlane.Origin + move, fwd, right);
+            return new Plane(_camPlane.Origin + move, fwd, right);
         }
 
-        double GetPitch(double pitchAcc) => Math.Max(-rad85, Math.Min(rad85, pitchAcc));  // Limit
+        double GetPitch(double pitchAcc) => Math.Max(-_rad85, Math.Min(_rad85, pitchAcc));  // Limit
 
         static double GetNonLinearTrigger(double raw) 
         {
