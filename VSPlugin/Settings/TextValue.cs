@@ -9,6 +9,8 @@ namespace Daxs.Settings
 
         public string Name { get; private set; } = "unset";
 
+        public string ToolTip { get; private set; } = null;
+
         public event EventHandler<string>? ValueChanged;
 
         public string Value
@@ -21,11 +23,12 @@ namespace Daxs.Settings
             }
         }
 
-        public TextValue(string value, string name)
+        public TextValue(string value, string name, string toolTip)
         {
             Value = value;
             Name = name;
             defaultValue = value;
+            ToolTip = toolTip;
         }
 
         public void Reset() => Value = defaultValue;

@@ -7,13 +7,16 @@ namespace Daxs.Settings
 {
     internal static class EtoFactory
     {
-        internal static TableCell CreateLabel(string name) 
+        internal static TableCell CreateLabel(string name, string toolTip) //string toolTip = null
         {
             Label label = new()
             {
                 Text = name,
-                Width = 100
+                Width = 100,
             };
+
+            if(toolTip != null)
+                label.ToolTip = toolTip;
 
             return new TableCell(label);
         }
@@ -27,9 +30,9 @@ namespace Daxs.Settings
             };
         }
 
-        internal static TableRow CreateControlRow(string labelName, Control control) 
+        internal static TableRow CreateControlRow(string labelName, Control control, string toolTip) 
         {
-            var label = CreateLabel(labelName);
+            var label = CreateLabel(labelName, toolTip);
             return new TableRow(label, new TableCell(control, scaleWidth: true));
         }
 

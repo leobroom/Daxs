@@ -71,10 +71,8 @@ namespace Daxs
                 }
                 catch (Exception e )
                 {
-
                     throw new Exception($"{filename}_ " + e);
                 }
-               
             }
 
             return bmp;

@@ -11,6 +11,8 @@ namespace Daxs.Settings
 
         public string Name { get; private set; } = "unset";
 
+        public string ToolTip { get; private set; } = null;
+
         public event EventHandler<double>? ValueChanged;
 
 
@@ -54,7 +56,7 @@ namespace Daxs.Settings
             }
         }
 
-        public NumericValue(double value, double displayFactor, string name, double minValue, double maxValue, int decimalPlaces = 0)
+        public NumericValue(double value, double displayFactor, string name, double minValue, double maxValue, string toolTip, int decimalPlaces = 0)
         {
             Value = value;
             DisplayFactor = displayFactor;
@@ -63,6 +65,7 @@ namespace Daxs.Settings
             DecimalPlaces = decimalPlaces;
             MinValue = minValue;
             MaxValue = maxValue;
+            ToolTip = toolTip;
         }
 
         public void Reset() => Value = defaultValue;

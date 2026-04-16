@@ -18,38 +18,38 @@ namespace Daxs.Settings
         private DaxsConfig()
         {
             //Autostart
-            Add("AutoStart", true);
+            Add("AutoStart", "toolTipMissing", true);
 
             //Gamepad
-            Add("YawSensitivity", 2.0, 100,1,1000);
-            Add("PitchSensitivity", 2.0, 100,1, 1000);
-            Add("InvertY-axis", false);
+            Add("YawSensitivity","toolTipMissing", 2.0, 100,1,1000);
+            Add("PitchSensitivity", "toolTipMissing", 2.0, 100,1, 1000);
+            Add("InvertY-axis", "toolTipMissing", false);
 
-            Add("Deadzone", 0.175, 1, 0, 1,3);
-            Add("FlySpeed", 25, 10,1, 100000, 2);
-            Add("WalkSpeed", 5, 10, 1, 100000,2);
-            Add("ElevateSpeed", 25, 10, 1, 100000);
-            Add("FlySpeedFactor", 1, 1,0.1,10, 1);
-            Add("WalkSpeedFactor", 1, 1, 0.1, 10, 1);
+            Add("Deadzone", "toolTipMissing", 0.175, 1, 0, 1,3);
+            Add("FlySpeed", "toolTipMissing", 25, 10,1, 100000, 2);
+            Add("WalkSpeed", "toolTipMissing", 5, 10, 1, 100000,2);
+            Add("ElevateSpeed", "toolTipMissing", 25, 10, 1, 100000);
+            Add("FlySpeedFactor", "toolTipMissing", 1, 1,0.1,10, 1);
+            Add("WalkSpeedFactor", "toolTipMissing", 1, 1, 0.1, 10, 1);
 
             //Multiplicator
-            Add(BindingId.Speedmulti, 3, 1,0,10);
-            Add(BindingId.RotSpeedMulti, 3, 1, 0, 10);
+            Add(BindingId.Speedmulti, "toolTipMissing", 3, 1,0,10);
+            Add(BindingId.RotSpeedMulti, "toolTipMissing", 3, 1, 0, 10);
 
             //Text
-            Add("TextTime", 2000, 1,0,10000);
-            Add("TextVisible", true);
+            Add("TextTime", "toolTipMissing", 2000, 1,0,10000);
+            Add("TextVisible", "toolTipMissing", true);
 
             //Walking
-            Add("EyeHeight", 1.70, 1,0,10000,2);
-            Add("MaximalJump", 0.40, 1, 0, 10000, 2);
+            Add("EyeHeight", "toolTipMissing", 1.70, 1,0,10000,2);
+            Add("MaximalJump", "toolTipMissing", 0.40, 1, 0, 10000, 2);
 
             //Lens
-            Add("LensStep", 1, 1,1,10,2);
-            Add("LensDefault", 35, 1,1,100,2);
+            Add("LensStep", "toolTipMissing", 1, 1,1,10,2);
+            Add("LensDefault", "toolTipMissing", 35, 1,1,100,2);
 
             //Developer
-            Add("DeveloperMode", false);
+            Add("DeveloperMode", "toolTipMissing", false);
 
             foreach (GamepadAxis a in Enum.GetValues<GamepadAxis>())
                 Add(a, BindingId.Unset);
@@ -105,13 +105,13 @@ namespace Daxs.Settings
 
             LoadSettings();
         }
-        private void Add(BindingId rnum, double defaultValue, double displayFactor, double minValue, double maxValue) => Add(rnum.ToString(), defaultValue, displayFactor,  minValue,  maxValue);
-        private void Add(string name, double defaultValue, double displayFactor, double minValue, double maxValue, int decimalPlaces = 0) => iValues[name] = new NumericValue(defaultValue, displayFactor, name,  minValue,  maxValue, decimalPlaces); 
-        private void Add(string name, bool defaultValue)=> iValues[name] = new BooleanValue(defaultValue, name); 
-        private void Add(string name, string defaultValue) =>iValues[name] = new TextValue(defaultValue, name);
-        private void Add(string name, BindingId defaultValue)=>  iValues[name] = new TextValue(defaultValue.ToString(), name); 
-        private void Add(GamepadButton button, BindingId defaultValue) => Add(button.ToString(), defaultValue);
-        private void Add(GamepadAxis axis, BindingId defaultValue) => Add(axis.ToString(), defaultValue);
+        private void Add(BindingId rnum, string toolTip, double defaultValue, double displayFactor, double minValue, double maxValue) => Add(rnum.ToString(), toolTip, defaultValue, displayFactor,  minValue,  maxValue);
+        private void Add(string name, string toolTip, double defaultValue, double displayFactor, double minValue, double maxValue, int decimalPlaces = 0) => iValues[name] = new NumericValue(defaultValue, displayFactor, name,  minValue,  maxValue, toolTip,decimalPlaces); 
+        private void Add(string name, string toolTip, bool defaultValue)=> iValues[name] = new BooleanValue(defaultValue, name, toolTip); 
+        private void Add(string name, string toolTip, string defaultValue) =>iValues[name] = new TextValue(defaultValue, name, toolTip);
+        private void Add(string name, string toolTip, BindingId defaultValue)=>  iValues[name] = new TextValue(defaultValue.ToString(), name, toolTip); 
+        private void Add(GamepadButton button, BindingId defaultValue) => Add(button.ToString(),"", defaultValue);
+        private void Add(GamepadAxis axis, BindingId defaultValue) => Add(axis.ToString(),"", defaultValue);
 
         public IValue this[string name] => iValues.TryGetValue(name, out var v)  ? v  : throw new KeyNotFoundException($"No setting with the name '{name}' was found.");
 
@@ -168,6 +168,8 @@ namespace Daxs.Settings
                     settings.SetBool(bV.Name, bV.Value);
                 else if (iVal is TextValue tV)
                     settings.SetString(tV.Name, tV.Value);
+
+                settings.SetString(iVal.Name, iVal.ToolTip);
             }
 
             PlugIn.SavePluginSettings(id);

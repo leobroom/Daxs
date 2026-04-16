@@ -144,16 +144,16 @@ namespace Daxs.Settings
             Control[] inputRows =
             {
                 _gpImageView,
-                EtoFactory.CreateGroupExpander("Input Response", input, name => CreateControl(name), true),
+                EtoFactory.CreateGroupExpander("Input Response", input, name => CreateControl(name, name, ""), true),
                 EtoFactory.CreateContentExpander("Input Layout", AddButtonDropdowns(), true)
             };
 
             Control[] settingRows =
             {
-                EtoFactory.CreateGroupExpander("General", general, name => CreateControl(name), true),
-                EtoFactory.CreateGroupExpander("HUD", hud, name => CreateControl(name), true),
-                EtoFactory.CreateGroupExpander("WalkMode", walk, name => CreateControl(name), true),
-                EtoFactory.CreateGroupExpander("Lens+-", lens, name => CreateControl(name), true)
+                EtoFactory.CreateGroupExpander("General", general, name => CreateControl(name, name, ""), true),
+                EtoFactory.CreateGroupExpander("HUD", hud, name => CreateControl(name, name, ""), true),
+                EtoFactory.CreateGroupExpander("WalkMode", walk, name => CreateControl(name, name, ""), true),
+                EtoFactory.CreateGroupExpander("Lens+-", lens, name => CreateControl(name, name, ""), true)
             };
 
             Control[] customRows = { CreateMacro() };
@@ -186,7 +186,7 @@ namespace Daxs.Settings
             SetGamepadType(DaxsRuntime.Instance.CurrentGamepad);
         }
 
-        TableRow CreateControl(string settingsName, string labelName = "")
+        TableRow CreateControl(string settingsName, string labelName, string toolTip)
         {
             IValue val = _settings[settingsName];
             Control control = null;
@@ -221,7 +221,7 @@ namespace Daxs.Settings
 
             labelName = labelName == "" ? settingsName : labelName;
 
-            return EtoFactory.CreateControlRow(labelName, control);
+            return EtoFactory.CreateControlRow(labelName, control, toolTip);
         }
 
         void OnOk()
@@ -341,10 +341,10 @@ namespace Daxs.Settings
             {
                 var layout = EtoFactory.CreateLayout();
 
-                TableRow nameRow = CreateControl($"Macro{i}_Name", "Name");
+                TableRow nameRow = CreateControl($"Macro{i}_Name", "Name", "");
                 layout.Add(nameRow);
-                layout.Add(CreateControl($"Macro{i}_Function", "RhinoScript"));
-                layout.Add(CreateControl($"Macro{i}_SimulateKeys", "Simulate keys"));
+                layout.Add(CreateControl($"Macro{i}_Function", "RhinoScript", ""));
+                layout.Add(CreateControl($"Macro{i}_SimulateKeys", "Simulate keys", ""));
 
                 var textBox = (TextBox)nameRow.Cells[1].Control;
                 var subExpander = CreateMacroExpander($"Macro {i}", $"Macro{i}", layout, textBox);
@@ -506,7 +506,7 @@ namespace Daxs.Settings
                 SyncActionDropDowns();
             };
 
-            TableRow tr = EtoFactory.CreateControlRow(buttonName, dropdown);
+            TableRow tr = EtoFactory.CreateControlRow(buttonName, dropdown,"");
             Label label = (Label)tr.Cells[0].Control;
 
             _inputActions.Add(button, new Tuple<Label, DropDown>(label, dropdown));

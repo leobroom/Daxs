@@ -9,6 +9,8 @@ namespace Daxs.Settings
 
         public string Name { get; private set; } = "unset";
 
+        public string ToolTip { get; private set; } = null;
+
         public event EventHandler<bool?> ValueChanged;
 
         public bool Value
@@ -22,11 +24,12 @@ namespace Daxs.Settings
             }
         }
 
-        public BooleanValue(bool value, string name)
+        public BooleanValue(bool value, string name, string toolTip)
         {
             _value = value;
             _defaultValue = value;
             Name = name;
+            ToolTip = toolTip;
         }
 
         public void Toggle() => Value = !_value;
