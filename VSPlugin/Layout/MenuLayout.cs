@@ -12,7 +12,7 @@ namespace Daxs.Layout
         [DllImport("user32.dll", SetLastError = true)]
         private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
 
-        private const byte KEY_UP = 0x26, KEY_DOWN = 0x28, KEY_TAB = 0x09, KEY_SHIFT = 0x10, KEY_ESCAPE = 0x1B, KEY_ENTER = 0x0D, KEY_LEFT = 0x25, KEY_RIGHT = 0x27;
+        private const byte KEY_UP = 0x26, KEY_DOWN = 0x28, KEY_TAB = 0x09, KEY_SHIFT = 0x10, KEY_ESCAPE = 0x1B, KEY_ENTER = 0x0D, KEY_LEFT = 0x25, KEY_RIGHT = 0x27, KEY_SPACE = 0x20;
         public override void HandleInput(Gamepad state)
         {
             RhinoApp.InvokeOnUiThread((Action)(() =>
@@ -22,6 +22,13 @@ namespace Daxs.Layout
                 {
                     hud.SetText("🎮", "Enter");
                     SimulateKey(KEY_ENTER);
+                }
+
+                //Space
+                if (state.GetButtonState(GamepadButton.West) == InputX.IsDown)
+                {
+                    hud.SetText("🎮", "Space");
+                    SimulateKey(KEY_SPACE);
                 }
 
                 //Escape
