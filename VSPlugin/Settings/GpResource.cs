@@ -7,7 +7,7 @@
     {
         public GpResource(string imageName, params string[] filter)
         {
-            Name = "Daxs.Shared." + imageName;
+            Name = imageName;
             Filters = filter;
         }
 

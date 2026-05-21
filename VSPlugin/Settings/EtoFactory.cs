@@ -30,9 +30,9 @@ namespace Daxs.Settings
             };
         }
 
-        internal static TableRow CreateControlRow(string labelName, Control control, string toolTip) 
+        internal static TableRow CreateControlRow(string labelName, Control control) 
         {
-            var label = CreateLabel(labelName, toolTip);
+            var label = CreateLabel(labelName, control.ToolTip);
             return new TableRow(label, new TableCell(control, scaleWidth: true));
         }
 

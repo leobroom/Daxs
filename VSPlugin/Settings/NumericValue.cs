@@ -32,6 +32,8 @@ namespace Daxs.Settings
             }
         }
 
+        public object ObjectValue { get => Value; }
+
         public double DisplayValue
         {
             get => _displayValue;

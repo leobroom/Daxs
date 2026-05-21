@@ -23,6 +23,8 @@ namespace Daxs.Settings
             }
         }
 
+        public object ObjectValue { get => Value; }
+
         public TextValue(string value, string name, string toolTip)
         {
             Value = value;

@@ -24,6 +24,8 @@ namespace Daxs.Settings
             }
         }
 
+        public object ObjectValue { get => Value; }
+
         public BooleanValue(bool value, string name, string toolTip)
         {
             _value = value;
